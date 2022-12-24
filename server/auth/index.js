@@ -19,7 +19,7 @@ const auth = async (req, res, next) => {
     console.log(req.body);
     console.log("==END REQUEST======================");
 
-    await sleep(500);
+    // await sleep(500);
     
     if (!req.headers.authorization) {
         res.status(401).send({error : "Token not valid"});
