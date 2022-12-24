@@ -108,8 +108,8 @@ function DiskFile(props) {
     <Row>
         <Col>
             <Form.Group className="mb-3">
-                <Button style={{marginLeft : "2px"}} type="button" onClick={handleBackClick} variant="outline-secondary" >Вернуться</Button>   
-                <Button style={{marginLeft : "2px"}} type="button" onClick={handleEditClick} variant="outline-secondary" >Изменить</Button>   
+                <Button style={{marginLeft : "2px"}} type="button" onClick={handleBackClick} variant="outline-secondary" ><i class="bi bi-chevron-left"></i></Button>   
+                <Button style={{marginLeft : "2px"}} type="button" onClick={handleEditClick} variant="outline-secondary" >Изменить файл</Button>   
             </Form.Group>
         </Col>
     </Row>    
@@ -131,9 +131,9 @@ function DiskFile(props) {
     <Row>
         <Col>
             <Form.Group className="mb-3">
-                <Button style={{marginLeft : "2px"}} type="submit" variant="outline-success" >Сохранить</Button>
-                <Button style={{marginLeft : "2px"}} type="button" variant="outline-secondary"onClick={handleCancelClick} >Отмена</Button>
-                <Button style={{marginLeft : "2px"}} type="button" variant="outline-danger" onClick={handleDeleteClick}>Удалить</Button>
+            <Button style={{marginLeft : "2px"}} type="button" variant="outline-secondary"onClick={handleCancelClick} ><i class="bi bi-chevron-left"></i></Button>
+                <Button style={{marginLeft : "2px"}} type="submit" variant="outline-success" >Сохранить изменения</Button>
+                <Button style={{marginLeft : "2px"}} type="button" variant="outline-danger" onClick={handleDeleteClick}><i class="bi bi-trash"></i></Button>
             </Form.Group>
         </Col>
     </Row>  

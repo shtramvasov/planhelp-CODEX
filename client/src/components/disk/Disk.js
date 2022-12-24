@@ -168,10 +168,10 @@ function Disk(props) {
     <Row>
         <Col>
             <Form.Group className="mb-3" controlId="formFindText">
-                <Button variant="outline-primary" onClick={actionCallModalNewPath}>Новая папка</Button>
-                <Button style={{marginLeft : "2px"}} variant="outline-primary" onClick={actionCallModalNewFile}>Новый Файл</Button>
+                <Button variant="outline-primary" onClick={actionCallModalNewPath}><i class="bi bi-folder-plus"></i></Button>
+                <Button style={{marginLeft : "2px"}} variant="outline-primary" onClick={actionCallModalNewFile}><i class="bi bi-file-earmark-plus"></i></Button>
                 {entity_id?
-                <Button style={{marginLeft : "2px"}} type="button" variant="outline-secondary" onClick={handleEditEntity}>Изменить</Button>
+                <Button style={{marginLeft : "2px"}} type="button" variant="outline-secondary" onClick={handleEditEntity}>Изменить папку</Button>
                 :""}
                 {/* <Button style={{marginLeft : "2px"}} type="button" variant="" onClick={deleteEntity}>Удалить</Button> */}
             </Form.Group>
