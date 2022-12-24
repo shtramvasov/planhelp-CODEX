@@ -1,0 +1,7 @@
+module.exports = {
+    http_port : 3001,
+    db_host : "",
+    db_user : "",
+    db_pass : "",
+    db : ""
+}
