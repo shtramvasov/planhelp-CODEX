@@ -8,23 +8,23 @@
 # See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
 
 # dependencies
-/front/node_modules
-/front/.pnp
-/front/.pnp.js
+/client/node_modules
+/client/.pnp
+/client/.pnp.js
 
 # testing
-/front/coverage
+/client/coverage
 
 # production
-/front/build
+/client/build
 
 # misc
-/front/.DS_Store
-/front/.env.local
-/front/.env.development.local
-/front/.env.test.local
-/front/.env.production.local
+/client/.DS_Store
+/client/.env.local
+/client/.env.development.local
+/client/.env.test.local
+/client/.env.production.local
 
-/front/npm-debug.log*
-/front/yarn-debug.log*
-/front/yarn-error.log*
+/client/npm-debug.log*
+/client/yarn-debug.log*
+/client/yarn-error.log*
