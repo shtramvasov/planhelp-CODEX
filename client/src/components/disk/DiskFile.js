@@ -20,6 +20,8 @@ function DiskFile(props) {
     const Disk = useSelector((state) => state.disk);
     const navigate = useNavigate();
 
+    document.title = Disk.entity.entity_name+" | planhelp";
+
     const  convert = (text) => {
         if (!text) return;
         const urlRegex = /(https?:\/\/[^\s]+)/g;
@@ -98,8 +100,16 @@ function DiskFile(props) {
     </Row>
     {mode==="read"?
     <div>
+        
     <Row>
-        <Col xs={10}>
+        <Col>
+            <Form.Group className="mb-3">
+                <Button style={{marginLeft : "2px"}} type="button" onClick={handleEditClick} variant="outline-secondary" >Изменить</Button>   
+            </Form.Group>
+        </Col>
+    </Row>    
+    <Row>
+        <Col>
             <h2>{Disk.entity.entity_name}</h2>
         </Col>
     </Row>
@@ -109,17 +119,21 @@ function DiskFile(props) {
                 {convert(Disk.entity.entity_note)}
             </div>
         </Col>
-        <Col xs={2}>
-            <div>
-                <a href="#" onClick={handleEditClick}>Редактировать</a>
-            </div>
-        </Col>
     </Row>
     </div>
     :
     <form onSubmit={handleSubmit}>
     <Row>
-        <Col xs={10}>
+        <Col>
+            <Form.Group className="mb-3">
+                <Button style={{marginLeft : "2px"}} type="submit" variant="outline-success" >Сохранить</Button>
+                <Button style={{marginLeft : "2px"}} type="button" variant="outline-secondary"onClick={handleCancelClick} >Отмена</Button>
+                <Button style={{marginLeft : "2px"}} type="button" variant="outline-danger" onClick={handleDeleteClick}>Удалить</Button>
+            </Form.Group>
+        </Col>
+    </Row>  
+    <Row>
+        <Col>
             <Form.Group className="mb-3" controlId="formEntityName">
             <Form.Control 
                 controlid="formEntityName"
@@ -140,17 +154,6 @@ function DiskFile(props) {
                 style={{marginTop: "10px",width: "100%", border : "1px solid silver", padding : "15px"}}
             />
             </Form.Group>
-            </div>
-        </Col>
-        <Col xs={2}>
-            <div style={{marginTop : "2px"}}>
-                <Button type="button" onClick={handleCancelClick}>Отменить</Button>
-            </div>
-            <div style={{marginTop : "2px"}}>
-                <Button type="submit">Сохранить</Button>
-            </div>
-            <div style={{marginTop : "2px"}}>
-                <Button type="button" variant="warning" onClick={handleDeleteClick}>Удалить</Button>
             </div>
         </Col>
     </Row>

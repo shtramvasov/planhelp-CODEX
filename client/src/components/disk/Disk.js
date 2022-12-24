@@ -16,7 +16,7 @@ import { useParams } from 'react-router-dom';
 
 function Disk(props) {
     
-    const { entity_id } = useParams();
+    const { entity_id, mode } = useParams();
     const [ searchParams ] = useSearchParams();
     const dispatch = useDispatch()
     const Disk = useSelector((state) => state.disk);
@@ -34,7 +34,7 @@ function Disk(props) {
             }
         });
     };
-
+    document.title = Disk.entity.entity_type !=='ROOT'? Disk.entity.entity_name+" | planhelp":"Диск | planhelp";
     // Первичная загрузка данных,
     // Последующие загрзки при измененеии entity_id
     useEffect(() => {
@@ -117,6 +117,10 @@ function Disk(props) {
         }
     }
      
+    const handleEditEntity = () => {
+        navigate(`/disk/${entity_id}/path/edit`);
+    }
+
     const listItems = Disk.entity.childEntityList ? Disk.entity.childEntityList.map((el) =>
     // onClick={(e) => {handleClick(el.entity_type,el.entity_id)}} 
         <ListGroup.Item key={el.entity_id} 
@@ -162,23 +166,26 @@ function Disk(props) {
         </Col>
     </Row>
     <Row>
-        <Col xs={1}>
-            <div>
-                <Button variant="primary" onClick={actionCallModalNewPath}>Папка+</Button>
-            </div>
-            <div>
-                <Button style={{marginTop : "2px"}} variant="primary" onClick={actionCallModalNewFile}>Файл+</Button>
-            </div>
+        <Col>
+            <Form.Group className="mb-3" controlId="formFindText">
+                <Button variant="outline-primary" onClick={actionCallModalNewPath}>Новая папка</Button>
+                <Button style={{marginLeft : "2px"}} variant="outline-primary" onClick={actionCallModalNewFile}>Новый Файл</Button>
+                {entity_id?
+                <Button style={{marginLeft : "2px"}} type="button" variant="outline-secondary" onClick={handleEditEntity}>Изменить</Button>
+                :""}
+                {/* <Button style={{marginLeft : "2px"}} type="button" variant="" onClick={deleteEntity}>Удалить</Button> */}
+            </Form.Group>
         </Col>
+    </Row>
+    <Row>
+        <Col>
+            <h2>{Disk.entity.entity_type === 'PATH'?Disk.entity.entity_name:""}</h2>
+        </Col>
+    </Row>
+    <Row>
         <Col>
         <ListGroup >{listItems}</ListGroup>
         </Col>
-        {entity_id?
-        <Col xs={2}>
-            <div style={{marginTop : "2px"}}>
-                <Button type="button" variant="warning" onClick={deleteEntity}>Удалить</Button>
-            </div>
-        </Col>:""}
     </Row>
     </Container>
     );

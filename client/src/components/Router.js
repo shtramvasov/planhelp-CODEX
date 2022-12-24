@@ -4,6 +4,7 @@ import { Logout}  from "./login/Logout";
 import Main from "./main/Main";
 import Disk from "./disk/Disk";
 import DiskFile from "./disk/DiskFile";
+import DiskPath from "./disk/DiskPath";
 import Task from "./task/Task";
 import Hr from "./hr/Hr";
 
@@ -28,6 +29,10 @@ const router = createBrowserRouter([
     {
         path: "/disk/:entity_id/file/:mode",
         element: <DiskFile />,
+    },
+    {
+        path: "/disk/:entity_id/path/:mode",
+        element: <DiskPath />,
     },
     {
         path: "/task",
