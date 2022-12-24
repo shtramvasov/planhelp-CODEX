@@ -30,10 +30,10 @@ function ModalOneInputText(props) {
             </Form.Group>                
         </Modal.Body>
         <Modal.Footer>
-            <Button variant="secondary" onClick={closeMe}>
+            <Button variant="outline-secondary" onClick={closeMe}>
                 Закрыть
             </Button>
-            <Button variant="primary" type="submit">
+            <Button variant="outline-primary" type="submit">
                 Сохранить
             </Button>
         </Modal.Footer>    

@@ -62,6 +62,10 @@ function DiskFile(props) {
         deleteEntity();
     }
 
+    const handleBackClick = () => {
+        navigate(`/disk/${Disk.entity.parent_entity_id?Disk.entity.parent_entity_id:""}`);
+    }
+
     const handleSubmit = (e) => {
         e.preventDefault();
         // console.log(e.target.formEntityName.value);
@@ -104,6 +108,7 @@ function DiskFile(props) {
     <Row>
         <Col>
             <Form.Group className="mb-3">
+                <Button style={{marginLeft : "2px"}} type="button" onClick={handleBackClick} variant="outline-secondary" >Вернуться</Button>   
                 <Button style={{marginLeft : "2px"}} type="button" onClick={handleEditClick} variant="outline-secondary" >Изменить</Button>   
             </Form.Group>
         </Col>
