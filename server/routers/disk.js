@@ -98,16 +98,47 @@ router.get('/find/:search', async (req, res, next) => {
 // Сохраняет новую папку или новый файл
 router.post('/', async (req, res, next) => {
     let con;
+    let parent;
     try {
         const { entity_name, entity_type, entity_note, parent_entity_id } = req.body;
         if (!entity_name || !entity_type) throw "No entity_name or entity_type in data";
         con = await mysql.getConnection();
         await mysql.begin(con);
+        // смотрим на уровень выше для получения дефолтных прав и построения денормализованного дерева
+        if (parent_entity_id) {
+            // блокируем запись, вдруг она кем то процессится в данный момент
+            parent = (await mysql.query(con, 
+            `select entity_tree
+                from disk_entity
+                where entity_id = ?
+                  for update`, [ parent_entity_id ]))[0];
+        }
+        const entityTree = parent_entity_id ? parent.entity_tree + '/' : "";
         await mysql.query(con, 
-            `insert into disk_entity(entity_name, entity_note, entity_type, parent_entity_id, created_by, created_on, is_deleted)
-            values(?,?,?,?,?,now(),'N')`,
-            [ entity_name, entity_note, entity_type, parent_entity_id, req.userModel.user_id ] );
+            `insert into disk_entity(
+                entity_name, 
+                entity_note, 
+                entity_type, 
+                parent_entity_id, 
+                created_by, 
+                created_on, 
+                is_deleted,
+                entity_tree)
+            values(
+                ?,
+                ?,
+                ?,
+                ?,
+                ?,
+                now(),
+                'N',
+                ?
+                )`,
+            [ entity_name, entity_note, entity_type, parent_entity_id, req.userModel.user_id, entityTree ] );
         const entity_id = (await mysql.query(con,`select LAST_INSERT_ID() entity_id`))[0].entity_id;
+        await mysql.query(con,
+            `update disk_entity set entity_tree = concat(entity_tree, ?) where entity_id = ?`,
+            [ entity_id, entity_id ]);
         res.send({entity_id : entity_id});
     } catch(err) {
         con && await mysql.rollback(con);
