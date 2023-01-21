@@ -14,6 +14,32 @@ export async function getDiskEntity({entity_id, search}, cb = () => {}) {
     }
 }
 
+export async function getDiskEntityActivity({entity_id}, cb = () => {}) {
+    const response = await fetch(`/api/secure/disk/${entity_id}/activity`, {
+        method: 'get',
+        headers: {'Authorization': `Bearer ${Cookies.get("secret")}`}
+    });
+    if (response.ok) {
+        const data = await response.json();
+        cb(null,data);
+    } else {
+        cb(response.status + " " + response.statusText);
+    }
+}
+
+export async function getDiskEntityActivityOld({entity_id,activity_id}, cb = () => {}) {
+    const response = await fetch(`/api/secure/disk/${entity_id}/activity/${activity_id}`, {
+        method: 'get',
+        headers: {'Authorization': `Bearer ${Cookies.get("secret")}`}
+    });
+    if (response.ok) {
+        const data = await response.json();
+        cb(null,data);
+    } else {
+        cb(response.status + " " + response.statusText);
+    }
+}
+
 export async function postDiskEntity(
     {entity_id, entity_name, entity_note, parent_entity_id, entity_type}, cb = () => {}) {
     const response = await fetch(`/api/secure/disk/${entity_id?entity_id:""}`, {

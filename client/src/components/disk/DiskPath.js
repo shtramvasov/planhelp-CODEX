@@ -85,9 +85,9 @@ function DiskPath(props) {
     <Row>
         <Col>
             <Form.Group className="mb-3">
-            <Button style={{marginLeft : "2px"}} type="button" variant="outline-secondary"onClick={handleCancelEntity} ><i class="bi bi-chevron-left"></i></Button>
+            <Button style={{marginLeft : "2px"}} type="button" variant="outline-secondary"onClick={handleCancelEntity} ><i className="bi bi-chevron-left"></i></Button>
                 <Button style={{marginLeft : "2px"}} type="submit" variant="outline-success" >Сохранить изменения</Button>
-                <Button style={{marginLeft : "2px"}} type="button" variant="outline-danger" onClick={handleDeleteEntity}><i class="bi bi-folder-x"></i></Button>
+                <Button style={{marginLeft : "2px"}} type="button" variant="outline-danger" onClick={handleDeleteEntity}><i className="bi bi-folder-x"></i></Button>
             </Form.Group>
         </Col>
     </Row>

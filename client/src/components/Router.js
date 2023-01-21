@@ -2,9 +2,12 @@ import { createBrowserRouter, RouterProvider, useNavigate, useLocation} from "re
 import { Login}  from "./login/Login";
 import { Logout}  from "./login/Logout";
 import Main from "./main/Main";
+import Profile from "./profile/Profile";
 import Disk from "./disk/Disk";
 import DiskFile from "./disk/DiskFile";
 import DiskPath from "./disk/DiskPath";
+import DiskActivity from "./disk/DiskActivity";
+import DiskActivityOld from "./disk/DiskActivityOld";
 import Task from "./task/Task";
 import Hr from "./hr/Hr";
 
@@ -35,6 +38,14 @@ const router = createBrowserRouter([
         element: <DiskPath />,
     },
     {
+        path: "/disk/:entity_id/activity",
+        element: <DiskActivity />,
+    },
+    {
+        path: "/disk/:entity_id/activity/:activity_id",
+        element: <DiskActivityOld />,
+    },
+    {
         path: "/task",
         element: <Task />,
     },
@@ -45,6 +56,10 @@ const router = createBrowserRouter([
     {
         path: "/login",
         element: <Login />,
+    },
+    {
+        path: "/profile",
+        element: <Profile />,
     },
     {
         path: "/logout",

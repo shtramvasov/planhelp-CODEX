@@ -121,6 +121,10 @@ function Disk(props) {
         navigate(`/disk/${entity_id}/path/edit`);
     }
 
+    const handleInfoEntity = () => {
+        navigate(`/disk/${entity_id}/activity`);
+    }
+
     const listItems = Disk.entity.childEntityList ? Disk.entity.childEntityList.map((el) =>
     // onClick={(e) => {handleClick(el.entity_type,el.entity_id)}} 
         <ListGroup.Item key={el.entity_id} 
@@ -128,7 +132,8 @@ function Disk(props) {
             onClick={(e) => {handleClick(e,el.entity_type,el.entity_id)}} 
             variant={el.entity_type === "PATH"?"success":""}
             >
-            {el.type === "PATH" ? <strong>{el.entity_name}</strong> : <small>{el.entity_name}</small>}    
+            {el.entity_type === "PATH"?<i className="bi bi-folder2"> </i>:<i className="bi bi-file-earmark-text"> </i>}
+            {el.entity_name}
         </ListGroup.Item>
     ):[];
     // Рут элемент
@@ -168,12 +173,15 @@ function Disk(props) {
     <Row>
         <Col>
             <Form.Group className="mb-3" controlId="formFindText">
-                <Button variant="outline-primary" onClick={actionCallModalNewPath}><i class="bi bi-folder-plus"></i></Button>
-                <Button style={{marginLeft : "2px"}} variant="outline-primary" onClick={actionCallModalNewFile}><i class="bi bi-file-earmark-plus"></i></Button>
+                <Button variant="outline-primary" onClick={actionCallModalNewPath}><i className="bi bi-folder-plus"></i></Button>
+                <Button style={{marginLeft : "2px"}} variant="outline-primary" onClick={actionCallModalNewFile}><i className="bi bi-file-earmark-plus"></i></Button>
                 {entity_id?
                 <Button style={{marginLeft : "2px"}} type="button" variant="outline-secondary" onClick={handleEditEntity}>Изменить папку</Button>
                 :""}
-                {/* <Button style={{marginLeft : "2px"}} type="button" variant="" onClick={deleteEntity}>Удалить</Button> */}
+                {
+                Disk.entity.entity_type === "ROOT"?"":
+                <Button style={{marginLeft : "2px"}} type="button" variant="outline-secondary" onClick={handleInfoEntity}><i className="bi bi-info-circle"></i></Button>
+                }
             </Form.Group>
         </Col>
     </Row>

@@ -2,12 +2,31 @@ const express = require('express');
 const router = express.Router();
 const mysql = require('../mysqlhelper');
 
-router.post('/login', async (req, res, next) => {
-    res.send({ok:true});
+// Возвращает профиль пользователя
+router.get('/', async (req, res, next) => {
+    delete req.userModel['secret'];
+    res.send(req.userModel);
 });
 
-router.get('/', async (req, res, next) => {
-    console.log("userRouter /");
+// Изменение профиля
+router.post('/', async (req, res, next) => {
+    const { secret } = req.body;
+    let con;
+    try {
+        if (!secret) {
+            throw "no secret";
+        }
+        con = await mysql.getConnection();
+        await mysql.begin(con);
+        await mysql.query(con, 
+            `update ref_users set secret = upper(md5(?)) where user_id = ?`,
+            [ secret, req.userModel.user_id ]);
+    } catch(err) {
+        con && await mysql.rollback(con);
+        next(err);
+    } finally {
+        con && await mysql.commit(con) && await mysql.releaseConnection(con);
+    }
     res.send({ok:true});
 });
 

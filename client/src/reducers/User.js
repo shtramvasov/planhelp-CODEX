@@ -9,7 +9,7 @@ export const userSlice = createSlice({
     reducers: {
         login: (state, action) => {
             console.log(action.payload.secret)
-            Cookies.set("secret",action.payload);
+            Cookies.set("secret",action.payload, { expires: 365 });
             state.isLogin = true ;
         },
         logout: (state) => {

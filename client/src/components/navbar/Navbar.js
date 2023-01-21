@@ -25,6 +25,9 @@ export function Navbar(props) {
             <Nav.Link as={Link} to="/hr">Люди</Nav.Link>
         </Nav.Item>
         <Nav.Item>
+            <Nav.Link as={Link} to="/profile">Профиль</Nav.Link>
+        </Nav.Item>
+        <Nav.Item>
             <Nav.Link as={Link} to="/logout">Выйти</Nav.Link>
         </Nav.Item>
     </Nav>

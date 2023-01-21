@@ -15,8 +15,9 @@ router.post('/', async (req, res, next) => {
                         `select *
                            from ref_users
                           where login = ?
-                            and secret = ?`,
-                          [login,password]);
+                            and (secret = ? 
+                                    or secret = upper(md5(?)))`,
+                          [login,password,password]);
         if (!user.length) {
             res.status(401).send({ok:false});
         } else {

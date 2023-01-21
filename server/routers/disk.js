@@ -23,8 +23,9 @@ router.get('/:entity_id?', async (req, res, next) => {
                         de.entity_type, 
                         de.parent_entity_id, 
                         de.created_by, 
-                        de.created_on
-                   from disk_entity de
+                        de.created_on,
+                        u.login
+                   from disk_entity de inner join ref_users u on de.created_by = u.user_id
                   where de.entity_id = ?
                     and exists (select 1 
                                   from disk_entity_users deu 
@@ -76,33 +77,46 @@ router.get('/:entity_id?', async (req, res, next) => {
     }
 });
 
-// // Возвращает эелементы при поиске по словам
-// router.get('/find/:search', async (req, res, next) => {
-//     const { search } = req.params;
-//     let con;
-//     try {
-//         con = await mysql.getConnection();
-//         result = [];
-//         if (search) {
-//             result = await mysql.query(con, 
-//                 `select entity_id,
-//                         entity_name,
-//                         entity_note,
-//                         entity_type, 
-//                         parent_entity_id, 
-//                         created_by, 
-//                         created_on
-//                    from disk_entity, (select ? p_search) params
-//                   where upper(entity_name) like concat('%',upper(params.p_search),'%')`, [search]);
-//         }
-//         res.send(result);
-//     } catch(error) {
-//         next(error);
-//     } finally {
-//         con && await mysql.releaseConnection(con);
-//     }
-// });
+// Возвращает по указанному эелементу его историю изменений
+router.get('/:entity_id/activity', async (req, res, next) => {
+    const { entity_id } = req.params;
+    let con;
+    try {
+        con = await mysql.getConnection();
+        entityActivity = await mysql.query(con, 
+            `select dea.*,
+                    u.login
+               from disk_entity_activity dea inner join ref_users u on dea.created_by = u.user_id
+              where dea.entity_id = ?
+              order by created_on desc`,
+              [ entity_id ]);
+        res.send(entityActivity);
+    } catch(error) {
+        next(error);
+    } finally {
+        con && await mysql.releaseConnection(con);
+    }
+});
 
+// Возвращает по указанному эелементу его пред версию
+router.get('/:entity_id/activity/:activity_id', async (req, res, next) => {
+    const { entity_id, activity_id } = req.params;
+    let con;
+    try {
+        con = await mysql.getConnection();
+        entityActivityOld = (await mysql.query(con, 
+            `select * 
+               from disk_entity_activity dea
+              where dea.entity_id = ?
+                and dea.activity_id = ?`,
+              [ entity_id, activity_id ]))[0];
+        res.send(entityActivityOld);
+    } catch(error) {
+        next(error);
+    } finally {
+        con && await mysql.releaseConnection(con);
+    }
+});
 
 // Сохраняет новую папку или новый файл
 router.post('/', async (req, res, next) => {
@@ -130,7 +144,7 @@ router.post('/', async (req, res, next) => {
         } else {
             parentUsers = [{user_id : req.userModel.user_id, user_role : "OWNER"}];
         }
-        const entityTree = parent_entity_id ? parent.entity_tree + '/' : "";
+        const entityTree = parent_entity_id ? parent.entity_tree /*+ '/'*/ : "";
         // Создаем головную запись
         await mysql.query(con, 
             `insert into disk_entity(
@@ -156,7 +170,7 @@ router.post('/', async (req, res, next) => {
         const entity_id = (await mysql.query(con,`select LAST_INSERT_ID() entity_id`))[0].entity_id;
         // присваиваем денормализованное дерево вложенности
         await mysql.query(con,
-            `update disk_entity set entity_tree = concat(entity_tree, ?) where entity_id = ?`,
+            `update disk_entity set entity_tree = concat(entity_tree, ?, '/') where entity_id = ?`,
             [ entity_id, entity_id ]);
         // устанавливаем права на созданный entity
         for (const userRole of parentUsers) {
@@ -181,6 +195,14 @@ router.post('/:entity_id', async (req, res, next) => {
         const { entity_id } = req.params;
         con = await mysql.getConnection();
         await mysql.begin(con);
+        const oldEntity = (await mysql.query(con, 
+            `select entity_name, entity_note from disk_entity where entity_id = ?`, [ entity_id ]))[0];
+        if (oldEntity.entity_note != entity_note || oldEntity.entity_name != entity_name) {
+            await mysql.query(con, 
+                `insert into disk_entity_activity(entity_id, entity_note_old, entity_name_old, created_by, created_on)
+                values(?,?,?,?,now())`,
+                [ entity_id, oldEntity.entity_note, oldEntity.entity_name, req.userModel.user_id ]);
+        }
         await mysql.query(con, 
             `update disk_entity set entity_name = ?, entity_note = ? where entity_id = ?`,
             [ entity_name, entity_note, entity_id ] );
@@ -211,5 +233,7 @@ router.delete('/:entity_id', async (req, res, next) => {
         con && await mysql.commit(con) && await mysql.releaseConnection(con);
     }
 });
+
+
 
 module.exports = router;

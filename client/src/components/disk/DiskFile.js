@@ -66,6 +66,10 @@ function DiskFile(props) {
         navigate(`/disk/${Disk.entity.parent_entity_id?Disk.entity.parent_entity_id:""}`);
     }
 
+    const handleInfoEntity = () => {
+        navigate(`/disk/${entity_id}/activity`);
+    }
+
     const handleSubmit = (e) => {
         e.preventDefault();
         // console.log(e.target.formEntityName.value);
@@ -108,8 +112,9 @@ function DiskFile(props) {
     <Row>
         <Col>
             <Form.Group className="mb-3">
-                <Button style={{marginLeft : "2px"}} type="button" onClick={handleBackClick} variant="outline-secondary" ><i class="bi bi-chevron-left"></i></Button>   
+                <Button style={{marginLeft : "2px"}} type="button" onClick={handleBackClick} variant="outline-secondary" ><i className="bi bi-chevron-left"></i></Button>   
                 <Button style={{marginLeft : "2px"}} type="button" onClick={handleEditClick} variant="outline-secondary" >Изменить файл</Button>   
+                <Button style={{marginLeft : "2px"}} type="button" variant="outline-secondary" onClick={handleInfoEntity}><i className="bi bi-info-circle"></i></Button>
             </Form.Group>
         </Col>
     </Row>    
@@ -131,9 +136,9 @@ function DiskFile(props) {
     <Row>
         <Col>
             <Form.Group className="mb-3">
-            <Button style={{marginLeft : "2px"}} type="button" variant="outline-secondary"onClick={handleCancelClick} ><i class="bi bi-chevron-left"></i></Button>
+            <Button style={{marginLeft : "2px"}} type="button" variant="outline-secondary"onClick={handleCancelClick} ><i className="bi bi-chevron-left"></i></Button>
                 <Button style={{marginLeft : "2px"}} type="submit" variant="outline-success" >Сохранить изменения</Button>
-                <Button style={{marginLeft : "2px"}} type="button" variant="outline-danger" onClick={handleDeleteClick}><i class="bi bi-trash"></i></Button>
+                <Button style={{marginLeft : "2px"}} type="button" variant="outline-danger" onClick={handleDeleteClick}><i className="bi bi-trash"></i></Button>
             </Form.Group>
         </Col>
     </Row>  
