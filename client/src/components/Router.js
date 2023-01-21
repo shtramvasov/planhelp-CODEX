@@ -19,7 +19,7 @@ import queryString from 'query-string';
 const router = createBrowserRouter([
     {
       path: "/",
-      element: <Main />,
+      element: <Disk />, // todo Main
     },
     {
         path: "/disk",

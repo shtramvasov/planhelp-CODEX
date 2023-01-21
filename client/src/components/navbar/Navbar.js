@@ -12,18 +12,18 @@ export function Navbar(props) {
     // return <div>Logout now...</div>;
     return  (  
     <Nav className="justify-content-left" activeKey="/">
-        <Nav.Item>
+        {/* <Nav.Item>
             <Nav.Link as={Link} to="/">Главная</Nav.Link>
-        </Nav.Item>
+        </Nav.Item> */}
         <Nav.Item>
             <Nav.Link as={Link} to="/disk">Диск</Nav.Link>
         </Nav.Item>
-        <Nav.Item>
+        {/* <Nav.Item>
             <Nav.Link as={Link} to="/task">Задачи</Nav.Link>
         </Nav.Item>
         <Nav.Item>
             <Nav.Link as={Link} to="/hr">Люди</Nav.Link>
-        </Nav.Item>
+        </Nav.Item> */}
         <Nav.Item>
             <Nav.Link as={Link} to="/profile">Профиль</Nav.Link>
         </Nav.Item>
