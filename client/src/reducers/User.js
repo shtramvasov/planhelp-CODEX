@@ -4,11 +4,14 @@ import Cookies from 'js-cookie';
 export const userSlice = createSlice({
     name: 'User',
     initialState: {
-        isLogin : false
+        isLogin : false,
+        profile : {
+            login : "",
+            secret : ""
+        }
     },
     reducers: {
         login: (state, action) => {
-            console.log(action.payload.secret)
             Cookies.set("secret",action.payload, { expires: 365 });
             state.isLogin = true ;
         },
@@ -16,9 +19,12 @@ export const userSlice = createSlice({
             Cookies.remove("secret");
             state.isLogin = false ;
         },
+        addProfile: (state, action) => {
+            state.profile = action.payload;
+        },
     },
 });
 
-export const { login, logout } = userSlice.actions;
+export const { login, logout, addProfile } = userSlice.actions;
 
 export default userSlice.reducer;

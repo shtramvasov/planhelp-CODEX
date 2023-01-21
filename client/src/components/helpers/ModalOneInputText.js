@@ -25,7 +25,7 @@ function ModalOneInputText(props) {
         <Modal.Body>
             <Form.Group className="mb-3" controlId="modalText">
                 <Form.Control
-                    type="text"
+                    type={props.type?props.type:"text"}
                     autoFocus/>
             </Form.Group>                
         </Modal.Body>
