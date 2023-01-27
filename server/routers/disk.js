@@ -1,6 +1,7 @@
 var express = require('express');
 var router = express.Router();
 var mysql = require('../mysqlhelper');
+var entityModel = require('../models/disk_entity');
 
 // Возвращает указанный эелемент и его детей
 // Если параметр не задан, возвращает что лежит в корне
@@ -11,67 +12,18 @@ router.get('/:entity_id?', async (req, res, next) => {
     let con;
     try {
         con = await mysql.getConnection();
-        let rootEntity = {
-            "entity_name" : "..",
-            "entity_type" : "ROOT"
-        };
-        if (entity_id) {
-            rootEntity = (await mysql.query(con, 
-                `select de.entity_id,
-                        de.entity_name,
-                        de.entity_note,
-                        de.entity_type, 
-                        de.parent_entity_id, 
-                        de.created_by, 
-                        de.created_on,
-                        u.login
-                   from disk_entity de inner join ref_users u on de.created_by = u.user_id
-                  where de.entity_id = ?
-                    and exists (select 1 
-                                  from disk_entity_users deu 
-                                 where deu.entity_id = de.entity_id
-                                   and deu.user_id = ?)`, [entity_id, req.userModel.user_id]))[0];
-        }
-        if (rootEntity.entity_type !== "FILE" && !search) {
-            const childEntityList = await mysql.query(con, 
-                `select de.entity_id,
-                        de.entity_name, 
-                        de.entity_type, 
-                        de.parent_entity_id, 
-                        de.created_by, 
-                        de.created_on
-                   from disk_entity de, (select ? p_entity_id) params
-                  where (de.parent_entity_id = params.p_entity_id or (params.p_entity_id is null and de.parent_entity_id is null))
-                    and de.is_deleted = 'N'
-                    and exists (select 1 
-                                  from disk_entity_users deu 
-                                 where deu.entity_id = de.entity_id
-                                   and deu.user_id = ?)
-                  order by de.entity_type desc, de.entity_name, de.entity_id`, 
-                [entity_id , req.userModel.user_id]);
-            rootEntity.childEntityList = childEntityList;
-        }
+        let rootEntity = await entityModel.getEntity(
+            {entity_id, user_id : req.userModel.user_id},con
+        );
         if (search) {
-            const childEntityList = await mysql.query(con, 
-                `select entity_id,
-                        entity_name, 
-                        entity_type, 
-                        parent_entity_id, 
-                        created_by, 
-                        created_on
-                    from disk_entity de, (select ? search) params
-                    where (
-                            upper(de.entity_name) like concat('%','${search}','%')
-                            or 
-                            upper(de.entity_note) like concat('%','${search}','%')
-                          )
-                      and de.is_deleted = 'N'
-		      and exists (select 1 
-                                  from disk_entity_users deu 
-                                 where deu.entity_id = de.entity_id
-                                   and deu.user_id = ?)
-                    order by entity_type desc, entity_name, entity_id`, [search,req.userModel.user_id]);
-            rootEntity.childEntityList = childEntityList;
+            rootEntity.childEntityList = await entityModel.getEntitySearch(
+                {search, user_id : req.userModel.user_id},con
+            );
+        }
+        if (!search && (rootEntity.entity_type === "PATH" || rootEntity.entity_type === "ROOT")) {
+            rootEntity.childEntityList = await entityModel.getEntityChild(
+                {entity_id, user_id : req.userModel.user_id},con
+            );
         }
         res.send(rootEntity);
     } catch(error) {
