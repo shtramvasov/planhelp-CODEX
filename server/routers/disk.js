@@ -59,14 +59,18 @@ router.get('/:entity_id?', async (req, res, next) => {
                         parent_entity_id, 
                         created_by, 
                         created_on
-                    from disk_entity, (select ? search) params
+                    from disk_entity de, (select ? search) params
                     where (
-                            upper(entity_name) like concat('%','${search}','%')
+                            upper(de.entity_name) like concat('%','${search}','%')
                             or 
-                            upper(entity_note) like concat('%','${search}','%')
+                            upper(de.entity_note) like concat('%','${search}','%')
                           )
-                      and disk_entity.is_deleted = 'N'
-                    order by entity_type desc, entity_name, entity_id`, [search]);
+                      and de.is_deleted = 'N'
+		      and exists (select 1 
+                                  from disk_entity_users deu 
+                                 where deu.entity_id = de.entity_id
+                                   and deu.user_id = ?)
+                    order by entity_type desc, entity_name, entity_id`, [search,req.userModel.user_id]);
             rootEntity.childEntityList = childEntityList;
         }
         res.send(rootEntity);
