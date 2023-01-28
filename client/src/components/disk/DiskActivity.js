@@ -9,11 +9,12 @@ import ModalOneInputText from "../helpers/ModalOneInputText";
 import React, { useState, useEffect, useRef } from 'react';
 import { useSelector, useDispatch } from 'react-redux'
 import ListGroup from 'react-bootstrap/ListGroup';
-import { addEntity, addEntityActivity } from '../../reducers/Disk'
+import { addEntity, addEntityActivity, addEntityUsers } from '../../reducers/Disk'
 import { useNavigate , useSearchParams, NavLink} from "react-router-dom";
-import { getDiskEntity, postDiskEntity, deletetDiskEntity, getDiskEntityActivity } from '../../network/DiskNetwork';
+import { getDiskEntity, postDiskEntity, deletetDiskEntity, getDiskEntityActivity, getDiskEntityUsers } from '../../network/DiskNetwork';
 import { useParams } from 'react-router-dom';
 import Table from 'react-bootstrap/Table';
+import Badge from 'react-bootstrap/Badge';
 
 function DiskActivity(props) {
     const { entity_id } = useParams();
@@ -43,11 +44,23 @@ function DiskActivity(props) {
         });
     }; 
 
+    const fetchEntityUsers = () => {
+        getDiskEntityUsers({entity_id : entity_id},(err,resp) => {
+            if (!err) {
+                dispatch(addEntityUsers(resp));    
+                // console.log(resp);
+            } else {
+                alert("Ошибка: "+err);
+            }
+        });
+    }; 
+
     // Первичная загрузка данных,
     // Последующие загрзки при измененеии entity_id
     useEffect(() => {
         fetchEntity();
         fetchEntityActivity();
+        fetchEntityUsers();
     },[entity_id]);
 
     const handleCancelEntity = () => {
@@ -77,6 +90,13 @@ function DiskActivity(props) {
         </tr>
     );
 
+    const listUsers = Disk.entityUsers.map((el) =>
+    <tr key={el.user_id}>
+        <td>{el.login}</td>
+        <td><Badge bg="primary">{el.user_role}</Badge></td>
+    </tr>
+    );
+
     return (
         <Container>
     <Row>
@@ -93,18 +113,36 @@ function DiskActivity(props) {
             </Form.Group>
             </div>
             <div>
-            <h2>История изменений для {Disk.entity.entity_name}</h2>
+            <h2>Свойства для {Disk.entity.entity_name}</h2>
             </div>
         </Col>
         <Row>
             <Col>
                 Создал: {Disk.entity.login} {Disk.entity.created_on}
+                <hr/>
+            </Col>
+        </Row>
+        <Row>
+            <Col>
+                <h3>Доступ</h3>
+                <Table striped bordered hover>
+                    <thead>
+                        <tr>
+                            <th>Пользователь</th>
+                            <th>Роль</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {listUsers}
+                    </tbody>
+                </Table>
             </Col>
         </Row>
         <br/>
         <br/>
         <Row>
             <Col>
+                <h3>История</h3>
                 <Table striped bordered hover>
                 <thead>
                     <tr>

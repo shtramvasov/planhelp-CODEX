@@ -1,59 +1,64 @@
 const mysql = require('../mysqlhelper');
 
 // Детали entity
-const getEntity = async ({entity_id, user_id}, con) => {
+// forUpdate - для блокирования записи
+const getEntity = async ({entity_id, user_id}, con, forUpdate = false) => {
     if (!entity_id) {
         return {
             "entity_name" : "..",
             "entity_type" : "ROOT"
         };
     }
-    // parent_entity_id определяется по правам доступа
-    // разрешен ли родитель? если нет - возврат в корень
-    return (await mysql.query(con, 
-            `select de.entity_id,
+    let sql = 
+        `select de.entity_id,
                     de.entity_name,
                     de.entity_note,
                     de.entity_type, 
                     parent_deu.entity_id parent_entity_id, 
                     de.created_by, 
                     de.created_on,
+                    de.entity_tree,
                     u.login,
                     deu.user_role
-               from (select ? p_entity_id, ? p_user_id) params 
-                        inner join disk_entity de 
-                                on params.p_entity_id = de.entity_id
-                        inner join ref_users u 
-                                on de.created_by = u.user_id
-                        inner join disk_entity_users deu 
-                                on de.entity_id = deu.entity_id 
-                                and deu.user_id = params.p_user_id
-                        left join disk_entity_users parent_deu 
-                                on parent_deu.entity_id = de.parent_entity_id
-                                and parent_deu.user_id = params.p_user_id
-              where de.is_deleted = 'N'`, 
-                [entity_id, user_id])
-        )[0];
+            from (select ? p_entity_id, ? p_user_id) params 
+                    inner join disk_entity de 
+                            on params.p_entity_id = de.entity_id
+                    inner join ref_users u 
+                            on de.created_by = u.user_id
+                    inner join disk_entity_users deu 
+                            on de.entity_id = deu.entity_id 
+                            and deu.user_id = params.p_user_id
+                    left join disk_entity_users parent_deu 
+                            on parent_deu.entity_id = de.parent_entity_id
+                            and parent_deu.user_id = params.p_user_id
+            where de.is_deleted = 'N'`;
+    if (forUpdate) {
+        // Если надо заблокировать для атомарной транзакции
+        sql += ` for update `;
+    }
+    return (await mysql.query(con, sql, [entity_id, user_id])
+    )[0];
 }
 
 // Список потомков на уровень ниже от переданного entity_id
 const getEntityChild = async ({entity_id, user_id}, con) => {
-    let sql = `  select de.entity_id,
-                        de.entity_name, 
-                        de.entity_type, 
-                        de.created_by, 
-                        de.created_on,
-                        deu.user_role
-                    from (select ? p_entity_id, ? p_user_id) params 
-                                cross join disk_entity de 
-                                inner join disk_entity_users deu 
-                                            on deu.entity_id = de.entity_id
-                                            and deu.user_id = params.p_user_id
-                                left join disk_entity_users parent_deu 
-                                            on parent_deu.entity_id = de.parent_entity_id
-                                            and parent_deu.user_id = params.p_user_id
+    let sql =
+        `select de.entity_id,
+            de.entity_name, 
+            de.entity_type, 
+            de.created_by, 
+            de.created_on,
+            deu.user_role
+        from (select ? p_entity_id, ? p_user_id) params 
+                    cross join disk_entity de 
+                    inner join disk_entity_users deu 
+                                on deu.entity_id = de.entity_id
+                                and deu.user_id = params.p_user_id
+                    left join disk_entity_users parent_deu 
+                                on parent_deu.entity_id = de.parent_entity_id
+                                and parent_deu.user_id = params.p_user_id
 
-                    where 1=1`;
+        where 1=1`;
     if (entity_id) {
         // если передали головной entity то ищем среди доступных потомков
         sql = sql + 
@@ -70,32 +75,139 @@ const getEntityChild = async ({entity_id, user_id}, con) => {
     return await mysql.query(con, sql, [entity_id , user_id]);
 };
 
+// Контекстный поиск
 const getEntitySearch = async ({search, user_id}, con) => {
     return await mysql.query(con, 
-    `select entity_id,
-            entity_name, 
-            entity_type, 
-            parent_entity_id, 
-            created_by, 
-            created_on
-        from disk_entity de, (select ? search) params
-        where (
-                upper(de.entity_name) like concat('%','${search}','%')
-                or 
-                upper(de.entity_note) like concat('%','${search}','%')
-                )
-            and de.is_deleted = 'N'
-    and exists (select 1 
-                        from disk_entity_users deu 
-                        where deu.entity_id = de.entity_id
-                        and deu.user_id = ?)
-        order by entity_type desc, entity_name, entity_id`, 
+        `select de.entity_id,
+                de.entity_name, 
+                de.entity_type, 
+                de.parent_entity_id, 
+                de.created_by, 
+                de.created_on,
+                deu.user_role
+            from (select ? p_search, ? p_user_id) params 
+                    cross join disk_entity de
+                    inner join disk_entity_users deu 
+                        on de.entity_id = deu.entity_id
+                        and deu.user_id = params.p_user_id
+            where (
+                    upper(de.entity_name) like concat('%',params.p_search,'%')
+                    or 
+                    upper(de.entity_note) like concat('%',params.p_search,'%')
+                    )
+                and de.is_deleted = 'N'
+            order by de.entity_type desc, de.entity_name, de.entity_id`, 
         [search,user_id]
     );
+}
+
+// Получение списка всех версий изменения
+const getEntityActivity = async ({entity_id, user_id}, con) => {
+    return await mysql.query(con, 
+        `select dea.*,
+                u.login
+            from disk_entity_activity dea inner join ref_users u on dea.created_by = u.user_id
+            where dea.entity_id = ?
+            order by created_on desc`,
+        [ entity_id ]
+    );
+}
+
+// Получение версии entity
+const getEntityOldVersion = async ({entity_id, activity_id, user_id}, con) => {
+    return (await mysql.query(con, 
+        `select * 
+           from disk_entity_activity dea
+          where dea.entity_id = ?
+            and dea.activity_id = ?`,
+        [entity_id, activity_id])
+    )[0];
+}
+
+// Получение всех юзеров причастных к указанному entity
+const getEntityUsers = async ({entity_id, user_id}, con) => {
+    return await mysql.query(con,
+        `select deu.user_id, deu.user_role, u.login
+           from disk_entity_users deu inner join ref_users u on deu.user_id = u.user_id
+          where entity_id = ?`,
+        [ entity_id ]
+    );
+}
+
+// Удаление
+const deleteEntity = async ({entity_id, user_id}, con) => {
+    // включая все дочерние записи ниже по дереву
+    return await mysql.query(con,
+        `update disk_entity 
+            set is_deleted = 'Y' 
+          where entity_tree like 
+            concat(
+                (select de_head.entity_tree from (select * from disk_entity where entity_id = ?) de_head) ,'%'
+            )`,
+        [entity_id]
+    );
+}
+
+const updateEntity = async ({entity_id, user_id, entity_name, entity_note},oldEntity, con) => {
+    if (oldEntity.entity_note != entity_note 
+        || oldEntity.entity_name != entity_name) {
+        // Апдейт только если что то изменилось
+        await mysql.query(con, 
+            `insert into disk_entity_activity
+                (entity_id, entity_note_old, entity_name_old, created_by, created_on)
+            values
+                (?,?,?,?,now())`,
+            [ entity_id, oldEntity.entity_note, oldEntity.entity_name, user_id ]);
+        await mysql.query(con, 
+            `update disk_entity set entity_name = ?, entity_note = ? where entity_id = ?`,
+            [ entity_name, entity_note, entity_id ] );
+    }
+}
+
+const createEntity = async ({entity_name, entity_type, entity_note, parent_entity_id, user_id}, parentEntity, con) => {
+    let parentEntityUsers;
+
+    if (parentEntity) {
+        parentEntityUsers = await getEntityUsers({entity_id : parent_entity_id, user_id}, con);
+    } else {
+        parentEntityUsers = [{user_id : user_id, user_role : "OWNER"}];
+    }
+
+    // Создаем сам entity
+    await mysql.query(con, 
+        `insert into disk_entity(
+            entity_name,entity_note,entity_type,parent_entity_id,created_by,created_on,is_deleted,entity_tree)
+        values(?,?,?,?,?,now(),'N',?)`,
+        [ entity_name, entity_note, entity_type, parent_entity_id, user_id, 'blank' ] );
+
+    // Получаем созданный ID
+    const entity_id = (await mysql.query(con,`select LAST_INSERT_ID() entity_id`))[0].entity_id;
+    
+    // формируем денормализованную вложенность
+    // пример id/id/entity_id/
+    const entityTree = parentEntity ? parentEntity.entity_tree + entity_id + "/" : entity_id + "/";
+    await mysql.query(con,
+        `update disk_entity set entity_tree = ? where entity_id = ?`,
+        [ entityTree, entity_id ]
+    );
+
+    // устанавливаем права на созданный entity
+    for (const userRole of parentEntityUsers) {
+        await mysql.query(con,
+            `insert into disk_entity_users(entity_id, user_id, user_role) values(?,?,?)`,
+            [ entity_id, userRole.user_id, userRole.user_role ]);
+    }
+    return entity_id;
 }
 
 module.exports = {
     getEntityChild : getEntityChild,
     getEntity : getEntity,
-    getEntitySearch : getEntitySearch
+    getEntitySearch : getEntitySearch,
+    getEntityActivity : getEntityActivity,
+    getEntityOldVersion : getEntityOldVersion,
+    getEntityUsers : getEntityUsers,
+    deleteEntity : deleteEntity,
+    updateEntity : updateEntity,
+    createEntity : createEntity
 };

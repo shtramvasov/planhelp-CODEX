@@ -2,30 +2,38 @@ var express = require('express');
 var router = express.Router();
 var mysql = require('../mysqlhelper');
 var entityModel = require('../models/disk_entity');
+const disk_entity = require('../models/disk_entity');
 
-// Возвращает указанный эелемент и его детей
-// Если параметр не задан, возвращает что лежит в корне
-// req.query.search 
+// Возвращает указанный эелемент и его потомков
+// Если параметр не задан, возвращает что лежит в ROOT
 router.get('/:entity_id?', async (req, res, next) => {
     const { entity_id } = req.params;
+    const { user_id } = req.userModel;
     const search = req.query.search?.replace(" ","%");
     let con;
     try {
         con = await mysql.getConnection();
-        let rootEntity = await entityModel.getEntity(
-            {entity_id, user_id : req.userModel.user_id},con
-        );
+
+        // получаем сам entity по ID
+        // валидируем доступ если entity не найден - значит нет доступа
+        const entity = await entityModel.getEntity({entity_id,user_id},con);
+        if (!entity) throw 'Permission denied';
+
         if (search) {
-            rootEntity.childEntityList = await entityModel.getEntitySearch(
-                {search, user_id : req.userModel.user_id},con
-            );
+            // контекстный поиск, не валидируем entity, потому что не надо
+            entity.childEntityList = await entityModel.getEntitySearch({search,user_id },con);
         }
-        if (!search && (rootEntity.entity_type === "PATH" || rootEntity.entity_type === "ROOT")) {
-            rootEntity.childEntityList = await entityModel.getEntityChild(
+
+        if (!search 
+            && (entity.entity_type === "PATH" || entity.entity_type === "ROOT")) {
+            // Если текущий entity = Папка или ROOT элемент
+            // достаем потомков
+            entity.childEntityList = await entityModel.getEntityChild(
                 {entity_id, user_id : req.userModel.user_id},con
             );
         }
-        res.send(rootEntity);
+
+        res.send(entity);
     } catch(error) {
         next(error);
     } finally {
@@ -36,16 +44,21 @@ router.get('/:entity_id?', async (req, res, next) => {
 // Возвращает по указанному эелементу его историю изменений
 router.get('/:entity_id/activity', async (req, res, next) => {
     const { entity_id } = req.params;
+    const { user_id } = req.userModel;
     let con;
     try {
+        // Проверки
+        if (!entity_id) throw "Missing entity_id in url params";
+
         con = await mysql.getConnection();
-        entityActivity = await mysql.query(con, 
-            `select dea.*,
-                    u.login
-               from disk_entity_activity dea inner join ref_users u on dea.created_by = u.user_id
-              where dea.entity_id = ?
-              order by created_on desc`,
-              [ entity_id ]);
+
+        // получаем сам entity по ID
+        // валидируем доступ если entity не найден - значит нет доступа
+        const entity = await entityModel.getEntity({entity_id,user_id},con);
+        if (!entity) throw 'Permission denied';
+
+        const entityActivity = await entityModel.getEntityActivity({entity_id,user_id}, con);
+        
         res.send(entityActivity);
     } catch(error) {
         next(error);
@@ -57,15 +70,21 @@ router.get('/:entity_id/activity', async (req, res, next) => {
 // Возвращает по указанному эелементу его пред версию
 router.get('/:entity_id/activity/:activity_id', async (req, res, next) => {
     const { entity_id, activity_id } = req.params;
+    const { user_id } = req.userModel;
     let con;
     try {
+        // Проверки
+        if (!entity_id ) throw "Missing entity_id in url params";
+        if (!activity_id ) throw "Missing activity_id in url params";
+
         con = await mysql.getConnection();
-        entityActivityOld = (await mysql.query(con, 
-            `select * 
-               from disk_entity_activity dea
-              where dea.entity_id = ?
-                and dea.activity_id = ?`,
-              [ entity_id, activity_id ]))[0];
+
+        // получаем сам entity по ID
+        // валидируем доступ если entity не найден - значит нет доступа
+        const entity = await entityModel.getEntity({entity_id,user_id},con);
+        if (!entity) throw 'Permission denied';
+
+        entityActivityOld = await entityModel.getEntityOldVersion({entity_id, activity_id, user_id}, con);
         res.send(entityActivityOld);
     } catch(error) {
         next(error);
@@ -76,64 +95,32 @@ router.get('/:entity_id/activity/:activity_id', async (req, res, next) => {
 
 // Сохраняет новую папку или новый файл
 router.post('/', async (req, res, next) => {
+    const { user_id } = req.userModel;
+    const { entity_name, entity_type, entity_note, parent_entity_id } = req.body;
+    let parentEntity;
     let con;
-    let parent;
-    let parentUsers;
     try {
-        const { entity_name, entity_type, entity_note, parent_entity_id } = req.body;
-        if (!entity_name || !entity_type) throw "No entity_name or entity_type in data";
+        // Проверки
+        if (!entity_name) throw "Missing entity_name in body params";
+        if (!entity_type) throw "Missing entity_type in body params";
+        if (!["PATH","FILE"].includes(entity_type)) throw "Not valid entity_type in body params, only PATH or FILE";
+
         con = await mysql.getConnection();
         await mysql.begin(con);
-        // смотрим на уровень выше для получения дефолтных прав и построения денормализованного дерева
+
         if (parent_entity_id) {
-            // блокируем запись, вдруг она кем то процессится в данный момент
-            parent = (await mysql.query(con, 
-              `select entity_tree
-                 from disk_entity
-                where entity_id = ?
-                  for update`, [ parent_entity_id ]))[0];
-            parentUsers = await mysql.query(con, 
-              `select user_id, user_role
-                 from disk_entity_users
-                where entity_id = ?
-                  for update`, [ parent_entity_id ])
-        } else {
-            parentUsers = [{user_id : req.userModel.user_id, user_role : "OWNER"}];
+            // если создают не в ROOT а в какую то папку
+            // блокируем entity for update
+            parentEntity = await disk_entity.getEntity({entity_id : parent_entity_id,user_id}, con, true);
+            if (!parentEntity) throw 'Permission denied';
         }
-        const entityTree = parent_entity_id ? parent.entity_tree /*+ '/'*/ : "";
-        // Создаем головную запись
-        await mysql.query(con, 
-            `insert into disk_entity(
-                entity_name, 
-                entity_note, 
-                entity_type, 
-                parent_entity_id, 
-                created_by, 
-                created_on, 
-                is_deleted,
-                entity_tree)
-            values(
-                ?,
-                ?,
-                ?,
-                ?,
-                ?,
-                now(),
-                'N',
-                ?
-                )`,
-            [ entity_name, entity_note, entity_type, parent_entity_id, req.userModel.user_id, entityTree ] );
-        const entity_id = (await mysql.query(con,`select LAST_INSERT_ID() entity_id`))[0].entity_id;
-        // присваиваем денормализованное дерево вложенности
-        await mysql.query(con,
-            `update disk_entity set entity_tree = concat(entity_tree, ?, '/') where entity_id = ?`,
-            [ entity_id, entity_id ]);
-        // устанавливаем права на созданный entity
-        for (const userRole of parentUsers) {
-            await mysql.query(con,
-                `insert into disk_entity_users(entity_id, user_id, user_role) values(?,?,?)`,
-                [ entity_id, userRole.user_id, userRole.user_role ]);
-        }
+
+        const entity_id = await disk_entity.createEntity(
+            {entity_name, entity_type, entity_note, parent_entity_id, user_id},
+            parentEntity,
+            con
+        );
+
         res.send({entity_id : entity_id});
     } catch(err) {
         con && await mysql.rollback(con);
@@ -145,23 +132,24 @@ router.post('/', async (req, res, next) => {
 
 // Изменяет папку или файл
 router.post('/:entity_id', async (req, res, next) => {
+    const { entity_id } = req.params;
+    const { user_id } = req.userModel;
+    const { entity_name, entity_note } = req.body;
     let con;
     try {
-        const { entity_name, entity_note } = req.body;
-        const { entity_id } = req.params;
+        // Проверки
+        if (!entity_id) throw "Missing entity_id in url params";
+
         con = await mysql.getConnection();
         await mysql.begin(con);
-        const oldEntity = (await mysql.query(con, 
-            `select entity_name, entity_note from disk_entity where entity_id = ?`, [ entity_id ]))[0];
-        if (oldEntity.entity_note != entity_note || oldEntity.entity_name != entity_name) {
-            await mysql.query(con, 
-                `insert into disk_entity_activity(entity_id, entity_note_old, entity_name_old, created_by, created_on)
-                values(?,?,?,?,now())`,
-                [ entity_id, oldEntity.entity_note, oldEntity.entity_name, req.userModel.user_id ]);
-        }
-        await mysql.query(con, 
-            `update disk_entity set entity_name = ?, entity_note = ? where entity_id = ?`,
-            [ entity_name, entity_note, entity_id ] );
+
+        // получаем сам entity по ID
+        // валидируем доступ если entity не найден - значит нет доступа
+        // и вешаем for update см парам true
+        const entity = await entityModel.getEntity({entity_id,user_id},con, true);
+        if (!entity) throw 'Permission denied';
+
+        await entityModel.updateEntity({entity_id,user_id,entity_name,entity_note},entity,con);
         res.send({entity_id : entity_id});
     } catch(err) {
         con && await mysql.rollback(con);
@@ -173,14 +161,23 @@ router.post('/:entity_id', async (req, res, next) => {
 
 // Удаление папки или файла
 router.delete('/:entity_id', async (req, res, next) => {
+    const { entity_id } = req.params;
+    const { user_id } = req.userModel;
     let con;
     try {
-        const { entity_id } = req.params;
+        // Проверки
+        if (!entity_id) throw "Missing entity_id in url params";
+
         con = await mysql.getConnection();
         await mysql.begin(con);
-        await mysql.query(con, 
-            `update disk_entity set is_deleted = 'Y' where entity_id = ?`,
-            [ entity_id ] );
+        
+        // получаем сам entity по ID
+        // валидируем доступ если entity не найден - значит нет доступа
+        // и вешаем for update см парам true
+        const entity = await entityModel.getEntity({entity_id,user_id},con, true);
+        if (!entity) throw 'Permission denied';
+
+        await entityModel.deleteEntity({entity_id,user_id},con);
         res.send({entity_id : entity_id});
     } catch(err) {
         con && await mysql.rollback(con);
@@ -190,6 +187,28 @@ router.delete('/:entity_id', async (req, res, next) => {
     }
 });
 
+router.get('/:entity_id/users', async (req,res,next) => {
+    const { entity_id } = req.params;
+    const { user_id } = req.userModel;
+    let con;
+    try {
+        if (!entity_id) throw "Missing entity_id in url params";
+        
+        con = await mysql.getConnection();
 
+        // получаем сам entity по ID
+        // валидируем доступ если entity не найден - значит нет доступа
+        const entity = await entityModel.getEntity({entity_id,user_id},con);
+        if (!entity) throw 'Permission denied';
+
+        const entityUsers = await entityModel.getEntityUsers({entity_id,user_id},con);
+
+        res.send(entityUsers);
+    } catch(error) {
+        next(error);
+    } finally {
+        con && await mysql.releaseConnection(con);
+    }
+});
 
 module.exports = router;
