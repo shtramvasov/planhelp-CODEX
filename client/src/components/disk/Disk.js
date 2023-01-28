@@ -132,7 +132,12 @@ function Disk(props) {
             onClick={(e) => {handleClick(e,el.entity_type,el.entity_id)}} 
             variant={el.entity_type === "PATH"?"success":""}
             >
-            {el.entity_type === "PATH"?<i className="bi bi-folder2"> </i>:<i className="bi bi-file-earmark-text"> </i>}
+            {
+                el.user_role !== "OWNER"?<i className="bi bi-share"> </i>:
+                el.entity_type === "PATH"
+                ?<i className="bi bi-folder2"> </i>:
+                <i className="bi bi-file-earmark-text"> </i>
+            }
             {el.entity_name}
         </ListGroup.Item>
     ):[];
