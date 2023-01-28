@@ -164,6 +164,26 @@ const updateEntity = async ({entity_id, user_id, entity_name, entity_note},oldEn
     }
 }
 
+const createEntityUser = async ({entity_tree, user_id, user_role}, con) => {
+    await mysql.query(con,
+        `insert into disk_entity_users(entity_id, user_id, user_role)
+          select de.entity_id, p_user_id, p_user_role
+            from (select ? p_entity_tree, ? p_user_id, ? p_user_role) params 
+                 cross join disk_entity de
+           where de.entity_tree like p_entity_tree`,
+        [entity_tree + '%', user_id, user_role]
+    );
+}
+
+const revokeEntityUser = async ({entity_tree, user_id}, con) => {
+    await mysql.query(con,
+        `delete from disk_entity_users
+            where user_id = ?
+              and entity_id in (select entity_id from disk_entity where entity_tree like ?)`,
+        [user_id, entity_tree + '%']
+    );
+}
+
 const createEntity = async ({entity_name, entity_type, entity_note, parent_entity_id, user_id}, parentEntity, con) => {
     let parentEntityUsers;
 
@@ -201,13 +221,17 @@ const createEntity = async ({entity_name, entity_type, entity_note, parent_entit
 }
 
 module.exports = {
-    getEntityChild : getEntityChild,
-    getEntity : getEntity,
-    getEntitySearch : getEntitySearch,
-    getEntityActivity : getEntityActivity,
-    getEntityOldVersion : getEntityOldVersion,
-    getEntityUsers : getEntityUsers,
-    deleteEntity : deleteEntity,
-    updateEntity : updateEntity,
-    createEntity : createEntity
+    getEntityChild,
+    getEntity,
+    getEntitySearch,
+    getEntityActivity,
+    getEntityOldVersion,
+    getEntityUsers,
+
+    deleteEntity,
+    updateEntity,
+    createEntity,
+
+    createEntityUser,
+    revokeEntityUser
 };

@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const mysql = require('../mysqlhelper');
 const crypto = require('crypto');
+const userModel = require('../models/ref_users');
 
 router.post('/', async (req, res, next) => {
     let con;
@@ -11,23 +12,18 @@ router.post('/', async (req, res, next) => {
         
         con = await mysql.getConnection();
         await mysql.begin(con);
-        const user = await mysql.query(con, 
-                        `select *
-                           from ref_users
-                          where login = ?
-                            and (secret = ? 
-                                    or secret = upper(md5(?)))`,
-                          [login,password,password]);
-        if (!user.length) {
+
+        const user  = await userModel.login({login, password}, con);
+
+        if (!user) {
             res.status(401).send({ok:false});
         } else {
+            // если успешный логин, генерируем токен доступа
             const token = crypto.createHash('md5').update(
-                ''+user[0].user_id + Math.floor(Date.now() / 1000)
+                ''+user.user_id + Math.floor(Date.now() / 1000)
             ).digest("hex");
-            await mysql.query(con, 
-                `insert into ref_users_tokens(user_id, token, is_deleted)
-                values(?,?,'N')`,
-                [ user[0].user_id, token ] );
+
+            await userModel.createToken({user_id:user.user_id, token}, con);
             
             res.send({ok:true, secret : token});
         }

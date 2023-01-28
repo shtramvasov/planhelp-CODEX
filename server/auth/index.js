@@ -1,4 +1,5 @@
 var mysql = require('../mysqlhelper');
+var userModel = require('../models/ref_users');
 
 function sleep(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
@@ -36,16 +37,14 @@ const auth = async (req, res, next) => {
     let con;
     try {
         con = await mysql.getConnection();
-        const result = await mysql.query(con, 
-            `select ref_users.*
-               from ref_users_tokens inner join ref_users on ref_users_tokens.user_id = ref_users.user_id
-              where token = ?
-                and is_deleted = 'N'`, [token]);
-        if (!result[0]) {
+
+        const user = await userModel.getProfile({token}, con);
+        if (!user) {
             res.status(401).send({error : "Token not valid"});
             return;
         }
-        req.userModel = result[0];
+        
+        req.userModel = user;
         next();
     } catch(error) {
         next(error);
