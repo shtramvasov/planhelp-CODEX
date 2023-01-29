@@ -125,13 +125,34 @@ const getEntityOldVersion = async ({entity_id, activity_id, user_id}, con) => {
 }
 
 // Получение всех юзеров причастных к указанному entity
-const getEntityUsers = async ({entity_id, user_id}, con) => {
-    return await mysql.query(con,
+const getEntityUsers = async ({entity_id, parent_entity_id, user_id}, con) => {
+    const entityUsers = await mysql.query(con,
         `select deu.user_id, deu.user_role, u.login
            from disk_entity_users deu inner join ref_users u on deu.user_id = u.user_id
           where entity_id = ?`,
         [ entity_id ]
     );
+    for (const curEntity of entityUsers) {
+        // дефолтно
+        curEntity.is_editable = true;
+    }
+    if (parent_entity_id) {
+        const parentEntity = 
+                await getEntity({entity_id : parent_entity_id,user_id},con);
+        if (parentEntity) {
+            const parentEntityUsers = 
+                await getEntityUsers({entity_id:parent_entity_id,user_id},con);
+                for (const curEntity of entityUsers) {
+                    for (const parentEntity of parentEntityUsers) {
+                        if (curEntity.user_id === parentEntity.user_id) {
+                            curEntity.editable = false;
+                            continue;
+                        }
+                    }
+                }
+        }
+    }
+    return entityUsers;
 }
 
 // Удаление

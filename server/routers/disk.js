@@ -186,6 +186,7 @@ router.delete('/:entity_id', async (req, res, next) => {
     }
 });
 
+// Права для entity
 router.get('/:entity_id/users', async (req,res,next) => {
     const { entity_id } = req.params;
     const { user_id } = req.userModel;
@@ -200,7 +201,10 @@ router.get('/:entity_id/users', async (req,res,next) => {
         const entity = await entityModel.getEntity({entity_id,user_id},con);
         if (!entity) throw 'Permission denied';
 
-        const entityUsers = await entityModel.getEntityUsers({entity_id,user_id},con);
+        const entityUsers = await entityModel.getEntityUsers(
+            {entity_id,parent_entity_id : entity.parent_entity_id, user_id},
+            con
+        );
 
         res.send(entityUsers);
     } catch(error) {
@@ -246,7 +250,7 @@ router.post('/:entity_id/users', async (req, res, next) => {
     }
 });
 
-// Добавляет права на entity
+// Отбирает права на entity
 router.post('/:entity_id/users/revoke', async (req, res, next) => {
     const { entity_id } = req.params;
     const profile_user_id = req.userModel.user_id;
