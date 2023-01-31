@@ -8,7 +8,8 @@ export const userSlice = createSlice({
         profile : {
             login : "",
             secret : ""
-        }
+        },
+        userList : []
     },
     reducers: {
         login: (state, action) => {
@@ -22,9 +23,12 @@ export const userSlice = createSlice({
         addProfile: (state, action) => {
             state.profile = action.payload;
         },
+        addUserList: (state, action) => {
+            state.userList = action.payload;
+        }
     },
 });
 
-export const { login, logout, addProfile } = userSlice.actions;
+export const { login, logout, addProfile, addUserList } = userSlice.actions;
 
 export default userSlice.reducer;

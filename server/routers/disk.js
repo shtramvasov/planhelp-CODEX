@@ -273,6 +273,20 @@ router.post('/:entity_id/users/revoke', async (req, res, next) => {
         // только OWNERам можно раздавать права
         if (entity.user_role !== 'OWNER') throw 'Permission denied, you are not OWNER of this entity';
 
+        // проверим можно ли менять права на тек уровне вложенности
+        const entityUsers = await entityModel.getEntityUsers(
+            {entity_id,parent_entity_id : entity.parent_entity_id, user_id},
+            con
+        );
+        for (const eUser of entityUsers) {
+            if (eUser.user_id == user_id && !eUser.is_editable) {
+                throw 'Permission denied, role not editable';
+            } else
+            if (eUser.user_id == user_id && eUser.user_role == "OWNER") {
+                throw 'Permission denied, owner role not editable';
+            }
+        }
+
         await entityModel.revokeEntityUser({entity_tree : entity.entity_tree, user_id}, con);
 
         res.send({entity_id : entity_id});

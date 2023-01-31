@@ -40,6 +40,42 @@ export async function getDiskEntityUsers({entity_id}, cb = () => {}) {
     }
 }
 
+export async function deleteDiskEntityUser(
+    {entity_id, user_id}, cb = () => {}) {
+    const response = await fetch(`/api/secure/disk/${entity_id}/users/revoke`, {
+        method: 'post',
+        body: JSON.stringify({entity_id: entity_id, user_id : user_id}),
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${Cookies.get("secret")}`
+        }
+    });
+    if (response.ok) {
+        const data = await response.json();
+        cb(null,data);
+    } else {
+        cb(response.status + " " + response.statusText);
+    }
+}
+
+export async function addDiskEntityUser(
+    {entity_id, user_id, user_role}, cb = () => {}) {
+    const response = await fetch(`/api/secure/disk/${entity_id}/users`, {
+        method: 'post',
+        body: JSON.stringify({entity_id: entity_id, user_id : user_id, user_role : user_role}),
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${Cookies.get("secret")}`
+        }
+    });
+    if (response.ok) {
+        const data = await response.json();
+        cb(null,data);
+    } else {
+        cb(response.status + " " + response.statusText);
+    }
+}
+
 export async function getDiskEntityActivityOld({entity_id,activity_id}, cb = () => {}) {
     const response = await fetch(`/api/secure/disk/${entity_id}/activity/${activity_id}`, {
         method: 'get',

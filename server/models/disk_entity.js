@@ -145,7 +145,7 @@ const getEntityUsers = async ({entity_id, parent_entity_id, user_id}, con) => {
                 for (const curEntity of entityUsers) {
                     for (const parentEntity of parentEntityUsers) {
                         if (curEntity.user_id === parentEntity.user_id) {
-                            curEntity.editable = false;
+                            curEntity.is_editable = false;
                             continue;
                         }
                     }
