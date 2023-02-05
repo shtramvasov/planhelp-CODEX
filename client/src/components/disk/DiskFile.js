@@ -13,6 +13,8 @@ import { addEntity } from '../../reducers/Disk'
 import { useNavigate } from "react-router-dom";
 import { getDiskEntity, postDiskEntity, deletetDiskEntity } from '../../network/DiskNetwork';
 import { useParams } from 'react-router-dom';
+import ReactMarkdown from 'react-markdown' 
+
 
 function DiskFile(props) {
     const { entity_id , mode} = useParams();
@@ -125,9 +127,10 @@ function DiskFile(props) {
     </Row>
     <Row>
         <Col>
-            <div style={{paddingTop: "20px",whiteSpace: "pre-line"}}>
+            {/* <div style={{paddingTop: "20px",whiteSpace: "pre-line"}}>
                 {convert(Disk.entity.entity_note)}
-            </div>
+            </div> */}
+            <ReactMarkdown children={ Disk.entity.entity_note } ></ReactMarkdown>
         </Col>
     </Row>
     </div>
