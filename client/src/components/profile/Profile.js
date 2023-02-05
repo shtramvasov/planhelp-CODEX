@@ -148,6 +148,8 @@ function Profile(props) {
         <Col>
             <small>Telegram chat id</small>
             &nbsp;<a href="#" onClick={actionChangeTlgrm}><i className="bi bi-pencil-square"></i></a>
+            <br/>
+            <small><a href="https://t.me/planhelpbot">Узнать свой chat_id</a></small>
             <h4>{User.profile.telegram_chat_id?User.profile.telegram_chat_id:"-"}</h4>
         </Col>
     </Row>
