@@ -28,7 +28,12 @@ function Disk(props) {
     const fetchEntity = () => {
         getDiskEntity({entity_id : entity_id, search : searchParams.get("search")},(err,resp) => {
             if (!err) {
-                dispatch(addEntity(resp));    
+                if (resp.entity_type==="FILE") {
+                    console.log("its file");
+                    navigate(`/disk/${entity_id}/file/read`);
+                }
+                dispatch(addEntity(resp));
+                
             } else {
                 alert("Ошибка: "+err);
             }

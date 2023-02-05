@@ -7,6 +7,7 @@ const config = require('./config');
 const diskRouter = require('./routers/disk');
 const userRouter = require('./routers/user');
 const loginRouter = require('./routers/login');
+const notifyRouter = require('./routers/notify');
 const auth = require('./auth');
 
 const app = express();
@@ -18,6 +19,7 @@ app.use(bodyParser.urlencoded({extended: true}));
 app.use('/api/secure',auth);
 app.use('/api/secure/disk', diskRouter);
 app.use('/api/secure/user', userRouter);
+app.use('/api/secure/notify', notifyRouter);
 
 app.use('/api/login',loginRouter);
 

@@ -8,6 +8,7 @@ import DiskFile from "./disk/DiskFile";
 import DiskPath from "./disk/DiskPath";
 import DiskActivity from "./disk/DiskActivity";
 import DiskActivityOld from "./disk/DiskActivityOld";
+import NotifyList from "./notify/NotifyList";
 import Task from "./task/Task";
 import Hr from "./hr/Hr";
 
@@ -56,6 +57,10 @@ const router = createBrowserRouter([
     {
         path: "/login",
         element: <Login />,
+    },
+    {
+        path: "/notify",
+        element: <NotifyList />,
     },
     {
         path: "/profile",

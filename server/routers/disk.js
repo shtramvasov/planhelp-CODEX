@@ -118,7 +118,7 @@ router.post('/', async (req, res, next) => {
             {entity_name, entity_type, entity_note, parent_entity_id, user_id},
             parentEntity,
             con
-        );
+        );        
 
         res.send({entity_id : entity_id});
     } catch(err) {
@@ -148,7 +148,8 @@ router.post('/:entity_id', async (req, res, next) => {
         const entity = await entityModel.getEntity({entity_id,user_id},con, true);
         if (!entity) throw 'Permission denied';
 
-        await entityModel.updateEntity({entity_id,user_id,entity_name,entity_note},entity,con);
+        await entityModel.updateEntity(
+            {entity_id,user_id,entity_name,entity_note, entity_type : entity.entity_type},entity,con);
         res.send({entity_id : entity_id});
     } catch(err) {
         con && await mysql.rollback(con);
@@ -176,7 +177,8 @@ router.delete('/:entity_id', async (req, res, next) => {
         const entity = await entityModel.getEntity({entity_id,user_id},con, true);
         if (!entity) throw 'Permission denied';
 
-        await entityModel.deleteEntity({entity_id,user_id},con);
+        await entityModel.deleteEntity(
+            {entity_id,user_id, entity_name : entity.entity_name, entity_type : entity.entity_type},con);
         res.send({entity_id : entity_id});
     } catch(err) {
         con && await mysql.rollback(con);

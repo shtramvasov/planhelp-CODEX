@@ -156,7 +156,22 @@ const getEntityUsers = async ({entity_id, parent_entity_id, user_id}, con) => {
 }
 
 // Удаление
-const deleteEntity = async ({entity_id, user_id}, con) => {
+const deleteEntity = async ({entity_id, user_id, entity_name, entity_type}, con) => {
+    // Не уверен что это здесь должно быть
+    // формируем нотификации
+    const login = (await mysql.query(con,"select login from ref_users where user_id = ?",[user_id]))[0].login;
+    const notify = `${login} удалил ${entity_type==='PATH'?"папку":"файл"} ${entity_name}`;
+    const entityUsers = await getEntityUsers({entity_id, user_id}, con);
+    for (const userRole of entityUsers) {
+        // формируем нотификации
+        if (user_id != userRole.user_id) {
+        await mysql.query(con,
+            `insert into notify(user_id,object_id,object_type,notify_note,is_read,created_on)
+            values(?,?,'disk_entity',?,0,now())`,
+            [ userRole.user_id, entity_id, notify  ]);
+        }
+    }
+    // 
     // включая все дочерние записи ниже по дереву
     return await mysql.query(con,
         `update disk_entity 
@@ -169,20 +184,36 @@ const deleteEntity = async ({entity_id, user_id}, con) => {
     );
 }
 
-const updateEntity = async ({entity_id, user_id, entity_name, entity_note},oldEntity, con) => {
-    if (oldEntity.entity_note != entity_note 
-        || oldEntity.entity_name != entity_name) {
-        // Апдейт только если что то изменилось
-        await mysql.query(con, 
-            `insert into disk_entity_activity
-                (entity_id, entity_note_old, entity_name_old, created_by, created_on)
-            values
-                (?,?,?,?,now())`,
-            [ entity_id, oldEntity.entity_note, oldEntity.entity_name, user_id ]);
-        await mysql.query(con, 
-            `update disk_entity set entity_name = ?, entity_note = ? where entity_id = ?`,
-            [ entity_name, entity_note, entity_id ] );
+const updateEntity = async ({entity_id, user_id, entity_name, entity_note, entity_type},oldEntity, con) => {
+    if (oldEntity.entity_note == entity_note 
+        && oldEntity.entity_name == entity_name) {
+            return
     }
+    // Не уверен что это здесь должно быть
+    // формируем нотификации
+    const login = (await mysql.query(con,"select login from ref_users where user_id = ?",[user_id]))[0].login;
+    const notify = `${login} изменил ${entity_type==='PATH'?"папку":"файл"} ${entity_name}`;
+    const entityUsers = await getEntityUsers({entity_id, user_id}, con);
+    for (const userRole of entityUsers) {
+        // формируем нотификации
+        if (user_id != userRole.user_id) {
+        await mysql.query(con,
+            `insert into notify(user_id,object_id,object_type,notify_note,is_read,created_on)
+            values(?,?,'disk_entity',?,0,now())`,
+            [ userRole.user_id, entity_id, notify  ]);
+        }
+    }
+    // 
+    await mysql.query(con, 
+        `insert into disk_entity_activity
+            (entity_id, entity_note_old, entity_name_old, created_by, created_on)
+        values
+            (?,?,?,?,now())`,
+        [ entity_id, oldEntity.entity_note, oldEntity.entity_name, user_id ]);
+    await mysql.query(con, 
+        `update disk_entity set entity_name = ?, entity_note = ? where entity_id = ?`,
+        [ entity_name, entity_note, entity_id ] );
+    
 }
 
 const createEntityUser = async ({entity_tree, user_id, user_role}, con) => {
@@ -206,6 +237,12 @@ const revokeEntityUser = async ({entity_tree, user_id}, con) => {
 }
 
 const createEntity = async ({entity_name, entity_type, entity_note, parent_entity_id, user_id}, parentEntity, con) => {
+    // Не уверен что это здесь должно быть
+    // формируем нотификации
+    const login = (await mysql.query(con,"select login from ref_users where user_id = ?",[user_id]))[0].login;
+    const notify = `${login} создал ${entity_type==='PATH'?"папку":"файл"} ${entity_name} в ${parentEntity.entity_name}`;
+    // 
+
     let parentEntityUsers;
 
     if (parentEntity) {
@@ -237,6 +274,14 @@ const createEntity = async ({entity_name, entity_type, entity_note, parent_entit
         await mysql.query(con,
             `insert into disk_entity_users(entity_id, user_id, user_role) values(?,?,?)`,
             [ entity_id, userRole.user_id, userRole.user_role ]);
+        // формируем нотификации
+        if (user_id != userRole.user_id) {
+        await mysql.query(con,
+            `insert into notify(user_id,object_id,object_type,notify_note,is_read,created_on)
+            values(?,?,'disk_entity',?,0,now())`,
+            [ userRole.user_id, entity_id, notify  ]);
+        }
+        //
     }
     return entity_id;
 }

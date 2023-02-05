@@ -14,10 +14,10 @@ export async function getUserProfile({}, cb = () => {}) {
     }
 }
 
-export async function postUserProfile({secret}, cb = () => {}) {
+export async function postUserProfile({secret, email, telegram_chat_id, is_notify}, cb = () => {}) {
     const response = await fetch(`/api/secure/user`, {
         method: 'post',
-        body: JSON.stringify({secret :secret}),
+        body: JSON.stringify({secret :secret, email : email, telegram_chat_id : telegram_chat_id, is_notify: is_notify}),
         headers: {
             'Content-Type': 'application/json',
             'Authorization': `Bearer ${Cookies.get("secret")}`

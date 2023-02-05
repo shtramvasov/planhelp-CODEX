@@ -7,7 +7,10 @@ export const userSlice = createSlice({
         isLogin : false,
         profile : {
             login : "",
-            secret : ""
+            secret : "",
+            email : "",
+            telegram_chat_id : "",
+            is_notify : 0
         },
         userList : []
     },
