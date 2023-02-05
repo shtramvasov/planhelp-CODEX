@@ -1,7 +1,6 @@
 {
   "name": "front",
   "version": "0.1.0",
-  "proxy": "https://planhelp.ru",
   "private": true,
   "dependencies": {
     "@reduxjs/toolkit": "^1.9.1",

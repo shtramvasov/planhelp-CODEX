@@ -3,5 +3,6 @@ module.exports = {
     db_host : "",
     db_user : "",
     db_pass : "",
-    db : ""
+    db : "",
+    telegram_bot_url : ""
 }
