@@ -5,7 +5,8 @@
 /server/config/index.js
 /db
 
-package-lock.json
+/client/package-lock.json
+/server/package-lock.json
 
 # See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
 
