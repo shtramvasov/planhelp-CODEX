@@ -126,7 +126,7 @@ function DiskFile(props) {
         </Col>
     </Row>
     <Row>
-        <Col>
+        <Col style={{whiteSpace: "pre-wrap"}}>
             {/* <div style={{paddingTop: "20px",whiteSpace: "pre-line"}}>
                 {convert(Disk.entity.entity_note)}
             </div> */}
