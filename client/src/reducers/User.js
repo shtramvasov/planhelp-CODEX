@@ -10,7 +10,8 @@ export const userSlice = createSlice({
             secret : "",
             email : "",
             telegram_chat_id : "",
-            is_notify : 0
+            is_notify : 0,
+            timezone : ""
         },
         userList : []
     },

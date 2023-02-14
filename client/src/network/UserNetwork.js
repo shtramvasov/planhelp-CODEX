@@ -14,10 +14,16 @@ export async function getUserProfile({}, cb = () => {}) {
     }
 }
 
-export async function postUserProfile({secret, email, telegram_chat_id, is_notify}, cb = () => {}) {
+export async function postUserProfile({secret, email, telegram_chat_id, is_notify, timezone}, cb = () => {}) {
     const response = await fetch(`/api/secure/user`, {
         method: 'post',
-        body: JSON.stringify({secret :secret, email : email, telegram_chat_id : telegram_chat_id, is_notify: is_notify}),
+        body: JSON.stringify({
+            secret :secret, 
+            email : email,
+            telegram_chat_id : telegram_chat_id, 
+            is_notify: is_notify,
+            timezone : timezone
+        }),
         headers: {
             'Content-Type': 'application/json',
             'Authorization': `Bearer ${Cookies.get("secret")}`

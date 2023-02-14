@@ -8,8 +8,6 @@ import Row from 'react-bootstrap/Row';
 import Col from 'react-bootstrap/Col';
 
 function ModalAutoComplete(props) {
-    
-    let elements = [];
 
     const closeMe = () => {
         props.callBack();
@@ -34,9 +32,15 @@ function ModalAutoComplete(props) {
                 <div style={{float: "left"}}>
                     {el.display_val}
                 </div>
+                {props.defaultVal == el.return_val?
+                <div style={{float:"right"}}>
+                    <i className="bi bi-check-circle-fill"></i>
+                </div>
+                :
                 <div style={{float:"right"}}>
                     <i className="bi bi-check-circle"></i>
                 </div>
+                }
         </ListGroup.Item>
     );
     

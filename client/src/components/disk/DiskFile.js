@@ -72,6 +72,10 @@ function DiskFile(props) {
         navigate(`/disk/${entity_id}/activity`);
     }
 
+    const handleCalendarAdd = () => {
+        alert("not released yet");
+    }
+
     const handleSubmit = (e) => {
         e.preventDefault();
         // console.log(e.target.formEntityName.value);
@@ -117,6 +121,7 @@ function DiskFile(props) {
                 <Button style={{marginLeft : "2px"}} type="button" onClick={handleBackClick} variant="outline-secondary" ><i className="bi bi-chevron-left"></i></Button>   
                 <Button style={{marginLeft : "2px"}} type="button" onClick={handleEditClick} variant="outline-secondary" >Изменить файл</Button>   
                 <Button style={{marginLeft : "2px"}} type="button" variant="outline-secondary" onClick={handleInfoEntity}><i className="bi bi-info-circle"></i></Button>
+                <Button style={{marginLeft : "2px"}} type="button" variant="outline-primary" onClick={handleCalendarAdd}><i className="bi bi-calendar2-plus"></i></Button>
             </Form.Group>
         </Col>
     </Row>    

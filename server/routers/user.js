@@ -12,7 +12,7 @@ router.get('/', async (req, res, next) => {
 // Изменение профиля
 router.post('/', async (req, res, next) => {
     const { user_id } = req.userModel;
-    const { secret, email, telegram_chat_id, is_notify } = req.body;
+    const { secret, email, telegram_chat_id, is_notify, timezone } = req.body;
     let con;
     try {
         // if (!secret) throw "Missing secret in body params";
@@ -20,7 +20,7 @@ router.post('/', async (req, res, next) => {
         con = await mysql.getConnection();
         await mysql.begin(con);
 
-        await userModel.updateProfile({secret, email, telegram_chat_id, is_notify, user_id},con);
+        await userModel.updateProfile({secret, email, telegram_chat_id, is_notify, timezone, user_id},con);
         res.send({ok:true});
     } catch(err) {
         con && await mysql.rollback(con);
