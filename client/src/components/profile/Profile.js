@@ -189,7 +189,7 @@ function Profile(props) {
         <Col>
             <small>Часовой пояс</small>
             &nbsp;<a href="#" onClick={actionChangeTimezone}><i className="bi bi-pencil-square"></i></a>
-            <h4>{initValues.filter(el=>el.return_val === User.profile.timezone)[0].display_val}</h4>
+            <h4>{initValues.filter(el=>el.return_val === User.profile.timezone)[0]?.display_val}</h4>
         </Col>
     </Row>
     <Row>
@@ -209,7 +209,7 @@ function Profile(props) {
             <small>Telegram chat id</small>
             &nbsp;<a href="#" onClick={actionChangeTlgrm}><i className="bi bi-pencil-square"></i></a>
             <br/>
-            <small><a href="https://t.me/planhelpbot">Узнать свой chat_id</a></small>
+            <small><a href="https://t.me/planhelpbot" className="phLink">Узнать свой chat_id</a></small>
             <h4>{User.profile.telegram_chat_id?User.profile.telegram_chat_id:"-"}</h4>
         </Col>
     </Row>
@@ -237,7 +237,7 @@ function Profile(props) {
     <Row>
         <Col>
             <br/>
-            <a href="/logout" style={{textDecorationStyle:"dotted"}}>Выйти из системы</a>
+            <a href="/logout" className="phLink">Выйти из системы</a>
         </Col>
     </Row>
     </Container>

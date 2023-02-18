@@ -7,11 +7,11 @@ const CONSTANTS = {
     DELETED_OFF : 0,
 }
 
-const createNote = async ({user_id,entity_id,remind_on,is_remind,note}, con) => {
+const createNote = async ({user_id,entity_id,remind_on,is_remind,note,variant}, con) => {
     return await mysql.query(con,
-        `insert into common_note(user_id,entity_id,created_on,remind_on,is_remind,note)
+        `insert into common_note(user_id,entity_id,created_on,remind_on,is_remind,note,variant)
         values(?,?,now(),?,?,?)`,
-        [ user_id, entity_id, remind_on, is_remind, note ]);
+        [ user_id, entity_id, remind_on, is_remind, note, variant ]);
 }
 
 const updateNote = async ({note_id,remind_on,is_remind,note,is_deleted}, con) => {
@@ -40,8 +40,9 @@ const getNote = async ({ note_id }, con) => {
 
 const getNoteList = async ({user_id, entity_id, limit, offset}, con) => {
     return await mysql.query(con,
-        `select cn.* 
-           from common_note cn
+        `select cn.*, u.login
+           from common_note cn inner join ref_users u 
+                                on cn.user_id = u.user_id
           where cn.user_id = ?
             and cn.entity_id = ?
             and cn.is_deleted = 0

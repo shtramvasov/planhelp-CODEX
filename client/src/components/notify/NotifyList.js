@@ -82,7 +82,7 @@ function NotifyList(props) {
     </Row>
     <Row>
         <Col>
-            <a href="#" onClick={actionReadAllNotify} style={{textDecorationStyle: "dotted"}}>Отметить все прочитанными</a>
+            <a href="#" onClick={actionReadAllNotify} className="phLink">Отметить все прочитанными</a>
             <br/>
             <br/>
         </Col>

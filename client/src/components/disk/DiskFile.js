@@ -6,14 +6,17 @@ import Form from 'react-bootstrap/Form';
 import Button from 'react-bootstrap/Button';
 import ButtonGroup from 'react-bootstrap/ButtonGroup';
 import ModalOneInputText from "../helpers/ModalOneInputText";
+import ModalNote from "../helpers/ModalNote";
 import React, { useState, useEffect, useRef } from 'react';
 import { useSelector, useDispatch } from 'react-redux'
 import ListGroup from 'react-bootstrap/ListGroup';
-import { addEntity } from '../../reducers/Disk'
+import { addEntity, addEntityNotes } from '../../reducers/Disk';
 import { useNavigate } from "react-router-dom";
 import { getDiskEntity, postDiskEntity, deletetDiskEntity } from '../../network/DiskNetwork';
+import { getEntityNoteList, addEntityNote } from '../../network/NoteNetwork';
 import { useParams } from 'react-router-dom';
 import ReactMarkdown from 'react-markdown' 
+import Card from 'react-bootstrap/Card';
 
 
 function DiskFile(props) {
@@ -24,17 +27,7 @@ function DiskFile(props) {
 
     document.title = Disk.entity.entity_name+" | planhelp";
 
-    const  convert = (text) => {
-        if (!text) return;
-        const urlRegex = /(https?:\/\/[^\s]+)/g;
-        return text.split(urlRegex)
-           .map(part => {
-              if(part.match(urlRegex)) {
-                 return <a href={part}>{part}</a>;
-              }
-              return part;
-           });
-    }
+    const [showModalNote, setShowModalNote] = useState(false);
 
     const fetchEntity = () => {
         getDiskEntity({entity_id : entity_id},(err,resp) => {
@@ -45,6 +38,16 @@ function DiskFile(props) {
             }
         });
     };
+
+    const fetchEntityNoteList = () => {
+        getEntityNoteList({entity_id : entity_id},(err,resp) => {
+            if (!err) {
+                dispatch(addEntityNotes(resp));    
+            } else {    
+                alert("Ошибка: "+err);
+            }
+        });
+    }
 
     const deleteEntity = () => {
         deletetDiskEntity({entity_id}, (err,data) => {
@@ -72,14 +75,8 @@ function DiskFile(props) {
         navigate(`/disk/${entity_id}/activity`);
     }
 
-    const handleCalendarAdd = () => {
-        alert("not released yet");
-    }
-
     const handleSubmit = (e) => {
         e.preventDefault();
-        // console.log(e.target.formEntityName.value);
-        // console.log(e.target.formEntityNote.value);
         
         postDiskEntity(
             {   
@@ -102,10 +99,67 @@ function DiskFile(props) {
     // Последующие загрзки при измененеии entity_id
     useEffect(() => {
         fetchEntity();
+        fetchEntityNoteList();
     },[entity_id]);
 
+    // Вызов модалки создания файла
+    const actionCallModalNote = (e) => {
+        e.preventDefault();
+        setShowModalNote(true);
+    }
+
+    // Колбэк с модалки после создания файла
+    const actionModalNoteCallback = (commonNote) => {
+        setShowModalNote(false);
+        if (!commonNote) {
+            return;
+        }
+        if (!commonNote.note) {
+            return;
+        }
+        const {note, remind_on} = commonNote;
+        
+        addEntityNote({
+                entity_id : entity_id,
+                note : note,
+                remind_on : remind_on
+            },
+            (err,resp) => {
+                if (!err) {
+                    fetchEntityNoteList();
+                } else {
+                    alert("Ошибка: "+err);
+                }
+            });
+    }
+
+    const onDeleteNote = () => {
+        alert("Удалить?");
+    }
+
+    const entityNoteItems = Disk.entityNotes.map((el) => 
+        <Card key={el.note_id} onDoubleClick={onDeleteNote}
+              style={{fontSize:"0.8em", marginBottom:"8px", cursor:"pointer"}}
+              bg="light" text="">
+            <Card.Body style={{padding:"8px 8px 4px 8px"}}>
+                    <Card.Text>
+                    {el.note}
+                    </Card.Text>
+            </Card.Body>
+            <div style={{textAlign:"right", padding:"0px 8px 8px 0px"}}>
+                <small>{el.created_on} ({el.login}) {el.remind_on?"напомнить "+el.remind_on:""}</small>
+            </div>
+        </Card>
+    );
+    
     return (
     <Container>
+        <ModalNote 
+            type="textarea" 
+            title={"Заметка"} 
+            show={showModalNote} 
+            placeholder="Напишите комментарий"
+            callBack={actionModalNoteCallback} />
     <Row>
         <Col>
             <Navbar />
@@ -121,7 +175,7 @@ function DiskFile(props) {
                 <Button style={{marginLeft : "2px"}} type="button" onClick={handleBackClick} variant="outline-secondary" ><i className="bi bi-chevron-left"></i></Button>   
                 <Button style={{marginLeft : "2px"}} type="button" onClick={handleEditClick} variant="outline-secondary" >Изменить файл</Button>   
                 <Button style={{marginLeft : "2px"}} type="button" variant="outline-secondary" onClick={handleInfoEntity}><i className="bi bi-info-circle"></i></Button>
-                <Button style={{marginLeft : "2px"}} type="button" variant="outline-primary" onClick={handleCalendarAdd}><i className="bi bi-calendar2-plus"></i></Button>
+                <Button style={{marginLeft : "2px"}} type="button" variant="outline-primary" onClick={actionCallModalNote}><i className="bi bi-calendar2-plus"></i></Button>
             </Form.Group>
         </Col>
     </Row>    
@@ -132,10 +186,13 @@ function DiskFile(props) {
     </Row>
     <Row>
         <Col style={{whiteSpace: "pre-wrap"}}>
-            {/* <div style={{paddingTop: "20px",whiteSpace: "pre-line"}}>
-                {convert(Disk.entity.entity_note)}
-            </div> */}
             <ReactMarkdown children={ Disk.entity.entity_note } ></ReactMarkdown>
+        </Col>
+        <Col lg={3}>
+            {entityNoteItems}
+            <div style={{textAlign: "center"}}>
+                <a href="#" onClick={actionCallModalNote} className="phLink">Добавить заметку</a>
+            </div>
         </Col>
     </Row>
     </div>

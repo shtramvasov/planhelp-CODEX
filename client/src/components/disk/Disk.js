@@ -103,7 +103,6 @@ function Disk(props) {
                 }
             }
         );
-        
     }
 
     const deleteEntity = () => {

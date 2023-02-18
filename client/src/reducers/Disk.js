@@ -21,7 +21,8 @@ export const diskSlice = createSlice({
             created_by : null,
             created_on : null
         },
-        entityUsers : []
+        entityUsers : [],
+        entityNotes : []
     },
     reducers: {
         addEntity: (state, action) => {
@@ -35,10 +36,13 @@ export const diskSlice = createSlice({
         },
         addEntityUsers: (state, action) => {
             state.entityUsers = (action.payload);
+        },
+        addEntityNotes: (state, action) => {
+            state.entityNotes = (action.payload);
         }
     },
 });
 
-export const { addEntity, addEntityActivity, addEntityActivityOld, addEntityUsers } = diskSlice.actions;
+export const { addEntity, addEntityActivity, addEntityActivityOld, addEntityUsers, addEntityNotes } = diskSlice.actions;
 
 export default diskSlice.reducer;

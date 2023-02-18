@@ -316,6 +316,7 @@ router.get('/:entity_id/note/:note_id?', async (req,res,next) => {
         // валидируем доступ если entity не найден - значит нет доступа
         const entity = await entityModel.getEntity({entity_id,user_id},con);
         if (!entity) throw 'Permission denied';
+        
         if (note_id) {
             const note = await commonNote.getNote({
                 user_id, entity_id,note_id }, con);
@@ -342,7 +343,8 @@ router.delete('/:entity_id/note/:note_id', async (req, res, next) => {
     let con;
     try {
         // Проверки
-        if (!entity_id || !note_id) throw "Missing entity_id or note_id in url params";
+        if (!entity_id) throw "Missing entity_id in url params";
+        if (!note_id) throw "Missing note_id in url params";
 
         con = await mysql.getConnection();
         await mysql.begin(con);
@@ -368,7 +370,7 @@ router.delete('/:entity_id/note/:note_id', async (req, res, next) => {
 router.post('/:entity_id/note', async (req, res, next) => {
     const { user_id } = req.userModel;
     const { entity_id } = req.params;
-    const { remind_on, note } = req.body;
+    const { remind_on, note, variant } = req.body;
     let con;
     try {
         con = await mysql.getConnection();
@@ -385,7 +387,8 @@ router.post('/:entity_id/note', async (req, res, next) => {
             entity_id,
             remind_on,
             is_remind : remind_on ? commonNote.CONSTANTS.REMIND_ON : commonNote.CONSTANTS.REMIND_OFF,
-            note}, 
+            note,
+            variant}, 
         con);
 
         res.send({ok:true});
