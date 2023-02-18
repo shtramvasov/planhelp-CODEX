@@ -10,7 +10,7 @@ const CONSTANTS = {
 const createNote = async ({user_id,entity_id,remind_on,is_remind,note,variant}, con) => {
     return await mysql.query(con,
         `insert into common_note(user_id,entity_id,created_on,remind_on,is_remind,note,variant)
-        values(?,?,now(),?,?,?)`,
+        values(?,?,now(),?,?,?,?)`,
         [ user_id, entity_id, remind_on, is_remind, note, variant ]);
 }
 

@@ -394,6 +394,7 @@ router.post('/:entity_id/note', async (req, res, next) => {
         res.send({ok:true});
     } catch(error) {
         con && await mysql.rollback(con);
+        next(error);
     } finally {
         con && await mysql.commit(con) && await mysql.releaseConnection(con);
     }
