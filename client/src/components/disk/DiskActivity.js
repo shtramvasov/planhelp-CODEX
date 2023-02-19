@@ -17,6 +17,9 @@ import { getUsers } from '../../network/UserNetwork';
 import { useParams } from 'react-router-dom';
 import Table from 'react-bootstrap/Table';
 import Badge from 'react-bootstrap/Badge';
+import moment from 'moment';
+import 'moment/locale/ru';
+moment.locale('ru');
 
 function DiskActivity(props) {
     const { entity_id } = useParams();
@@ -128,7 +131,7 @@ function DiskActivity(props) {
                 Контент
             </NavLink>
             </td>:""}
-            <td>{el.created_on}</td>
+            <td>{moment(el.created_on).fromNow()}</td>
         </tr>
     );
 
@@ -173,7 +176,7 @@ function DiskActivity(props) {
         </Col>
         <Row>
             <Col>
-                Создал: {Disk.entity.login} {Disk.entity.created_on}
+                Создал {Disk.entity.login} {moment(Disk.entity.created_on).fromNow()}
                 <hr/>
             </Col>
         </Row>

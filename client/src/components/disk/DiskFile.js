@@ -17,7 +17,9 @@ import { getEntityNoteList, addEntityNote } from '../../network/NoteNetwork';
 import { useParams } from 'react-router-dom';
 import ReactMarkdown from 'react-markdown' 
 import Card from 'react-bootstrap/Card';
-
+import moment from 'moment';
+import 'moment/locale/ru';
+moment.locale('ru');
 
 function DiskFile(props) {
     const { entity_id , mode} = useParams();
@@ -147,7 +149,11 @@ function DiskFile(props) {
                     </Card.Text>
             </Card.Body>
             <div style={{textAlign:"right", padding:"0px 8px 8px 0px"}}>
-                <small>{el.created_on} ({el.login}) {el.remind_on?"напомнить "+el.remind_on:""}</small>
+                <small>
+                    {moment(el.created_on).fromNow()} 
+                    ({el.login})<br/>
+                    {el.remind_on?"напомнить "+moment(el.remind_on).format('MMMM Do YYYY, hh:mm:ss'):""}
+                </small>
             </div>
         </Card>
     );
