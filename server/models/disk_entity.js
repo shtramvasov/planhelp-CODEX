@@ -170,7 +170,7 @@ const deleteEntity = async ({entity_id, user_id, entity_name, entity_type}, con)
                 `insert into notify(user_id,object_id,object_type,notify_note,is_read,created_on)
                 values(?,?,'disk_entity',?,0,now())`,
                 [ userRole.user_id, entity_id, notify ]);
-            if (userRole.is_notify) {
+            if (userRole.is_notify && userRole.telegram_chat_id) {
                 // Получаем созданный ID
                 const notify_id = (await mysql.query(con,`select LAST_INSERT_ID() notify_id`))[0].notify_id;
                 // пишем в журнал отправки для телеграм
@@ -212,7 +212,7 @@ const updateEntity = async ({entity_id, user_id, entity_name, entity_note, entit
                 `insert into notify(user_id,object_id,object_type,notify_note,is_read,created_on)
                 values(?,?,'disk_entity',?,0,now())`,
                 [ userRole.user_id, entity_id, notify  ]);
-            if (userRole.is_notify) {
+            if (userRole.is_notify && userRole.telegram_chat_id) {
                 // Получаем созданный ID
                 const notify_id = (await mysql.query(con,`select LAST_INSERT_ID() notify_id`))[0].notify_id;
                 // пишем в журнал отправки для телеграм
@@ -304,7 +304,7 @@ const createEntity = async ({entity_name, entity_type, entity_note, parent_entit
                 `insert into notify(user_id,object_id,object_type,notify_note,is_read,created_on)
                 values(?,?,'disk_entity',?,0,now())`,
                 [ userRole.user_id, entity_id, notify  ]);
-            if (userRole.is_notify) {
+            if (userRole.is_notify && userRole.telegram_chat_id) {
                 // Получаем созданный ID
                 const notify_id = (await mysql.query(con,`select LAST_INSERT_ID() notify_id`))[0].notify_id;
                 // пишем в журнал отправки для телеграм
