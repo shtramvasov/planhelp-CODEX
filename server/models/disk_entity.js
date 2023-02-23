@@ -239,8 +239,10 @@ const revokeEntityUser = async ({entity_tree, user_id}, con) => {
 const createEntity = async ({entity_name, entity_type, entity_note, parent_entity_id, user_id}, parentEntity, con) => {
     // Не уверен что это здесь должно быть
     // формируем нотификации
-    const login = (await mysql.query(con,"select login from ref_users where user_id = ?",[user_id]))[0].login;
-    const notify = `${login} создал ${entity_type==='PATH'?"папку":"файл"} ${entity_name} в ${parentEntity.entity_name}`;
+    if (parentEntity) {
+        const login = (await mysql.query(con,"select login from ref_users where user_id = ?",[user_id]))[0].login;
+        const notify = `${login} создал ${entity_type==='PATH'?"папку":"файл"} ${entity_name} в ${parentEntity.entity_name}`;
+    }
     // 
 
     let parentEntityUsers;

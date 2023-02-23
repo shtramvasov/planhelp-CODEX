@@ -60,7 +60,7 @@ function NotifyList(props) {
     const listItems = Notify.notifyList.map((el) =>
     <ListGroup.Item key={el.notify_id} style={{border:"0"}}>
         <div>
-            <small style={{fontSize : "0.6em"}}>{moment(el.created_on).fromNow()}</small>
+            <small style={{fontSize : "0.6em"}}>{moment(el.created_on,'YYYY-MM-DDTHH:mm:ss.SSSZ').fromNow()}</small>
         </div>
         <div>
             {!el.is_read?<strong>{el.notify_note}</strong>:el.notify_note}

@@ -17,7 +17,7 @@ import { getUsers } from '../../network/UserNetwork';
 import { useParams } from 'react-router-dom';
 import Table from 'react-bootstrap/Table';
 import Badge from 'react-bootstrap/Badge';
-import moment from 'moment';
+import moment from 'moment-timezone';
 import 'moment/locale/ru';
 moment.locale('ru');
 
@@ -131,7 +131,7 @@ function DiskActivity(props) {
                 Контент
             </NavLink>
             </td>:""}
-            <td>{moment(el.created_on).fromNow()}</td>
+            <td>{moment(el.created_on,'YYYY-MM-DDTHH:mm:ss.SSSZ').fromNow()}</td>
         </tr>
     );
 
@@ -176,7 +176,9 @@ function DiskActivity(props) {
         </Col>
         <Row>
             <Col>
-                Создал {Disk.entity.login} {moment(Disk.entity.created_on).fromNow()}
+                Создал {Disk.entity.login} {
+                moment(Disk.entity.created_on,'YYYY-MM-DDTHH:mm:ss.SSSZ').fromNow()
+                }
                 <hr/>
             </Col>
         </Row>

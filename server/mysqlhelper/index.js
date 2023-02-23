@@ -13,7 +13,10 @@ const getConnection = () => new Promise((resolve, reject) => {
         if (error) {
             reject(error);
         }
-        resolve(connection);
+        // SET DEFAULT UTC time zone
+        connection.query("set time_zone = '+00:00'",[], () => {
+            resolve(connection);
+        });
     });
 });
 

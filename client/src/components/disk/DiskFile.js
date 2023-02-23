@@ -17,7 +17,7 @@ import { getEntityNoteList, addEntityNote } from '../../network/NoteNetwork';
 import { useParams } from 'react-router-dom';
 import ReactMarkdown from 'react-markdown' 
 import Card from 'react-bootstrap/Card';
-import moment from 'moment';
+import moment from 'moment-timezone';
 import 'moment/locale/ru';
 moment.locale('ru');
 
@@ -25,6 +25,7 @@ function DiskFile(props) {
     const { entity_id , mode} = useParams();
     const dispatch = useDispatch()
     const Disk = useSelector((state) => state.disk);
+    const User = useSelector((state) => state.user);
     const navigate = useNavigate();
 
     document.title = Disk.entity.entity_name+" | planhelp";
@@ -112,6 +113,7 @@ function DiskFile(props) {
 
     // Колбэк с модалки после создания файла
     const actionModalNoteCallback = (commonNote) => {
+        //moment(commonNote.remind_on,'YYYY-MM-DD HH:mm:ss').tz('UTC').format('YYYY-MM-DD HH:mm:ss')
         setShowModalNote(false);
         if (!commonNote) {
             return;
@@ -124,7 +126,10 @@ function DiskFile(props) {
         addEntityNote({
                 entity_id : entity_id,
                 note : note,
-                remind_on : remind_on
+                remind_on : remind_on?
+                    moment(remind_on,'YYYY-MM-DD HH:mm:ss').tz('UTC').format('YYYY-MM-DD HH:mm:ss')
+                    :
+                    null
             },
             (err,resp) => {
                 if (!err) {
@@ -150,9 +155,9 @@ function DiskFile(props) {
             </Card.Body>
             <div style={{textAlign:"right", padding:"0px 8px 8px 0px"}}>
                 <small>
-                    {moment(el.created_on).fromNow()} 
+                    {moment(el.created_on,'YYYY-MM-DDTHH:mm:ss.SSSZ').fromNow()} 
                     ({el.login})<br/>
-                    {el.remind_on?"напомнить "+moment(el.remind_on).format('MMMM Do YYYY, hh:mm:ss'):""}
+                    {el.remind_on?"напомнить "+moment(el.remind_on,'YYYY-MM-DDTHH:mm:ss.SSSZ').format('Do MMMM YYYY, в HH:mm:ss'):""}
                 </small>
             </div>
         </Card>
