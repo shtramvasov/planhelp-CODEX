@@ -10,10 +10,10 @@ import ModalNote from "../helpers/ModalNote";
 import React, { useState, useEffect, useRef } from 'react';
 import { useSelector, useDispatch } from 'react-redux'
 import ListGroup from 'react-bootstrap/ListGroup';
-import { addEntity, addEntityNotes } from '../../reducers/Disk';
+import { addEntity, addEntityNotes, addEntityNote } from '../../reducers/Disk';
 import { useNavigate } from "react-router-dom";
 import { getDiskEntity, postDiskEntity, deletetDiskEntity } from '../../network/DiskNetwork';
-import { getEntityNoteList, addEntityNote } from '../../network/NoteNetwork';
+import { getEntityNoteList, postEntityNote } from '../../network/NoteNetwork';
 import { useParams } from 'react-router-dom';
 import ReactMarkdown from 'react-markdown' 
 import Card from 'react-bootstrap/Card';
@@ -108,6 +108,7 @@ function DiskFile(props) {
     // Вызов модалки создания файла
     const actionCallModalNote = (e) => {
         e.preventDefault();
+        dispatch(addEntityNote({}));
         setShowModalNote(true);
     }
 
@@ -115,22 +116,24 @@ function DiskFile(props) {
     const actionModalNoteCallback = (commonNote) => {
         //moment(commonNote.remind_on,'YYYY-MM-DD HH:mm:ss').tz('UTC').format('YYYY-MM-DD HH:mm:ss')
         setShowModalNote(false);
+        dispatch(addEntityNote({}));
         if (!commonNote) {
             return;
         }
         if (!commonNote.note) {
             return;
         }
-        const {note, remind_on, variant} = commonNote;
+        const {note, remind_on, variant, note_id} = commonNote;
         
-        addEntityNote({
+        postEntityNote({
                 entity_id : entity_id,
                 note : note,
                 remind_on : remind_on?
                     moment(remind_on,'YYYY-MM-DD HH:mm:ss').tz('UTC').format('YYYY-MM-DD HH:mm:ss')
                     :
                     null,
-                variant : variant
+                variant : variant,
+                note_id : note_id
             },
             (err,resp) => {
                 if (!err) {
@@ -141,15 +144,17 @@ function DiskFile(props) {
             });
     }
 
-    const onDeleteNote = () => {
-        alert("Удалить?");
+    const onEditNote = (e,el) => {
+        e.preventDefault();
+        dispatch(addEntityNote(el));
+        setShowModalNote(true);
     }
 
     const entityNoteItems = Disk.entityNotes.map((el) => 
-        <Card key={el.note_id} onDoubleClick={onDeleteNote}
+        <Card key={el.note_id} onClick={(e) => onEditNote(e,el)}
               style={{fontSize:"0.8em", marginBottom:"8px", cursor:"pointer"}}
               bg={el.variant} 
-              text={el.variant?el.variant==="light"?"":"light":""}
+              text={el.variant?(el.variant==="light"?"":"light"):""}
               >
             <Card.Body style={{padding:"8px 8px 4px 8px"}}>
                     <Card.Text>
@@ -173,7 +178,8 @@ function DiskFile(props) {
             title={"Заметка"} 
             show={showModalNote} 
             placeholder="Напишите комментарий"
-            callBack={actionModalNoteCallback} />
+            callBack={actionModalNoteCallback}
+            note={Disk.entityNote} />
     <Row>
         <Col>
             <Navbar />

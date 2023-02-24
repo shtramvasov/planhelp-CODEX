@@ -1,19 +1,28 @@
-import React, { useState } from 'react';
+import React, { useState , useEffect} from 'react';
 import Button from 'react-bootstrap/Button';
 import Form from 'react-bootstrap/Form';
 import Modal from 'react-bootstrap/Modal';
 import ButtonGroup from 'react-bootstrap/ButtonGroup';
 import Row from 'react-bootstrap/Row';
 import Col from 'react-bootstrap/Col';
+import moment from 'moment-timezone';
+import 'moment/locale/ru';
+moment.locale('ru');
 
 function ModalNote(props) {
-        
     // свитчер напоминания
     const [isRemind, setRemind] = useState(false);
-
+    
     const closeMe = () => {
         props.callBack();
     }
+    useEffect(() => {
+        if (props.note.remind_on) {
+            setRemind(true);
+        } else {
+            setRemind(false);
+        }
+    },[props.note?.note_id]);
 
     const saveMe = (e) => {
         e.preventDefault();
@@ -29,10 +38,13 @@ function ModalNote(props) {
         props.callBack({
             note : e.target.modalText.value,
             remind_on : remind_on,
-            variant : e.target.modalVariant.value
+            variant : e.target.modalVariant.value,
+            note_id : e.target.modalId.value
         });
     }
 
+    const remindOn = props.note.remind_on?moment(props.note.remind_on,'YYYY-MM-DDTHH:mm:ss.SSSZ').format('YYYY-MM-DD HH:mm'):"";
+    
     return (
     <Modal show={props.show} onHide={closeMe}>
     <form onSubmit={saveMe}>
@@ -40,6 +52,12 @@ function ModalNote(props) {
             <Modal.Title>{props.title}</Modal.Title>
         </Modal.Header>
         <Modal.Body>
+            <Form.Group controlId="modalId">
+                <Form.Control
+                    type="hidden"
+                    defaultValue={props.note.note_id}
+                />
+            </Form.Group>
             <Form.Group className="mb-3" controlId="modalText">
                 <Row>
                     <Col>
@@ -47,6 +65,7 @@ function ModalNote(props) {
                         type="text"
                         as="textarea"
                         placeholder={props.placeholder}
+                        defaultValue={props.note.note}
                         autoFocus/>
                     </Col>
                 </Row>
@@ -54,8 +73,8 @@ function ModalNote(props) {
             <Form.Group controlId="modalVariant">
                 <Row>
                     <Col>
-                    <Form.Select>
-                        <option>Без фона</option>
+                    <Form.Select defaultValue={props.note.variant}>
+                        <option value="">Без фона</option>
                         <option value="light">Светлый</option>
                         <option value="primary">Синий</option>
                         <option value="secondary">Серый</option>
@@ -82,10 +101,18 @@ function ModalNote(props) {
                 {isRemind?
                 <Row style={{marginTop: "10px"}}>
                     <Col>
-                        <Form.Control type="date" id="remind_date"/>
+                        <Form.Control 
+                            type="date" 
+                            id="remind_date"
+                            defaultValue={remindOn?remindOn.split(" ")[0]:null}
+                        />
                     </Col>
                     <Col>
-                        <Form.Control type="time" id="remind_time"/>
+                        <Form.Control 
+                            type="time" 
+                            id="remind_time"
+                            defaultValue={remindOn?remindOn.split(" ")[1]:null}
+                        />
                     </Col>
                 </Row>:""
                 }

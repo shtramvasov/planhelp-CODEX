@@ -14,15 +14,16 @@ const createNote = async ({user_id,entity_id,remind_on,is_remind,note,variant}, 
         [ user_id, entity_id, remind_on, is_remind, note, variant ]);
 }
 
-const updateNote = async ({note_id,remind_on,is_remind,note,is_deleted}, con) => {
+const updateNote = async ({user_id,note_id,remind_on,is_remind,note,is_deleted, variant}, con) => {
     return await mysql.query(con,
         `update common_note
             set is_deleted = coalesce(?, is_deleted),
                 note = coalesce(?, note),
                 is_remind = coalesce(?, is_remind),
-                remind_on = coalesce(?, remind_on)
+                remind_on = coalesce(?, remind_on),
+                variant = coalesce(?, variant)
           where note_id = ?`,
-        [ is_deleted, note, is_remind, remind_on, note_id ]);
+        [ is_deleted, note, is_remind, remind_on, variant, note_id ]);
 }
 
 const deleteNote = async ({note_id}, con) => {

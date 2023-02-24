@@ -36,8 +36,8 @@ export async function getEntityNoteList({entity_id}, cb = () => {}) {
     }
 }
 
-export async function addEntityNote({entity_id, note, remind_on, variant}, cb = () => {}) {
-    const response = await fetch(`/api/secure/disk/${entity_id}/note`, {
+export async function postEntityNote({entity_id, note, remind_on, variant, note_id}, cb = () => {}) {
+    const response = await fetch(`/api/secure/disk/${entity_id}/note/${note_id?note_id:""}`, {
         method: 'post',
         body: JSON.stringify({entity_id: entity_id, note : note, remind_on : remind_on, variant : variant}),
         headers: {
