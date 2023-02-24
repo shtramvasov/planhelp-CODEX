@@ -26,10 +26,10 @@ function ModalNote(props) {
             // remind_on = dateParts[2] + '-' + dateParts[1] + '-' + dateParts[0];
             // // remind_on+= ' '+e.target.remind_time?.value+":00"
         }
-        
         props.callBack({
             note : e.target.modalText.value,
-            remind_on : remind_on
+            remind_on : remind_on,
+            variant : e.target.modalVariant.value
         });
     }
 
@@ -51,17 +51,34 @@ function ModalNote(props) {
                     </Col>
                 </Row>
             </Form.Group>
-                <Row style={{marginTop: "10px"}}>
+            <Form.Group controlId="modalVariant">
+                <Row>
                     <Col>
-                    <Form.Check 
-                        type="switch"
-                        id="custom-switch"
-                        label="Напомнить"
-                        onChange={(e) => {setRemind(e.target.checked)}}
-                        checked={isRemind}
-                    />
+                    <Form.Select>
+                        <option>Без фона</option>
+                        <option value="light">Светлый</option>
+                        <option value="primary">Синий</option>
+                        <option value="secondary">Серый</option>
+                        <option value="success">Зеленый</option>
+                        <option value="warning">Оранжевый</option>
+                        <option value="danger">Красный</option>
+                        <option value="info">Голубой</option>
+                        <option value="dark">Темный</option>
+                    </Form.Select>
                     </Col>
                 </Row>
+            </Form.Group>
+            <Row style={{marginTop: "10px"}}>
+                <Col>
+                <Form.Check 
+                    type="switch"
+                    id="custom-switch"
+                    label="Напомнить"
+                    onChange={(e) => {setRemind(e.target.checked)}}
+                    checked={isRemind}
+                />
+                </Col>
+            </Row>
                 {isRemind?
                 <Row style={{marginTop: "10px"}}>
                     <Col>

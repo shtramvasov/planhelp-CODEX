@@ -121,7 +121,7 @@ function DiskFile(props) {
         if (!commonNote.note) {
             return;
         }
-        const {note, remind_on} = commonNote;
+        const {note, remind_on, variant} = commonNote;
         
         addEntityNote({
                 entity_id : entity_id,
@@ -129,7 +129,8 @@ function DiskFile(props) {
                 remind_on : remind_on?
                     moment(remind_on,'YYYY-MM-DD HH:mm:ss').tz('UTC').format('YYYY-MM-DD HH:mm:ss')
                     :
-                    null
+                    null,
+                variant : variant
             },
             (err,resp) => {
                 if (!err) {
@@ -147,7 +148,9 @@ function DiskFile(props) {
     const entityNoteItems = Disk.entityNotes.map((el) => 
         <Card key={el.note_id} onDoubleClick={onDeleteNote}
               style={{fontSize:"0.8em", marginBottom:"8px", cursor:"pointer"}}
-              bg="light" text="">
+              bg={el.variant} 
+              text={el.variant?el.variant==="light"?"":"light":""}
+              >
             <Card.Body style={{padding:"8px 8px 4px 8px"}}>
                     <Card.Text>
                     {el.note}

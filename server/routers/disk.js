@@ -189,7 +189,7 @@ router.delete('/:entity_id', async (req, res, next) => {
     }
 });
 
-// Права для entity
+// Возвращает список прав для entity
 router.get('/:entity_id/users', async (req,res,next) => {
     const { entity_id } = req.params;
     const { user_id } = req.userModel;
@@ -301,7 +301,7 @@ router.post('/:entity_id/users/revoke', async (req, res, next) => {
     }
 });
 
-// Комментарии к entity
+// Возврашает список комментариев к entity
 router.get('/:entity_id/note/:note_id?', async (req,res,next) => {
     const { entity_id, note_id } = req.params;
     const { limit, offset } = req.query;
@@ -366,7 +366,7 @@ router.delete('/:entity_id/note/:note_id', async (req, res, next) => {
     }
 });
 
-// создать комментарий
+// Создать комментарий
 router.post('/:entity_id/note', async (req, res, next) => {
     const { user_id } = req.userModel;
     const { entity_id } = req.params;
