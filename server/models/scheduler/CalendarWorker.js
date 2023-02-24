@@ -22,6 +22,8 @@ class CalendarWorker extends JobScheduler {
                                        inner join ref_users u on cn.user_id = u.user_id
                   where is_remind = 1 
                     and remind_on is not null
+                    and cn.is_deleted = 0
+                    and de.is_deleted = 'N'
                     and remind_on < now()
                   limit 50`,[]);
             calendarList.length && console.log(`Found ${calendarList.length} for calendar job`);

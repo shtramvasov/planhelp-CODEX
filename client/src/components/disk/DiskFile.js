@@ -120,10 +120,12 @@ function DiskFile(props) {
         if (!commonNote) {
             return;
         }
-        if (!commonNote.note) {
-            return;
-        }
-        const {note, remind_on, variant, note_id} = commonNote;
+        
+        const {note, remind_on, variant, note_id, is_deleted} = commonNote;
+        if (!is_deleted)
+            if (!commonNote.note) {
+                return;
+            }
         
         postEntityNote({
                 entity_id : entity_id,
@@ -133,7 +135,8 @@ function DiskFile(props) {
                     :
                     null,
                 variant : variant,
-                note_id : note_id
+                note_id : note_id,
+                is_deleted : is_deleted
             },
             (err,resp) => {
                 if (!err) {

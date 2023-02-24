@@ -44,12 +44,11 @@ const getNoteList = async ({user_id, entity_id, limit, offset}, con) => {
         `select cn.*, u.login
            from common_note cn inner join ref_users u 
                                 on cn.user_id = u.user_id
-          where cn.user_id = ?
-            and cn.entity_id = ?
+          where cn.entity_id = ?
             and cn.is_deleted = 0
           order by cn.note_id
           limit ${limit} offset ${offset}`,
-        [user_id, entity_id]);
+        [ entity_id]);
 }
 
 module.exports = {

@@ -24,6 +24,14 @@ function ModalNote(props) {
         }
     },[props.note?.note_id]);
 
+    const deleteMe = (e) => {
+        e.preventDefault();
+        props.callBack({
+            note_id : props.note.note_id,
+            is_deleted : 1
+        });
+    }
+
     const saveMe = (e) => {
         e.preventDefault();
         let remind_on;
@@ -118,6 +126,11 @@ function ModalNote(props) {
                 }
         </Modal.Body>
         <Modal.Footer>
+            {props.note?.note_id?
+                <Button variant="outline-danger" onClick={deleteMe}>
+                    <i className="bi bi-trash"></i>
+                </Button> : ""
+            }
             <Button variant="outline-secondary" onClick={closeMe}>
                 Закрыть
             </Button>
