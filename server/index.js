@@ -14,7 +14,7 @@ const commonNote = require('./routers/common_note');
 const auth = require('./auth');
 
 const app = express();
-
+app.set('trust proxy', 'loopback') 
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({extended: true}));
 
