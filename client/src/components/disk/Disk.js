@@ -103,7 +103,6 @@ function Disk(props) {
                 }
             }
         );
-        
     }
 
     const deleteEntity = () => {
@@ -174,15 +173,24 @@ function Disk(props) {
     <Row>
         <Col>
             <form onSubmit={actionFindSubmit}>
-                <Form.Group className="mb-3" controlId="formFindText">
+                <Form.Group controlId="formFindText" style={{marginBottom:"8px"}}>
                     <Form.Control type="text" placeholder="Поиск" defaultValue={searchParams.get("search")}/>
                 </Form.Group>
             </form>
         </Col>
     </Row>
-    <Row>
+    {/* <Row style={{marginBottom:"16px"}}>
         <Col>
-            <Form.Group className="mb-3" controlId="formFindText">
+        <ul class="list-group list-group-horizontal">
+            <a href="" class="list-group-item">Apple</a>
+            <li class="list-group-item">Удобные решения</li>
+            <li class="list-group-item">Еще что то довольно длинное</li>
+        </ul>
+        </Col>
+    </Row> */}
+    <Row style={{marginBottom:"8px"}}>
+        <Col>
+            <Form.Group controlId="formFindText">
                 <Button variant="outline-primary" onClick={actionCallModalNewPath}><i className="bi bi-folder-plus"></i></Button>
                 <Button style={{marginLeft : "2px"}} variant="outline-primary" onClick={actionCallModalNewFile}><i className="bi bi-file-earmark-plus"></i></Button>
                 {entity_id?
@@ -202,7 +210,7 @@ function Disk(props) {
     </Row>
     <Row>
         <Col>
-        <ListGroup >{listItems}</ListGroup>
+        <ListGroup>{listItems}</ListGroup>
         </Col>
     </Row>
     </Container>

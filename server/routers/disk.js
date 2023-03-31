@@ -2,6 +2,7 @@ var express = require('express');
 var router = express.Router();
 var mysql = require('../mysqlhelper');
 var entityModel = require('../models/disk_entity');
+var commonNote = require('../models/common_note');
 
 // Возвращает указанный эелемент и его потомков
 // Если параметр не задан, возвращает что лежит в ROOT
@@ -188,7 +189,7 @@ router.delete('/:entity_id', async (req, res, next) => {
     }
 });
 
-// Права для entity
+// Возвращает список прав для entity
 router.get('/:entity_id/users', async (req,res,next) => {
     const { entity_id } = req.params;
     const { user_id } = req.userModel;
@@ -295,6 +296,147 @@ router.post('/:entity_id/users/revoke', async (req, res, next) => {
     } catch(err) {
         con && await mysql.rollback(con);
         next(err);
+    } finally {
+        con && await mysql.commit(con) && await mysql.releaseConnection(con);
+    }
+});
+
+// Возврашает список комментариев к entity
+router.get('/:entity_id/note/:note_id?', async (req,res,next) => {
+    const { entity_id, note_id } = req.params;
+    const { limit, offset } = req.query;
+    const { user_id } = req.userModel;
+    let con;
+    try {
+        if (!entity_id) throw "Missing entity_id in url params";
+        
+        con = await mysql.getConnection();
+
+        // получаем сам entity по ID
+        // валидируем доступ если entity не найден - значит нет доступа
+        const entity = await entityModel.getEntity({entity_id,user_id},con);
+        if (!entity) throw 'Permission denied';
+        
+        if (note_id) {
+            const note = await commonNote.getNote({
+                user_id, entity_id,note_id }, con);
+            if (!note) {
+                throw "Note not found";
+            }
+            res.send(note);
+        } else {
+            const noteList = await commonNote.getNoteList({
+                user_id, entity_id, limit : limit?limit:50, offset : offset?offset:0}, con);
+            res.send(noteList);
+        }
+    } catch(error) {
+        next(error);
+    } finally {
+        con && await mysql.releaseConnection(con);
+    }
+});
+
+// // Удаление комментария
+// router.delete('/:entity_id/note/:note_id', async (req, res, next) => {
+//     const { entity_id, note_id } = req.params;
+//     const { user_id } = req.userModel;
+//     let con;
+//     try {
+//         // Проверки
+//         if (!entity_id) throw "Missing entity_id in url params";
+//         if (!note_id) throw "Missing note_id in url params";
+
+//         con = await mysql.getConnection();
+//         await mysql.begin(con);
+        
+//         // получаем сам entity по ID
+//         // валидируем доступ если entity не найден - значит нет доступа
+//         // и вешаем for update см парам true
+//         const entity = await entityModel.getEntity({entity_id,user_id},con, true);
+//         if (!entity) throw 'Permission denied';
+
+//         await commonNote.deleteNote({note_id}, con);
+
+//         res.send({entity_id : entity_id});
+//     } catch(err) {
+//         con && await mysql.rollback(con);
+//         next(err);
+//     } finally {
+//         con && await mysql.commit(con) && await mysql.releaseConnection(con);
+//     }
+// });
+
+// Создать комментарий
+router.post('/:entity_id/note', async (req, res, next) => {
+    const { user_id } = req.userModel;
+    const { entity_id } = req.params;
+    const { remind_on, note, variant } = req.body;
+    let con;
+    try {
+        con = await mysql.getConnection();
+        await mysql.begin(con);
+        
+        // получаем сам entity по ID
+        // валидируем доступ если entity не найден - значит нет доступа
+        // и вешаем for update см парам true
+        const entity = await entityModel.getEntity({entity_id,user_id},con, true);
+        if (!entity) throw 'Permission denied';
+
+        await commonNote.createNote({
+            user_id,
+            entity_id,
+            remind_on,
+            is_remind : remind_on ? commonNote.CONSTANTS.REMIND_ON : commonNote.CONSTANTS.REMIND_OFF,
+            note,
+            variant}, 
+        con);
+
+        res.send({ok:true});
+    } catch(error) {
+        con && await mysql.rollback(con);
+        next(error);
+    } finally {
+        con && await mysql.commit(con) && await mysql.releaseConnection(con);
+    }
+});
+
+// Изменить комментарий
+router.post('/:entity_id/note/:note_id', async (req, res, next) => {
+    const { user_id } = req.userModel;
+    const { entity_id, note_id } = req.params;
+    const { remind_on, note, variant, is_deleted } = req.body;
+    let con;
+    try {
+        con = await mysql.getConnection();
+        await mysql.begin(con);
+        
+        // получаем сам entity по ID
+        // валидируем доступ если entity не найден - значит нет доступа
+        // и вешаем for update см парам true
+        const entity = await entityModel.getEntity({entity_id,user_id},con, true);
+        if (!entity) throw 'Permission denied';
+
+        const common_note = await commonNote.getNote({note_id}, con);
+        if (entity.user_role === "OWNER" || common_note.user_id === user_id) {
+
+        } else {
+            // изменять могут либо свои комменты либо если OWNER
+            throw 'Permission denied';
+        }
+        await commonNote.updateNote({
+            user_id,
+            note_id, 
+            remind_on,
+            is_remind : remind_on ? commonNote.CONSTANTS.REMIND_ON : commonNote.CONSTANTS.REMIND_OFF,
+            note,
+            variant,
+            is_deleted}, 
+        con);
+
+        res.send({ok:true});
+    } catch(error) {
+        con && await mysql.rollback(con);
+        next(error);
     } finally {
         con && await mysql.commit(con) && await mysql.releaseConnection(con);
     }

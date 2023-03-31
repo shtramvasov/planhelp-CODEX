@@ -10,6 +10,7 @@ const loginRouter = require('./routers/login');
 const notifyRouter = require('./routers/notify');
 const tlgrmRouter = require('./routers/tlgrm');
 const fileRouter = require('./routers/file');
+const commonNote = require('./routers/common_note');
 const auth = require('./auth');
 
 const app = express();
@@ -26,6 +27,7 @@ app.use('/api/secure',auth);
 app.use('/api/secure/disk', diskRouter);
 app.use('/api/secure/user', userRouter);
 app.use('/api/secure/notify', notifyRouter);
+app.use('/api/secure/note', commonNote);
 
 app.use('/api/login',loginRouter);
 app.use('/api/telegram',tlgrmRouter);

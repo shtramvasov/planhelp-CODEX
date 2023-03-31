@@ -11,15 +11,16 @@ const getProfile = async({token}, con) => {
     ))[0];
 }
 
-const updateProfile = async({secret,email,telegram_chat_id,is_notify, user_id},con) => {
+const updateProfile = async({secret,email,telegram_chat_id,is_notify, timezone, user_id},con) => {
     await mysql.query(con, 
         `update ref_users 
             set secret = coalesce(upper(md5(?)), secret),
                 email = coalesce(?, email),
                 telegram_chat_id = coalesce(?, telegram_chat_id),
-                is_notify = coalesce(?, is_notify)
+                is_notify = coalesce(?, is_notify),
+                timezone = coalesce(?, timezone)
           where user_id = ?`,
-        [ secret, email, telegram_chat_id, is_notify, user_id ]);
+        [ secret, email, telegram_chat_id, is_notify, timezone, user_id ]);
 }
 
 const login = async({login, password}, con) => {
