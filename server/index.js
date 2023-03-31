@@ -1,6 +1,6 @@
 const express = require("express");
 const path = require("path");
-
+const fileUpload = require('express-fileupload');
 const bodyParser = require('body-parser');
 const config = require('./config');
 
@@ -9,6 +9,7 @@ const userRouter = require('./routers/user');
 const loginRouter = require('./routers/login');
 const notifyRouter = require('./routers/notify');
 const tlgrmRouter = require('./routers/tlgrm');
+const fileRouter = require('./routers/file');
 const auth = require('./auth');
 
 const app = express();
@@ -16,7 +17,11 @@ const app = express();
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({extended: true}));
 
-
+app.use(fileUpload({
+    createParentPath: true,
+    tempFileDir : '/tmp/',
+    debug : true
+}));
 app.use('/api/secure',auth);
 app.use('/api/secure/disk', diskRouter);
 app.use('/api/secure/user', userRouter);
@@ -24,6 +29,8 @@ app.use('/api/secure/notify', notifyRouter);
 
 app.use('/api/login',loginRouter);
 app.use('/api/telegram',tlgrmRouter);
+
+app.use('/api/file',fileRouter);
 
 app.get("/files/*",(req,res,next) => {
     res.sendFile(path.join(__dirname+req.path));
