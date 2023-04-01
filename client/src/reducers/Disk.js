@@ -36,6 +36,8 @@ export const diskSlice = createSlice({
             remind_on : null,
             is_remind : 0,
             is_deleted : 0,
+            note_2 : "'",
+            note_type : "",
             note : "",
             variant : "",
             login : ""

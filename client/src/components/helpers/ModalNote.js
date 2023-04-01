@@ -28,7 +28,10 @@ function ModalNote(props) {
         e.preventDefault();
         props.callBack({
             note_id : props.note.note_id,
-            is_deleted : 1
+            is_deleted : 1,
+            note : props.note.note,
+            note_type : props.note.note_type,
+            note_2 : props.note.note_2
         });
     }
 
@@ -47,7 +50,9 @@ function ModalNote(props) {
             note : e.target.modalText.value,
             remind_on : remind_on,
             variant : e.target.modalVariant.value,
-            note_id : e.target.modalId.value
+            note_id : e.target.modalId.value,
+            note_type : e.target.modalNoteType.value,
+            note_2 : e.target.modalNote2?.value
         });
     }
 
@@ -66,6 +71,12 @@ function ModalNote(props) {
                     defaultValue={props.note.note_id}
                 />
             </Form.Group>
+            <Form.Group controlId="modalNoteType">
+                <Form.Control
+                    type="hidden"
+                    defaultValue={props.note.note_type}
+                />
+            </Form.Group>
             <Form.Group className="mb-3" controlId="modalText">
                 <Row>
                     <Col>
@@ -78,6 +89,19 @@ function ModalNote(props) {
                     </Col>
                 </Row>
             </Form.Group>
+            {props.note.note_type==="FILE"?
+             <Form.Group className="mb-3" controlId="modalNote2">
+                <Row>
+                    <Col>
+                    <Form.Control
+                        type="text"
+                        as="textarea"
+                        placeholder={props.placeholder}
+                        defaultValue={props.note.note_2}
+                        autoFocus/>
+                    </Col>
+                </Row>
+            </Form.Group>:""}
             <Form.Group controlId="modalVariant">
                 <Row>
                     <Col>
