@@ -7,6 +7,7 @@ import Button from 'react-bootstrap/Button';
 import ButtonGroup from 'react-bootstrap/ButtonGroup';
 import ModalOneInputText from "../helpers/ModalOneInputText";
 import ModalNote from "../helpers/ModalNote";
+import ModalInputFile from "../helpers/ModalInputFile";
 import React, { useState, useEffect, useRef } from 'react';
 import { useSelector, useDispatch } from 'react-redux'
 import ListGroup from 'react-bootstrap/ListGroup';
@@ -31,6 +32,7 @@ function DiskFile(props) {
     document.title = Disk.entity.entity_name+" | planhelp";
 
     const [showModalNote, setShowModalNote] = useState(false);
+    const [showModalUploadFile, setShowModalUploadFile] = useState(false);
 
     const fetchEntity = () => {
         getDiskEntity({entity_id : entity_id},(err,resp) => {
@@ -111,6 +113,11 @@ function DiskFile(props) {
         dispatch(addEntityNote({}));
         setShowModalNote(true);
     }
+    // Вызов модалки загрузки файла
+    const actionCallModalUploadFile = (e) => {
+        e.preventDefault();
+        setShowModalUploadFile(true);
+    }
 
     // Колбэк с модалки после создания файла
     const actionModalNoteCallback = (commonNote) => {
@@ -121,7 +128,7 @@ function DiskFile(props) {
             return;
         }
         
-        const {note, remind_on, variant, note_id, is_deleted} = commonNote;
+        const {note, remind_on, variant, note_id, note_type, note_2, is_deleted} = commonNote;
         if (!is_deleted)
             if (!commonNote.note) {
                 return;
@@ -136,6 +143,8 @@ function DiskFile(props) {
                     null,
                 variant : variant,
                 note_id : note_id,
+                note_type : note_type,
+                note_2 : note_2,
                 is_deleted : is_deleted
             },
             (err,resp) => {
@@ -147,15 +156,39 @@ function DiskFile(props) {
             });
     }
 
+    // Колбэк с модалки загрузки файла
+    const actionUploadFileCallBack = (file) => {
+        setShowModalUploadFile(false);
+        if (!file) {
+            return;
+        }
+       
+        postEntityNote({
+            entity_id : entity_id,
+            note : file.name,
+            note_2 : file.url,
+            note_type : "FILE",
+            variant : "",
+            is_deleted : 0
+        },
+        (err,resp) => {
+            if (!err) {
+                fetchEntityNoteList();
+            } else {
+                alert("Ошибка: "+err);
+            }
+        });
+    }
+
     const onEditNote = (e,el) => {
         
         e.preventDefault();
         dispatch(addEntityNote(el));
-        if (el.note_type==="COMMENT") {
-            setShowModalNote(true);
-        } else {
-            window.location.href = el.note_2;
-        }
+        // if (el.note_type==="COMMENT") {
+        setShowModalNote(true);
+        // } else {
+        //     window.location.href = el.note_2;
+        // }
     }
 
     const entityNoteItems = Disk.entityNotes.map((el) => 
@@ -166,11 +199,12 @@ function DiskFile(props) {
               >
             <Card.Body style={{padding:"8px 8px 4px 8px"}}>
                     <Card.Text>
-                    {el.note_type === "COMMENT"?el.note:"Файл "+el.note}
+                    {el.note_type === "COMMENT" ? 
+                        el.note : <a href={el.note_2} className="phLink">{el.note}</a>}
                     </Card.Text>
             </Card.Body>
             <div style={{textAlign:"right", padding:"0px 8px 8px 0px"}}>
-                <small>
+                <small> 
                     {moment(el.created_on,'YYYY-MM-DDTHH:mm:ss.SSSZ').fromNow()} 
                     ({el.login})<br/>
                     {el.remind_on?"напомнить "+moment(el.remind_on,'YYYY-MM-DDTHH:mm:ss.SSSZ').format('Do MMMM YYYY, в HH:mm:ss'):""}
@@ -188,6 +222,10 @@ function DiskFile(props) {
             placeholder="Напишите комментарий"
             callBack={actionModalNoteCallback}
             note={Disk.entityNote} />
+        <ModalInputFile 
+            title={"Загрузить файл"} 
+            show={showModalUploadFile} 
+            callBack={actionUploadFileCallBack}  />
     <Row>
         <Col>
             <Navbar />
@@ -204,6 +242,9 @@ function DiskFile(props) {
                 <Button style={{marginLeft : "2px"}} type="button" onClick={handleEditClick} variant="outline-secondary" >Изменить файл</Button>   
                 <Button style={{marginLeft : "2px"}} type="button" variant="outline-secondary" onClick={handleInfoEntity}><i className="bi bi-info-circle"></i></Button>
                 <Button style={{marginLeft : "2px"}} type="button" variant="outline-primary" onClick={actionCallModalNote}><i className="bi bi-calendar2-plus"></i></Button>
+                <Button style={{marginLeft : "2px"}} variant="outline-primary" onClick={actionCallModalUploadFile}>
+                    <i className="bi bi-cloud-arrow-up"></i> 
+                </Button>
             </Form.Group>
         </Col>
     </Row>    
@@ -213,14 +254,11 @@ function DiskFile(props) {
         </Col>
     </Row>
     <Row>
-        <Col style={{whiteSpace: "pre-wrap"}}>
+        <Col lg={12} style={{whiteSpace: "pre-wrap"}}>
             <ReactMarkdown children={ Disk.entity.entity_note } ></ReactMarkdown>
         </Col>
-        <Col lg={3}>
+        <Col lg={6}>
             {entityNoteItems}
-            <div style={{textAlign: "center"}}>
-                <a href="#" onClick={actionCallModalNote} className="phLink">Добавить заметку</a>
-            </div>
         </Col>
     </Row>
     </div>

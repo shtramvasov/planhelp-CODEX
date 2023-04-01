@@ -46,14 +46,6 @@ function Disk(props) {
             }
         });
     };
-
-    // const fetchFiles = () => {
-    //     getFilesList(entity_id, (err, resp) => {
-    //         if (!err && !resp.error) {
-    //             dispatch(addEntityFiles(resp))
-    //         }
-    //     })
-    // }
  
     document.title = Disk.entity.entity_type !=='ROOT'? Disk.entity.entity_name+" | planhelp":"Диск | planhelp";
     // Первичная загрузка данных,
@@ -176,12 +168,6 @@ function Disk(props) {
         // didCloseToast()
     }
 
-    const deleteEntity = () => {
-        deletetDiskEntity({entity_id}, (err,data) => {
-            if (!err) navigate(`/disk/${Disk.entity.parent_entity_id?Disk.entity.parent_entity_id:""}`);
-        })
-    }
-
     // Обработка клика по entity
     const handleClick = (e,entity_type,entity_id) => {
         e.preventDefault();
@@ -199,24 +185,6 @@ function Disk(props) {
     const handleInfoEntity = () => {
         navigate(`/disk/${entity_id}/activity`);
     }
-
-    // const handleDownloadFile = (e) => {
-    //     const hash_name = e.hash_name
-    //     const original_name = e.original_name
-    //     downloadFile(hash_name, original_name)
-    // }
-
-    // var listFiles;
-    /// Ячейки таблицы с файлами
-    // if (Disk.entity.entity_type !=='ROOT') {
-    //     const url = `http://localhost:3001/api/files/${entity_id}`
-    //     listFiles = Disk.entityFiles ? Disk.entityFiles.map((file) => {
-    //         return  <ListGroup.Item key={file.id} variant="info" action onClick={(e) => { handleDownloadFile(file) }} > 
-    //                     { file.original_name } 
-    //                 </ListGroup.Item>
-    //     }) : [];
-    // }
-
 
     var listItems = Disk.entity.childEntityList ? Disk.entity.childEntityList.map((el) =>
     // onClick={(e) => {handleClick(el.entity_type,el.entity_id)}} 
