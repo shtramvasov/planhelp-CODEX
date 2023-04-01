@@ -5,25 +5,39 @@ const CONSTANTS = {
     REMIND_OFF : 0,
     DELETED_ON : 1,
     DELETED_OFF : 0,
+    TYPE_COMMENT : "COMMENT",
+    TYPE_FILE : "FILE",
 }
 
-const createNote = async ({user_id,entity_id,remind_on,is_remind,note,variant}, con) => {
+const createNote = async (
+    {user_id,entity_id,remind_on,is_remind,note,variant,note_type,note_2}, con) => {
     return await mysql.query(con,
-        `insert into common_note(user_id,entity_id,created_on,remind_on,is_remind,note,variant)
-        values(?,?,now(),?,?,?,?)`,
-        [ user_id, entity_id, remind_on, is_remind, note, variant ]);
+        `insert into common_note(
+            user_id,
+            entity_id,
+            created_on,
+            remind_on,
+            is_remind,
+            note,
+            variant,
+            note_type,
+            note_2)
+        values(?,?,now(),?,?,?,?,?,?)`,
+        [ user_id, entity_id, remind_on, is_remind, note, variant, note_type, note_2 ]);
 }
 
-const updateNote = async ({user_id,note_id,remind_on,is_remind,note,is_deleted, variant}, con) => {
+const updateNote = async ({user_id,note_id,remind_on,is_remind,note,is_deleted,variant,note_type,note_2}, con) => {
     return await mysql.query(con,
         `update common_note
             set is_deleted = coalesce(?, is_deleted),
                 note = coalesce(?, note),
                 is_remind = coalesce(?, is_remind),
                 remind_on = coalesce(?, remind_on),
-                variant = coalesce(?, variant)
+                variant = coalesce(?, variant),
+                note_type = coalesce(?, note_type),
+                note_2 = coalesce(?, note_2)
           where note_id = ?`,
-        [ is_deleted, note, is_remind, remind_on, variant, note_id ]);
+        [ is_deleted, note, is_remind, remind_on, variant, note_type, note_2, note_id ]);
 }
 
 const deleteNote = async ({note_id}, con) => {

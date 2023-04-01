@@ -370,9 +370,21 @@ router.get('/:entity_id/note/:note_id?', async (req,res,next) => {
 router.post('/:entity_id/note', async (req, res, next) => {
     const { user_id } = req.userModel;
     const { entity_id } = req.params;
-    const { remind_on, note, variant } = req.body;
+    const { remind_on, note, variant, note_type, note_2 } = req.body;
+    // note_type - тип ноты, FILE / COMMENT
+    // note_2 - url на файл
     let con;
     try {
+        // проверки
+        if (![commonNote.CONSTANTS.TYPE_COMMENT,commonNote.CONSTANTS.TYPE_FILE]
+                .includes(note_type)) {
+            throw "Not valid note_type in body params, only COMMENT or FILE";
+        }
+        if (!note) { throw "Missing note in body params"; }
+        if (note_type === commonNote.CONSTANTS.TYPE_FILE && !note_2 ) { 
+            throw "Missing note_2 in body params for FILE note_type"; 
+        }
+
         con = await mysql.getConnection();
         await mysql.begin(con);
         
@@ -388,7 +400,9 @@ router.post('/:entity_id/note', async (req, res, next) => {
             remind_on,
             is_remind : remind_on ? commonNote.CONSTANTS.REMIND_ON : commonNote.CONSTANTS.REMIND_OFF,
             note,
-            variant}, 
+            variant,
+            note_type,
+            note_2}, 
         con);
 
         res.send({ok:true});
@@ -404,9 +418,20 @@ router.post('/:entity_id/note', async (req, res, next) => {
 router.post('/:entity_id/note/:note_id', async (req, res, next) => {
     const { user_id } = req.userModel;
     const { entity_id, note_id } = req.params;
-    const { remind_on, note, variant, is_deleted } = req.body;
+    const { remind_on, note, variant, is_deleted, note_type, note_2 } = req.body;
+    // note_type - тип ноты, FILE / COMMENT
+    // note_2 - url на файл
     let con;
     try {
+        // проверки
+        if (![commonNote.CONSTANTS.TYPE_COMMENT,commonNote.CONSTANTS.TYPE_FILE]
+                .includes(note_type)) {
+            throw "Not valid note_type in body params, only COMMENT or FILE";
+        }
+        if (!note) { throw "Missing note in body params"; }
+        if (note_type === commonNote.CONSTANTS.TYPE_FILE && !note_2 ) { 
+            throw "Missing note_2 in body params for FILE note_type"; 
+        }
         con = await mysql.getConnection();
         await mysql.begin(con);
         
@@ -430,7 +455,9 @@ router.post('/:entity_id/note/:note_id', async (req, res, next) => {
             is_remind : remind_on ? commonNote.CONSTANTS.REMIND_ON : commonNote.CONSTANTS.REMIND_OFF,
             note,
             variant,
-            is_deleted}, 
+            is_deleted,
+            note_type,
+            note_2}, 
         con);
 
         res.send({ok:true});
