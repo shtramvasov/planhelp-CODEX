@@ -36,7 +36,7 @@ export async function getEntityNoteList({entity_id}, cb = () => {}) {
     }
 }
 
-export async function postEntityNote({entity_id, note, remind_on, variant, note_id, is_deleted}, cb = () => {}) {
+export async function postEntityNote({entity_id, note, remind_on, variant, note_id, is_deleted, note_type, note_2}, cb = () => {}) {
     const response = await fetch(`/api/secure/disk/${entity_id}/note/${note_id?note_id:""}`, {
         method: 'post',
         body: JSON.stringify({
@@ -44,7 +44,9 @@ export async function postEntityNote({entity_id, note, remind_on, variant, note_
             note : note, 
             remind_on : remind_on, 
             variant : variant,
-            is_deleted : is_deleted}),
+            is_deleted : is_deleted,
+            note_type : note_type || 'COMMENT',
+            note_2 : note_2}),
         headers: {
             'Content-Type': 'application/json',
             'Authorization': `Bearer ${Cookies.get("secret")}`

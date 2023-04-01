@@ -148,9 +148,14 @@ function DiskFile(props) {
     }
 
     const onEditNote = (e,el) => {
+        
         e.preventDefault();
         dispatch(addEntityNote(el));
-        setShowModalNote(true);
+        if (el.note_type==="COMMENT") {
+            setShowModalNote(true);
+        } else {
+            window.location.href = el.note_2;
+        }
     }
 
     const entityNoteItems = Disk.entityNotes.map((el) => 
@@ -161,7 +166,7 @@ function DiskFile(props) {
               >
             <Card.Body style={{padding:"8px 8px 4px 8px"}}>
                     <Card.Text>
-                    {el.note}
+                    {el.note_type === "COMMENT"?el.note:"Файл "+el.note}
                     </Card.Text>
             </Card.Body>
             <div style={{textAlign:"right", padding:"0px 8px 8px 0px"}}>

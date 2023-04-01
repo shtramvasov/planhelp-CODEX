@@ -6,6 +6,7 @@ const path = require("path");
 router.post('/', async (req, res, next) => {
     try {
 
+        console.log(req.headers);
         if(!req.files) {
             throw "No file in post body";
         }
@@ -32,34 +33,15 @@ router.post('/', async (req, res, next) => {
         file.mv(path.join(rootPath + filePath));
 
         // возвращаем url на файл + данные о файле
-        const hostUrl = req.protocol + '://' + req.get('host') + req.originalUrl;
+        const hostUrl = req.protocol + '://' + req.get('host') + '/api/download';
         res.send({
             ok:true,
             mimetype, 
-            name, 
+            name : name, 
             size,
             url : hostUrl + filePath
         });
 
-    } catch(err) {
-        next(err);
-    }
-});
-
-// Получение файла
-router.get("*/:year/:month/:day/:file_name", async (req, res, next) => {
-    try {
-        const rootPath = process.env.PWD;
-        console.log(req.params.file_name)
-        res.sendFile(path.join(rootPath
-            + "/uploads"
-            + "/" + req.params.year
-            + "/" +req.params.month
-            + "/" + req.params.day
-            + "/" + req.params.file_name), (err) => {
-                console.log(err);
-                next("No such file");
-            });
     } catch(err) {
         next(err);
     }

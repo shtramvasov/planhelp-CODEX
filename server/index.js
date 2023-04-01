@@ -10,6 +10,7 @@ const loginRouter = require('./routers/login');
 const notifyRouter = require('./routers/notify');
 const tlgrmRouter = require('./routers/tlgrm');
 const fileRouter = require('./routers/file');
+const downloadRouter = require('./routers/download');
 const commonNote = require('./routers/common_note');
 const auth = require('./auth');
 
@@ -21,18 +22,21 @@ app.use(bodyParser.urlencoded({extended: true}));
 app.use(fileUpload({
     createParentPath: true,
     tempFileDir : '/tmp/',
-    debug : true
+    debug : true,
+    defCharset: 'utf8',
+    defParamCharset: 'utf8'
 }));
+
 app.use('/api/secure',auth);
 app.use('/api/secure/disk', diskRouter);
 app.use('/api/secure/user', userRouter);
 app.use('/api/secure/notify', notifyRouter);
 app.use('/api/secure/note', commonNote);
+app.use('/api/secure/file',fileRouter);
 
 app.use('/api/login',loginRouter);
 app.use('/api/telegram',tlgrmRouter);
-
-app.use('/api/file',fileRouter);
+app.use('/api/download/',downloadRouter);
 
 app.get("/files/*",(req,res,next) => {
     res.sendFile(path.join(__dirname+req.path));
