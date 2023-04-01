@@ -27,6 +27,19 @@ export const diskSlice = createSlice({
         entityFiles : [],
         // Последний добавленный файл
         lastUploadFile: {},
+        entityNotes : [],
+        entityNote : {
+            note_id : null,
+            user_id : null,
+            entity_id : null,
+            created_on : null,
+            remind_on : null,
+            is_remind : 0,
+            is_deleted : 0,
+            note : "",
+            variant : "",
+            login : ""
+        }
     },
     reducers: {
         addEntity: (state, action) => {
@@ -41,15 +54,29 @@ export const diskSlice = createSlice({
         addEntityUsers: (state, action) => {
             state.entityUsers = (action.payload);
         },
-        addEntityFiles: (state, action) => {
-            state.entityFiles = (action.payload)  
-        },
+        // addEntityFiles: (state, action) => {
+        //     state.entityFiles = (action.payload)  
+        // },
         addLastUploadFile: (state, action) => {
             state.lastUploadFile = (action.payload)
         },
-    },
+        addEntityNotes: (state, action) => {
+            state.entityNotes = (action.payload);
+        },
+        addEntityNote: (state, action) => {
+            state.entityNote = (action.payload);
+        }
+    }
 });
 
-export const { addEntity, addEntityActivity, addEntityActivityOld, addEntityUsers, addEntityFiles, addLastUploadFile } = diskSlice.actions;
+export const { 
+    addEntity, 
+    addEntityActivity, 
+    addEntityActivityOld, 
+    addEntityUsers, 
+    addEntityNotes,
+    addEntityNote,
+    // addEntityFiles,
+    addLastUploadFile } = diskSlice.actions;
 
 export default diskSlice.reducer;

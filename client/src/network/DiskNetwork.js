@@ -124,43 +124,45 @@ export async function deletetDiskEntity(
 }
 
 // Список файлов
-export async function getFilesList(entity_id, cb = () => {}) {
-    const url = `http://92.63.103.241:3001/api/files/${entity_id}`
-    const response = await fetch(url, {
-        method: 'get',
-        headers: { 'Authorization': `Bearer ${Cookies.get("secret")}` } 
-    });
-    if (response.ok) {
-        const data = await response.json();
-        cb(null,data);
-    } else {
-        cb(response.status + " " + response.statusText);
-    }
-}
+// export async function getFilesList(entity_id, cb = () => {}) {
+//     const url = `http://92.63.103.241:3001/api/files/${entity_id}`
+//     const response = await fetch(url, {
+//         method: 'get',
+//         headers: { 'Authorization': `Bearer ${Cookies.get("secret")}` } 
+//     });
+//     if (response.ok) {
+//         const data = await response.json();
+//         cb(null,data);
+//     } else {
+//         cb(response.status + " " + response.statusText);
+//     }
+// }
 
 // Скачать файл
-export async function downloadFile(file_hash, original_name) {
-    const url = `http://92.63.103.241:3001/api/files/download`
-    const path = {'path':`uploads/${file_hash}`}
-    const option = { method: 'post', headers: { 'Authorization': `Bearer ${Cookies.get("secret")}`, "Content-Type": "application/json"}, body: JSON.stringify(path) }
-    fetch(url, option)
-        .then(res => res.blob())
-        .then(data => {
-            var a = document.createElement("a");
-            a.href = window.URL.createObjectURL(data);
-            a.download = original_name;
-            a.click();
-        })
+// export async function downloadFile(file_hash, original_name) {
+//     const url = `http://92.63.103.241:3001/api/files/download`
+//     const path = {'path':`uploads/${file_hash}`}
+//     const option = { method: 'post', headers: { 'Authorization': `Bearer ${Cookies.get("secret")}`, "Content-Type": "application/json"}, body: JSON.stringify(path) }
+//     fetch(url, option)
+//         .then(res => res.blob())
+//         .then(data => {
+//             var a = document.createElement("a");
+//             a.href = window.URL.createObjectURL(data);
+//             a.download = original_name;
+//             a.click();
+//         })
 
-}
+// }
 
 // Загрузить файл 
-export async function uploadFile({entity_id, file}, cb = () => {}) {
+export async function uploadFile({file}, cb = () => {}) {
     const formData = new FormData()
-    formData.append('uploaded_file', file)
-    const response = await fetch(`http://92.63.103.241:3001/api/files/upload/${entity_id}`, { 
+    formData.append('file', file)
+    const response = await fetch(`/api/secure/file`, { 
         method: 'post', 
-        headers: { 'Authorization': `Bearer ${Cookies.get("secret")}` },
+        headers: { 
+            'Authorization': `Bearer ${Cookies.get("secret")}`,
+        },
         body: formData,
     });
     if (response.ok) {

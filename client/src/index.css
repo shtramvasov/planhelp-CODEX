@@ -11,3 +11,8 @@ code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
     monospace;
 }
+
+.phLink {
+  text-decoration-style: dotted;
+  text-underline-position: under;
+}

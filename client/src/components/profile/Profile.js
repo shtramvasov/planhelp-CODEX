@@ -6,6 +6,7 @@ import Form from 'react-bootstrap/Form';
 import Button from 'react-bootstrap/Button';
 import ButtonGroup from 'react-bootstrap/ButtonGroup';
 import ModalOneInputText from "../helpers/ModalOneInputText";
+import ModalAutoComplete from "../helpers/ModalAutoComplete";
 import React, { useState, useEffect, useRef } from 'react';
 import { useSelector, useDispatch } from 'react-redux'
 import ListGroup from 'react-bootstrap/ListGroup';
@@ -22,6 +23,21 @@ function Profile(props) {
     const [showModalChangePassword, setShowModalChangePassword] = useState(false);
     const [showModalChangeEmail, setShowModalChangeEmail] = useState(false);
     const [showModalChangeTlgrm, setShowModalChangeTlgrm] = useState(false);
+    const [showModalChangeTimezone, setShowModalChangeTimezone] = useState(false);
+    const initValues = [
+        {display_val:"Калининград (мск-1)",return_val:"+2:00"},
+        {display_val:"Москва",return_val:"+3:00"},
+        {display_val:"Самара (мск+1)",return_val:"+4:00"},
+        {display_val:"Екатеринбург (мск+2)",return_val:"+5:00"},
+        {display_val:"Омск (мск+3)",return_val:"+6:00"},
+        {display_val:"Красноярск (мск+4)",return_val:"+7:00"},
+        {display_val:"Иркутск (мск+5)",return_val:"+8:00"},
+        {display_val:"Якутск (мск+6)",return_val:"+9:00"},
+        {display_val:"Владивосток (мск+7)",return_val:"+10:00"},
+        {display_val:"Магадан (мск+8)",return_val:"+11:00"},
+        {display_val:"Камчатка (мск+9)",return_val:"+12:00"}
+    ];
+    const [stateOptions, setStateValues] = useState(initValues);
     
     const fetchUserProfile = () => {
         getUserProfile({},(err,resp) => {
@@ -33,25 +49,41 @@ function Profile(props) {
         });
     };
 
+    const fetchTimezone = (search, cb) => {
+        if (!search) {
+            setStateValues(initValues);
+            return;
+        }
+        const filtered = initValues.filter(
+            el => el.display_val.toUpperCase().indexOf(search.toUpperCase()) >= 0 
+        );
+        setStateValues(filtered);
+    }
+
     // Первичная загрузка данных
     useEffect(() => {
         // fetchUserProfile();
     },[]);
 
-    // Вызов модалки создания папки
+    // Вызов модалки смены пароля
     const actionChangePassword = (e) => {
         e.preventDefault();
         setShowModalChangePassword(true);
     }
-    // Вызов модалки создания папки
+    // Вызов модалки смены email
     const actionChangeEmail = (e) => {
         e.preventDefault();
         setShowModalChangeEmail(true);
     }
-    // Вызов модалки создания папки
+    // Вызов модалки смены телеграм ид
     const actionChangeTlgrm = (e) => {
         e.preventDefault();
         setShowModalChangeTlgrm(true);
+    }
+        // Вызов модалки смены телеграм ид
+    const actionChangeTimezone = (e) => {
+        e.preventDefault();
+        setShowModalChangeTimezone(true);
     }
     // Колбэк с модалки после изменения пароля
     const actionChangePasswordCallBack = (password) => {
@@ -89,6 +121,18 @@ function Profile(props) {
             }
         });
     }
+    // Колбэк с модалки после изменения timezone
+    const actionChangeTimezoneCallBack = (timezone) => {
+        setShowModalChangeTimezone(false);
+        fetchTimezone("");
+        postUserProfile({timezone:timezone},(err,resp) => {
+            if (!err) {
+                fetchUserProfile();
+            } else {
+                alert("Ошибка: "+err);
+            }
+        });
+    }
     const actionChangeNotifySwitch = (e) => {
         postUserProfile({is_notify:e.target.checked?1:0},(err,resp) => {
             if (!err) {
@@ -119,6 +163,16 @@ function Profile(props) {
         show={showModalChangeTlgrm} 
         placeholder="Укажите telegram chat id"
         callBack={actionChangeTlgrmCallBack} />
+    <ModalAutoComplete 
+        title={"Временная зона"} 
+        type="input"
+        show={showModalChangeTimezone} 
+        placeholder="Начните набирать для поиска"
+        callBack={actionChangeTimezoneCallBack}
+        fetcher={fetchTimezone}
+        defaultVal={User.profile.timezone}
+        data={stateOptions}
+        />
     <Row>
         <Col>
             <Navbar />
@@ -133,8 +187,14 @@ function Profile(props) {
     </Row>
     <Row>
         <Col>
+            <small>Часовой пояс</small>
+            &nbsp;<a href="#" onClick={actionChangeTimezone}><i className="bi bi-pencil-square"></i></a>
+            <h4>{initValues.filter(el=>el.return_val === User.profile.timezone)[0]?.display_val}</h4>
+        </Col>
+    </Row>
+    <Row>
+        <Col>
             <br/>
-            {/* navigate(`/disk?search=${e.target.formFindText.value}`); */}
         </Col>
     </Row>
     <Row style={{marginBottom: "0.5rem"}}>
@@ -149,7 +209,7 @@ function Profile(props) {
             <small>Telegram chat id</small>
             &nbsp;<a href="#" onClick={actionChangeTlgrm}><i className="bi bi-pencil-square"></i></a>
             <br/>
-            <small><a href="https://t.me/planhelpbot">Узнать свой chat_id</a></small>
+            <small><a href="https://t.me/planhelpbot" className="phLink">Узнать свой chat_id</a></small>
             <h4>{User.profile.telegram_chat_id?User.profile.telegram_chat_id:"-"}</h4>
         </Col>
     </Row>
@@ -177,7 +237,7 @@ function Profile(props) {
     <Row>
         <Col>
             <br/>
-            <a href="/logout" style={{textDecorationStyle:"dotted"}}>Выйти из системы</a>
+            <a href="/logout" className="phLink">Выйти из системы</a>
         </Col>
     </Row>
     </Container>

@@ -8,6 +8,9 @@ import React, { useState, useEffect, useRef } from 'react';
 import { getNotifyList, readAllNotify } from '../../network/NotifyNetwork';
 import { addNotifyList } from '../../reducers/Notify';
 import ListGroup from 'react-bootstrap/ListGroup';
+import moment from 'moment';
+import 'moment/locale/ru';
+moment.locale('ru');
 
 function NotifyList(props) {
     const [ searchParams ] = useSearchParams();
@@ -57,7 +60,7 @@ function NotifyList(props) {
     const listItems = Notify.notifyList.map((el) =>
     <ListGroup.Item key={el.notify_id} style={{border:"0"}}>
         <div>
-            <small style={{fontSize : "0.6em"}}>{el.created_on}</small>
+            <small style={{fontSize : "0.6em"}}>{moment(el.created_on,'YYYY-MM-DDTHH:mm:ss.SSSZ').fromNow()}</small>
         </div>
         <div>
             {!el.is_read?<strong>{el.notify_note}</strong>:el.notify_note}
@@ -82,7 +85,7 @@ function NotifyList(props) {
     </Row>
     <Row>
         <Col>
-            <a href="#" onClick={actionReadAllNotify} style={{textDecorationStyle: "dotted"}}>Отметить все прочитанными</a>
+            <a href="#" onClick={actionReadAllNotify} className="phLink">Отметить все прочитанными</a>
             <br/>
             <br/>
         </Col>

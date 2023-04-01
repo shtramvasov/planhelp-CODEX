@@ -12,7 +12,8 @@ import { useSelector, useDispatch } from 'react-redux'
 import ListGroup from 'react-bootstrap/ListGroup';
 import { addEntity, addEntityFiles, addLastUploadFile } from '../../reducers/Disk'
 import { useNavigate , useSearchParams} from "react-router-dom";
-import { getDiskEntity, postDiskEntity, deletetDiskEntity, getFilesList, downloadFile } from '../../network/DiskNetwork';
+import { getDiskEntity, postDiskEntity, deletetDiskEntity } from '../../network/DiskNetwork';
+import { postEntityNote } from '../../network/NoteNetwork';
 import { useParams } from 'react-router-dom';
 import ToastMessage from "../helpers/ToastMessage";
 
@@ -39,20 +40,20 @@ function Disk(props) {
                     navigate(`/disk/${entity_id}/file/read`);
                 }
                 dispatch(addEntity(resp));
-                fetchFiles();
+                // fetchFiles();
             } else {
                 alert("Ошибка: "+err);
             }
         });
     };
 
-    const fetchFiles = () => {
-        getFilesList(entity_id, (err, resp) => {
-            if (!err && !resp.error) {
-                dispatch(addEntityFiles(resp))
-            }
-        })
-    }
+    // const fetchFiles = () => {
+    //     getFilesList(entity_id, (err, resp) => {
+    //         if (!err && !resp.error) {
+    //             dispatch(addEntityFiles(resp))
+    //         }
+    //     })
+    // }
  
     document.title = Disk.entity.entity_type !=='ROOT'? Disk.entity.entity_name+" | planhelp":"Диск | planhelp";
     // Первичная загрузка данных,
@@ -124,23 +125,55 @@ function Disk(props) {
                 }
             }
         );
-        
     }
     
     // Колбэк с модалки загрузки файла
     const actionUploadFileCallBack = (file) => {
         setShowModalUploadFile(false);
-        if (file) {
-            fetchFiles();
-            setToastSuccessUploadFile(true);
-            setTimeout(didCloseToast, 5000);
-            dispatch(addLastUploadFile(file));
+        if (!file) {
+            return;
         }
+        // fetchFiles();
+        setToastSuccessUploadFile(true);
+        setTimeout(didCloseToast, 5000);
+        // dispatch(addLastUploadFile(file));
+        // Адовая Дичь и лапша и говна которую надо переписать будет в будущем
+        // нарушение атомарности 
+        postDiskEntity(
+            {
+                entity_name : file.name,
+                entity_note : null,
+                parent_entity_id : Disk.entity.entity_id,
+                entity_type : "FILE"
+            }, 
+            (err,resp) => {
+                if (!err) {
+                    fetchEntity();
+                    // add file comment to entity
+                    postEntityNote({
+                        entity_id : resp.entity_id,
+                        note : file.name,
+                        note_2 : file.url,
+                        note_type : "FILE",
+                        variant : "",
+                        is_deleted : 0
+                    },
+                    (err,resp) => {
+                        if (!err) {
+                            
+                        } else {
+                            alert("Ошибка: "+err);
+                        }
+                    });
+
+                }
+            }
+        );
     }
 
     // Колбек с инфо.сообщение о том что файл загрузили
     const actionSuccessUploadFileCallBack = () => {
-        didCloseToast()
+        // didCloseToast()
     }
 
     const deleteEntity = () => {
@@ -167,22 +200,22 @@ function Disk(props) {
         navigate(`/disk/${entity_id}/activity`);
     }
 
-    const handleDownloadFile = (e) => {
-        const hash_name = e.hash_name
-        const original_name = e.original_name
-        downloadFile(hash_name, original_name)
-    }
+    // const handleDownloadFile = (e) => {
+    //     const hash_name = e.hash_name
+    //     const original_name = e.original_name
+    //     downloadFile(hash_name, original_name)
+    // }
 
-    var listFiles;
+    // var listFiles;
     /// Ячейки таблицы с файлами
-    if (Disk.entity.entity_type !=='ROOT') {
-        const url = `http://localhost:3001/api/files/${entity_id}`
-        listFiles = Disk.entityFiles ? Disk.entityFiles.map((file) => {
-            return  <ListGroup.Item key={file.id} variant="info" action onClick={(e) => { handleDownloadFile(file) }} > 
-                        { file.original_name } 
-                    </ListGroup.Item>
-        }) : [];
-    }
+    // if (Disk.entity.entity_type !=='ROOT') {
+    //     const url = `http://localhost:3001/api/files/${entity_id}`
+    //     listFiles = Disk.entityFiles ? Disk.entityFiles.map((file) => {
+    //         return  <ListGroup.Item key={file.id} variant="info" action onClick={(e) => { handleDownloadFile(file) }} > 
+    //                     { file.original_name } 
+    //                 </ListGroup.Item>
+    //     }) : [];
+    // }
 
 
     var listItems = Disk.entity.childEntityList ? Disk.entity.childEntityList.map((el) =>
@@ -231,21 +264,33 @@ function Disk(props) {
     <Row>
         <Col>
             <form onSubmit={actionFindSubmit}>
-                <Form.Group className="mb-3" controlId="formFindText">
+                <Form.Group controlId="formFindText" style={{marginBottom:"8px"}}>
                     <Form.Control type="text" placeholder="Поиск" defaultValue={searchParams.get("search")}/>
                 </Form.Group>
             </form>
         </Col>
     </Row>
-    <Row>
+    {/* <Row style={{marginBottom:"16px"}}>
         <Col>
-            <Form.Group className="mb-3" controlId="formFindText">
-                <Button variant="outline-primary" onClick={actionCallModalNewPath}><i className="bi bi-folder-plus"></i></Button>
-                <Button style={{marginLeft : "2px"}} variant="outline-primary" onClick={actionCallModalNewFile}><i className="bi bi-file-earmark-plus"></i></Button>
-                { entity_id ? 
+        <ul class="list-group list-group-horizontal">
+            <a href="" class="list-group-item">Apple</a>
+            <li class="list-group-item">Удобные решения</li>
+            <li class="list-group-item">Еще что то довольно длинное</li>
+        </ul>
+        </Col>
+    </Row> */}
+    <Row style={{marginBottom:"8px"}}>
+        <Col>
+            <Form.Group controlId="formFindText">
+                <Button variant="outline-primary" onClick={actionCallModalNewPath}>
+                    <i className="bi bi-folder-plus"></i>
+                </Button>
+                <Button style={{marginLeft : "2px"}} variant="outline-primary" onClick={actionCallModalNewFile}>
+                    <i className="bi bi-file-earmark-plus"></i>
+                </Button>
                 <Button style={{marginLeft : "2px"}} variant="outline-primary" onClick={actionCallModalUploadFile}>
-                    <i class="bi bi-cloud-arrow-up"></i> 
-                </Button> : ""}
+                    <i className="bi bi-cloud-arrow-up"></i> 
+                </Button>
                 {entity_id ?
                 <Button style={{marginLeft : "2px"}} type="button" variant="outline-secondary" onClick={handleEditEntity}>Изменить папку</Button>
                 :""}
@@ -267,11 +312,11 @@ function Disk(props) {
         </Col>
     </Row>
     <br />
-    <Row>
+    {/* <Row>
         <Col>
             <ListGroup> {listFiles} </ListGroup>
         </Col>
-    </Row>
+    </Row> */}
 
     {
         // Инфо сообщение, о том что файл загрузили

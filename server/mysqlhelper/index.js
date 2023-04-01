@@ -5,7 +5,8 @@ var pool  = mysql.createPool({
     host            : conf.db_host,
     user            : conf.db_user,
     password        : conf.db_pass,
-    database        : conf.db
+    database        : conf.db,
+    timezone: 'UTC'
 });
 
 const getConnection = () => new Promise((resolve, reject) => {
@@ -13,7 +14,10 @@ const getConnection = () => new Promise((resolve, reject) => {
         if (error) {
             reject(error);
         }
-        resolve(connection);
+        // SET DEFAULT UTC time zone
+        connection.query("set time_zone = '+00:00'",[], () => {
+            resolve(connection);
+        });
     });
 });
 

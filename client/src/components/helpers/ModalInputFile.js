@@ -19,7 +19,7 @@ function ModalInputFile(props) {
     const saveMe = (e) => {
         e.preventDefault();
         setLoadFile(1);
-        fetchUploadFile(Disk.entity.entity_id, selectedFile.file)
+        fetchUploadFile(selectedFile.file);
     }
 
     selectedFile = (e) => {
@@ -28,8 +28,8 @@ function ModalInputFile(props) {
     }
 
     // Загружаем файл
-    const fetchUploadFile = (entity_id, file) => {
-        uploadFile({ entity_id, file }, (err, response) => {
+    const fetchUploadFile = (file) => {
+        uploadFile({ file }, (err, response) => {
             setLoadFile(0);
             if (!err) {
                 console.log('Response Upload File: ', response)
@@ -42,7 +42,8 @@ function ModalInputFile(props) {
     
     return (
     <Modal show={props.show} onHide={closeMe}>
-    <form encType='multipart/form-data' onSubmit={saveMe}>
+        {/* encType='multipart/form-data' */}
+    <form onSubmit={saveMe}>
         <Modal.Header closeButton={true}>
             <Modal.Title>{props.title}</Modal.Title>
         </Modal.Header>
@@ -62,7 +63,7 @@ function ModalInputFile(props) {
                     Загрузить
                 </Button> :
                 <Button> 
-                    <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                    <span className="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
                 </Button>
             }
         </Modal.Footer>    

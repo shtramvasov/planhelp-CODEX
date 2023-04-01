@@ -127,7 +127,7 @@ const getEntityOldVersion = async ({entity_id, activity_id, user_id}, con) => {
 // Получение всех юзеров причастных к указанному entity
 const getEntityUsers = async ({entity_id, parent_entity_id, user_id}, con) => {
     const entityUsers = await mysql.query(con,
-        `select deu.user_id, deu.user_role, u.login
+        `select deu.user_id, deu.user_role, u.login, u.is_notify, u.telegram_chat_id
            from disk_entity_users deu inner join ref_users u on deu.user_id = u.user_id
           where entity_id = ?`,
         [ entity_id ]
@@ -165,10 +165,21 @@ const deleteEntity = async ({entity_id, user_id, entity_name, entity_type}, con)
     for (const userRole of entityUsers) {
         // формируем нотификации
         if (user_id != userRole.user_id) {
-        await mysql.query(con,
-            `insert into notify(user_id,object_id,object_type,notify_note,is_read,created_on)
-            values(?,?,'disk_entity',?,0,now())`,
-            [ userRole.user_id, entity_id, notify  ]);
+            // записываем само уведомление
+            await mysql.query(con,
+                `insert into notify(user_id,object_id,object_type,notify_note,is_read,created_on)
+                values(?,?,'disk_entity',?,0,now())`,
+                [ userRole.user_id, entity_id, notify ]);
+            if (userRole.is_notify && userRole.telegram_chat_id) {
+                // Получаем созданный ID
+                const notify_id = (await mysql.query(con,`select LAST_INSERT_ID() notify_id`))[0].notify_id;
+                // пишем в журнал отправки для телеграм
+                await mysql.query(con,
+                    `insert into notify_tlgrm(notify_id, status, telegram_chat_id)
+                    values(?,0,?)`,
+                    [ notify_id, userRole.telegram_chat_id ]
+                );
+            }
         }
     }
     // 
@@ -197,10 +208,20 @@ const updateEntity = async ({entity_id, user_id, entity_name, entity_note, entit
     for (const userRole of entityUsers) {
         // формируем нотификации
         if (user_id != userRole.user_id) {
-        await mysql.query(con,
-            `insert into notify(user_id,object_id,object_type,notify_note,is_read,created_on)
-            values(?,?,'disk_entity',?,0,now())`,
-            [ userRole.user_id, entity_id, notify  ]);
+            await mysql.query(con,
+                `insert into notify(user_id,object_id,object_type,notify_note,is_read,created_on)
+                values(?,?,'disk_entity',?,0,now())`,
+                [ userRole.user_id, entity_id, notify  ]);
+            if (userRole.is_notify && userRole.telegram_chat_id) {
+                // Получаем созданный ID
+                const notify_id = (await mysql.query(con,`select LAST_INSERT_ID() notify_id`))[0].notify_id;
+                // пишем в журнал отправки для телеграм
+                await mysql.query(con,
+                    `insert into notify_tlgrm(notify_id, status, telegram_chat_id)
+                    values(?,0,?)`,
+                    [ notify_id, userRole.telegram_chat_id ]
+                );
+            }
         }
     }
     // 
@@ -239,8 +260,11 @@ const revokeEntityUser = async ({entity_tree, user_id}, con) => {
 const createEntity = async ({entity_name, entity_type, entity_note, parent_entity_id, user_id}, parentEntity, con) => {
     // Не уверен что это здесь должно быть
     // формируем нотификации
-    const login = (await mysql.query(con,"select login from ref_users where user_id = ?",[user_id]))[0].login;
-    const notify = `${login} создал ${entity_type==='PATH'?"папку":"файл"} ${entity_name} в ${parentEntity.entity_name}`;
+    let notify;
+    if (parentEntity) {
+        const login = (await mysql.query(con,"select login from ref_users where user_id = ?",[user_id]))[0].login;
+        notify = `${login} создал ${entity_type==='PATH'?"папку":"файл"} ${entity_name} в ${parentEntity.entity_name}`;
+    }
     // 
 
     let parentEntityUsers;
@@ -276,10 +300,20 @@ const createEntity = async ({entity_name, entity_type, entity_note, parent_entit
             [ entity_id, userRole.user_id, userRole.user_role ]);
         // формируем нотификации
         if (user_id != userRole.user_id) {
-        await mysql.query(con,
-            `insert into notify(user_id,object_id,object_type,notify_note,is_read,created_on)
-            values(?,?,'disk_entity',?,0,now())`,
-            [ userRole.user_id, entity_id, notify  ]);
+            await mysql.query(con,
+                `insert into notify(user_id,object_id,object_type,notify_note,is_read,created_on)
+                values(?,?,'disk_entity',?,0,now())`,
+                [ userRole.user_id, entity_id, notify  ]);
+            if (userRole.is_notify && userRole.telegram_chat_id) {
+                // Получаем созданный ID
+                const notify_id = (await mysql.query(con,`select LAST_INSERT_ID() notify_id`))[0].notify_id;
+                // пишем в журнал отправки для телеграм
+                await mysql.query(con,
+                    `insert into notify_tlgrm(notify_id, status, telegram_chat_id)
+                    values(?,0,?)`,
+                    [ notify_id, userRole.telegram_chat_id ]
+                );
+            }
         }
         //
     }
