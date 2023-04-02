@@ -12,22 +12,15 @@ function ToastMessage(props) {
         <Toast onClose={closeMe}>
         
             <Toast.Header>
-                <strong className="me-auto">Файл загрузили</strong>
+                <strong className="me-auto"> {props.title} </strong>
             </Toast.Header>
             
             <Toast.Body>
-                <Table striped bordered hover>
-                    <tbody>
-                    <tr style={{ verticalAlign: 'middle' }} >
-                        <td> {props.file.original_name} </td>
-                        <td> {props.file.size} Кб </td>
-                    </tr>
-                    </tbody>
-                </Table>
+                { props.body() }
             </Toast.Body>
 
         </Toast>
-    </ToastContainer> 
+    </ToastContainer>
     )
 }
 

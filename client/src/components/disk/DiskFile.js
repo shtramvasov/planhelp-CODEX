@@ -1,25 +1,26 @@
 import { Navbar }  from "../navbar/Navbar";
-import Container from 'react-bootstrap/Container';
-import Row from 'react-bootstrap/Row';
-import Col from 'react-bootstrap/Col';
-import Form from 'react-bootstrap/Form';
-import Button from 'react-bootstrap/Button';
-import ButtonGroup from 'react-bootstrap/ButtonGroup';
-import ModalOneInputText from "../helpers/ModalOneInputText";
+import { Container, Button, Row, Col, Form, Table } from "react-bootstrap";
 import ModalNote from "../helpers/ModalNote";
 import ModalInputFile from "../helpers/ModalInputFile";
 import React, { useState, useEffect, useRef } from 'react';
 import { useSelector, useDispatch } from 'react-redux'
-import ListGroup from 'react-bootstrap/ListGroup';
-import { addEntity, addEntityNotes, addEntityNote } from '../../reducers/Disk';
+import { addEntity, addEntityNotes, addEntityNote, addLastUploadFile } from '../../reducers/Disk';
 import { useNavigate } from "react-router-dom";
 import { getDiskEntity, postDiskEntity, deletetDiskEntity } from '../../network/DiskNetwork';
 import { getEntityNoteList, postEntityNote } from '../../network/NoteNetwork';
 import { useParams } from 'react-router-dom';
-import ReactMarkdown from 'react-markdown' 
+import ToastMessage from "../helpers/ToastMessage";
 import Card from 'react-bootstrap/Card';
 import moment from 'moment-timezone';
 import 'moment/locale/ru';
+
+// Обработчик markdown 
+import ReactMarkdown from 'react-markdown'
+import remarkGfm from 'remark-gfm'
+// Редактор markdown
+import MdEditor from 'react-markdown-editor-lite';
+import 'react-markdown-editor-lite/lib/index.css';
+
 moment.locale('ru');
 
 function DiskFile(props) {
@@ -33,6 +34,9 @@ function DiskFile(props) {
 
     const [showModalNote, setShowModalNote] = useState(false);
     const [showModalUploadFile, setShowModalUploadFile] = useState(false);
+    const [entityNote, setEntityNote]  = useState("");
+    const [showToastSuccessUploadFile, setToastSuccessUploadFile] = useState(false);
+    const didCloseToast = () => setToastSuccessUploadFile(false);
 
     const fetchEntity = () => {
         getDiskEntity({entity_id : entity_id},(err,resp) => {
@@ -61,6 +65,9 @@ function DiskFile(props) {
     }
 
     const handleEditClick = () => {
+        // 1. Прокидываем содержимое entity в форму с изменением
+        setEntityNote(Disk.entity.entity_note?Disk.entity.entity_note:"")
+        // 2. Переход в роут Изменение файла
         navigate(`/disk/${entity_id}/file/edit`);
     }
 
@@ -82,12 +89,12 @@ function DiskFile(props) {
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        
+
         postDiskEntity(
             {   
                 entity_id : entity_id,
                 entity_name : e.target.formEntityName.value,
-                entity_note : e.target.formEntityNote.value,
+                entity_note : entityNote,
                 // parent_entity_id : Disk.entity.entity_id,
                 entity_type : "FILE"
             }, 
@@ -162,6 +169,13 @@ function DiskFile(props) {
         if (!file) {
             return;
         }
+
+        /// Записываем информацию о загруженном файле
+        /// Показываем сообщение
+        /// Скрываем сообщение через 5 сек.
+        dispatch(addLastUploadFile(file));
+        setToastSuccessUploadFile(true);
+        setTimeout(didCloseToast, 5000);
        
         postEntityNote({
             entity_id : entity_id,
@@ -178,6 +192,11 @@ function DiskFile(props) {
                 alert("Ошибка: "+err);
             }
         });
+    }
+
+    // Колбек с инфо.сообщение о том что файл загрузили
+    const actionSuccessUploadFileCallBack = () => {
+        didCloseToast()
     }
 
     const onEditNote = (e,el) => {
@@ -212,7 +231,38 @@ function DiskFile(props) {
             </div>
         </Card>
     );
-    
+
+
+    // Создаем объект <table> со стилями bootstrap, для использования его в markdown
+    const MarkdownTable = props => {
+        return (<table className="table table-bordered"> {props.children} </table>)
+    }
+
+    const MardownObject = (props) => {
+        // 1. components: прокидываем свои html объекты
+        // 2. children: markdown -> стилевый текст
+        // 3. remarkPlugins: плагины для поддержки таблиц, стилей текста
+        return <ReactMarkdown components={{ table: MarkdownTable }} children={ props.value } remarkPlugins={[remarkGfm]} /> 
+    }
+
+    const handleEditorChange = ({ html, text }) => {
+        setEntityNote(text)
+    }
+
+    // Показываем сообщение с информацией о загруженным файле
+    const TastInfoSuccessFile = () => {
+        return (
+            <Table striped bordered hover>
+                <tbody>
+                    <tr style={{ verticalAlign: 'middle' }} >
+                        <td> {Disk.lastUploadFile.name} </td>
+                        <td> {Disk.lastUploadFile.size} Кб </td>
+                    </tr>
+                </tbody>
+            </Table>
+        )
+    }
+
     return (
     <Container>
         <ModalNote 
@@ -254,8 +304,8 @@ function DiskFile(props) {
         </Col>
     </Row>
     <Row>
-        <Col lg={12} style={{whiteSpace: "pre-wrap"}}>
-            <ReactMarkdown children={ Disk.entity.entity_note } ></ReactMarkdown>
+        <Col lg={12} style={{ whiteSpace: "pre-wrap" }}>
+            <MardownObject value = {Disk.entity.entity_note} />
         </Col>
         <Col lg={6}>
             {entityNoteItems}
@@ -286,20 +336,17 @@ function DiskFile(props) {
     </Row>
     <Row>
         <Col>
-            <div>
-            <Form.Group className="mb-3" controlId="formEntityNote">
-            <Form.Control
-                as="textarea"
-                defaultValue={Disk.entity.entity_note?Disk.entity.entity_note:""} 
-                rows="40"
-                style={{marginTop: "10px",width: "100%", border : "1px solid silver", padding : "15px"}}
-            />
-            </Form.Group>
-            </div>
+            <MdEditor onChange={handleEditorChange} value={entityNote}  style={{ height: '500px' }} renderHTML={ text => <MardownObject value = {text} /> } />
         </Col>
     </Row>
     </form>
     }
+
+    {
+        // Инфо сообщение, о том что файл загрузили
+        showToastSuccessUploadFile ?  <ToastMessage title = "Файл загрузили" body = {TastInfoSuccessFile}  callBack = { actionSuccessUploadFileCallBack } /> : ""
+    }
+
     </Container>
     );
 }

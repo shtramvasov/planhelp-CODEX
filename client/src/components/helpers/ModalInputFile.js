@@ -32,7 +32,6 @@ function ModalInputFile(props) {
         uploadFile({ file }, (err, response) => {
             setLoadFile(0);
             if (!err) {
-                console.log('Response Upload File: ', response)
                 props.callBack(response);
             } else {
                 alert("Ошибка: " + err);
