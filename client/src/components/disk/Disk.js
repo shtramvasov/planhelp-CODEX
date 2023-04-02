@@ -1,15 +1,9 @@
 import { Navbar }  from "../navbar/Navbar";
-import Container from 'react-bootstrap/Container';
-import Row from 'react-bootstrap/Row';
-import Col from 'react-bootstrap/Col';
-import Form from 'react-bootstrap/Form';
-import Button from 'react-bootstrap/Button';
-import ButtonGroup from 'react-bootstrap/ButtonGroup';
+import { Container, Row, Col, Form, Button, ListGroup, Table} from 'react-bootstrap';
 import ModalOneInputText from "../helpers/ModalOneInputText";
 import ModalInputFile from "../helpers/ModalInputFile";
 import React, { useState, useEffect, useRef } from 'react';
 import { useSelector, useDispatch } from 'react-redux'
-import ListGroup from 'react-bootstrap/ListGroup';
 import { addEntity, addEntityFiles, addLastUploadFile } from '../../reducers/Disk'
 import { useNavigate , useSearchParams} from "react-router-dom";
 import { getDiskEntity, postDiskEntity, deletetDiskEntity } from '../../network/DiskNetwork';
@@ -125,10 +119,14 @@ function Disk(props) {
         if (!file) {
             return;
         }
-        // fetchFiles();
+
+        /// Записываем информацию о загруженном файле
+        /// Показываем сообщение
+        /// Скрываем сообщение через 5 сек.
+        dispatch(addLastUploadFile(file));
         setToastSuccessUploadFile(true);
         setTimeout(didCloseToast, 5000);
-        // dispatch(addLastUploadFile(file));
+
         // Адовая Дичь и лапша и говна которую надо переписать будет в будущем
         // нарушение атомарности 
         postDiskEntity(
@@ -165,7 +163,7 @@ function Disk(props) {
 
     // Колбек с инфо.сообщение о том что файл загрузили
     const actionSuccessUploadFileCallBack = () => {
-        // didCloseToast()
+        didCloseToast()
     }
 
     // Обработка клика по entity
@@ -214,6 +212,20 @@ function Disk(props) {
                 >
                 {Disk.entity.type === "PATH" ? <strong>..</strong> : <small>..</small>}    
             </ListGroup.Item>
+        )
+    }
+
+    // Показываем сообщение с информацией о загруженным файле
+    const TastInfoSuccessFile = () => {
+        return (
+            <Table striped bordered hover>
+                <tbody>
+                    <tr style={{ verticalAlign: 'middle' }} >
+                        <td> {Disk.lastUploadFile.name} </td>
+                        <td> {Disk.lastUploadFile.size} Кб </td>
+                    </tr>
+                </tbody>
+            </Table>
         )
     }
 
@@ -288,7 +300,7 @@ function Disk(props) {
 
     {
         // Инфо сообщение, о том что файл загрузили
-        showToastSuccessUploadFile ?  <ToastMessage file ={ Disk.lastUploadFile } callBack = { actionSuccessUploadFileCallBack } /> : ""
+        showToastSuccessUploadFile ?  <ToastMessage title = "Файл загрузили" body = {TastInfoSuccessFile}  callBack = { actionSuccessUploadFileCallBack } /> : ""
     }
 
     </Container>
