@@ -2,6 +2,7 @@ var express = require('express');
 var router = express.Router();
 var mysql = require('../mysqlhelper');
 var entityModel = require('../models/disk_entity');
+const { READ, WRITE, OWNER, FILE, PATH, ROOT } = require('../models/disk_entity').CONSTANTS;
 var commonNote = require('../models/common_note');
 
 // Возвращает указанный эелемент и его потомков
@@ -23,9 +24,8 @@ router.get('/:entity_id?', async (req, res, next) => {
             // контекстный поиск, не валидируем entity, потому что не надо
             entity.childEntityList = await entityModel.getEntitySearch({search,user_id },con);
         }
-
         if (!search 
-            && (entity.entity_type === "PATH" || entity.entity_type === "ROOT")) {
+            && (entity.entity_type === PATH || entity.entity_type === ROOT)) {
             // Если текущий entity = Папка или ROOT элемент
             // достаем потомков
             entity.childEntityList = await entityModel.getEntityChild(
@@ -56,6 +56,7 @@ router.get('/:entity_id/activity', async (req, res, next) => {
         // валидируем доступ если entity не найден - значит нет доступа
         const entity = await entityModel.getEntity({entity_id,user_id},con);
         if (!entity) throw 'Permission denied';
+        if (entity.user_role === READ) throw 'Permission denied, read only role';
 
         const entityActivity = await entityModel.getEntityActivity({entity_id,user_id}, con);
         
@@ -103,7 +104,7 @@ router.post('/', async (req, res, next) => {
         // Проверки
         if (!entity_name) throw "Missing entity_name in body params";
         if (!entity_type) throw "Missing entity_type in body params";
-        if (!["PATH","FILE"].includes(entity_type)) throw "Not valid entity_type in body params, only PATH or FILE";
+        if (![PATH,FILE].includes(entity_type)) throw "Not valid entity_type in body params, only PATH or FILE";
 
         con = await mysql.getConnection();
         await mysql.begin(con);
@@ -113,6 +114,7 @@ router.post('/', async (req, res, next) => {
             // блокируем entity for update
             parentEntity = await entityModel.getEntity({entity_id : parent_entity_id,user_id}, con, true);
             if (!parentEntity) throw 'Permission denied';
+            if (parentEntity.user_role === READ) throw 'Permission denied, read only role';
         }
 
         const entity_id = await entityModel.createEntity(
@@ -148,6 +150,7 @@ router.post('/:entity_id', async (req, res, next) => {
         // и вешаем for update см парам true
         const entity = await entityModel.getEntity({entity_id,user_id},con, true);
         if (!entity) throw 'Permission denied';
+        if (entity.user_role === READ) throw 'Permission denied, read only role';
 
         await entityModel.updateEntity(
             {entity_id,user_id,entity_name,entity_note, entity_type : entity.entity_type},entity,con);
@@ -177,6 +180,7 @@ router.delete('/:entity_id', async (req, res, next) => {
         // и вешаем for update см парам true
         const entity = await entityModel.getEntity({entity_id,user_id},con, true);
         if (!entity) throw 'Permission denied';
+        if (entity.user_role === READ) throw 'Permission denied, read only role';
 
         await entityModel.deleteEntity(
             {entity_id,user_id, entity_name : entity.entity_name, entity_type : entity.entity_type},con);
@@ -203,6 +207,7 @@ router.get('/:entity_id/users', async (req,res,next) => {
         // валидируем доступ если entity не найден - значит нет доступа
         const entity = await entityModel.getEntity({entity_id,user_id},con);
         if (!entity) throw 'Permission denied';
+        if (entity.user_role === READ) throw 'Permission denied, read only role';
 
         const entityUsers = await entityModel.getEntityUsers(
             {entity_id,parent_entity_id : entity.parent_entity_id, user_id},
@@ -228,7 +233,7 @@ router.post('/:entity_id/users', async (req, res, next) => {
         if (!entity_id) throw "Missing entity_id in url params";
         if (!user_id) throw "Missing user_id in body params";
         if (!user_role) throw "Missing user_role in body params";
-        if (!["WRITE","OWNER"].includes(user_role)) throw "Not valid user_role in body params, only WRITE or OWNER";
+        if (![READ,WRITE,OWNER].includes(user_role)) throw "Not valid user_role in body params, only WRITE or OWNER";
 
         con = await mysql.getConnection();
         await mysql.begin(con);
@@ -240,7 +245,7 @@ router.post('/:entity_id/users', async (req, res, next) => {
         if (!entity) throw 'Permission denied';
 
         // только OWNERам можно раздавать права
-        if (entity.user_role !== 'OWNER') throw 'Permission denied, you are not OWNER of this entity';
+        if (entity.user_role !== OWNER) throw 'Permission denied, you are not OWNER of this entity';
 
         await entityModel.createEntityUser({entity_tree : entity.entity_tree, user_id, user_role}, con);
 
@@ -274,7 +279,7 @@ router.post('/:entity_id/users/revoke', async (req, res, next) => {
         if (!entity) throw 'Permission denied';
 
         // только OWNERам можно раздавать права
-        if (entity.user_role !== 'OWNER') throw 'Permission denied, you are not OWNER of this entity';
+        if (entity.user_role !== OWNER) throw 'Permission denied, you are not OWNER of this entity';
 
         // проверим можно ли менять права на тек уровне вложенности
         const entityUsers = await entityModel.getEntityUsers(
@@ -285,8 +290,14 @@ router.post('/:entity_id/users/revoke', async (req, res, next) => {
             if (eUser.user_id == user_id && !eUser.is_editable) {
                 throw 'Permission denied, role not editable';
             } else
-            if (eUser.user_id == user_id && eUser.user_role == "OWNER") {
-                throw 'Permission denied, owner role not editable';
+            if (eUser.user_id == user_id && eUser.user_role == OWNER) {
+                // Если пытаются забрать права у OWNER
+                // сам у себя забрать нельзя
+                if (entity.login === eUser.login)
+                    throw 'Permission denied, you cant revoke for you self user';
+                // это может сделать только другой OWNER
+                if (!entity.user_role === OWNER)
+                    throw 'Permission denied, owner role not editable';
             }
         }
 
@@ -336,36 +347,6 @@ router.get('/:entity_id/note/:note_id?', async (req,res,next) => {
     }
 });
 
-// // Удаление комментария
-// router.delete('/:entity_id/note/:note_id', async (req, res, next) => {
-//     const { entity_id, note_id } = req.params;
-//     const { user_id } = req.userModel;
-//     let con;
-//     try {
-//         // Проверки
-//         if (!entity_id) throw "Missing entity_id in url params";
-//         if (!note_id) throw "Missing note_id in url params";
-
-//         con = await mysql.getConnection();
-//         await mysql.begin(con);
-        
-//         // получаем сам entity по ID
-//         // валидируем доступ если entity не найден - значит нет доступа
-//         // и вешаем for update см парам true
-//         const entity = await entityModel.getEntity({entity_id,user_id},con, true);
-//         if (!entity) throw 'Permission denied';
-
-//         await commonNote.deleteNote({note_id}, con);
-
-//         res.send({entity_id : entity_id});
-//     } catch(err) {
-//         con && await mysql.rollback(con);
-//         next(err);
-//     } finally {
-//         con && await mysql.commit(con) && await mysql.releaseConnection(con);
-//     }
-// });
-
 // Создать комментарий
 router.post('/:entity_id/note', async (req, res, next) => {
     const { user_id } = req.userModel;
@@ -393,6 +374,7 @@ router.post('/:entity_id/note', async (req, res, next) => {
         // и вешаем for update см парам true
         const entity = await entityModel.getEntity({entity_id,user_id},con, true);
         if (!entity) throw 'Permission denied';
+        if (entity.user_role === READ) throw 'Permission denied, read only role';
 
         await commonNote.createNote({
             user_id,
@@ -440,9 +422,10 @@ router.post('/:entity_id/note/:note_id', async (req, res, next) => {
         // и вешаем for update см парам true
         const entity = await entityModel.getEntity({entity_id,user_id},con, true);
         if (!entity) throw 'Permission denied';
+        if (entity.user_role === READ) throw 'Permission denied, read only role';
 
         const common_note = await commonNote.getNote({note_id}, con);
-        if (entity.user_role === "OWNER" || common_note.user_id === user_id) {
+        if (entity.user_role === OWNER || common_note.user_id === user_id) {
 
         } else {
             // изменять могут либо свои комменты либо если OWNER

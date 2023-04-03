@@ -24,12 +24,22 @@ moment.locale('ru');
 function DiskActivity(props) {
     const { entity_id } = useParams();
     // const [ searchParams ] = useSearchParams();
+    const navigate = useNavigate();
     const dispatch = useDispatch()
     const Disk = useSelector((state) => state.disk);
     const User = useSelector((state) => state.user);
-    const navigate = useNavigate();
+    const userRoleList = [
+        {display_val:"Полные права",return_val:"OWNER"},
+        {display_val:"Запись",return_val:"WRITE"},
+        {display_val:"Только чтение",return_val:"READ"}
+    ];
+    const [userRoleListOptions, setUserRoleList] = useState(userRoleList);
+    const [selectedUserId, setSelectedUserId] = useState(false);
 
+    // Модалка для выбора юзера при указании прав
     const [showModalEntityUser, setShowModalEntityUser] = useState(false);
+    // Модалка для выбора роли для юзера при указании прав
+    const [showModalEntityUserRole, setShowModalEntityUserRole] = useState(false);
 
     const fetchEntity = () => {
         getDiskEntity({entity_id : entity_id},(err,resp) => {
@@ -63,6 +73,7 @@ function DiskActivity(props) {
         });
     }; 
 
+    // Фетчер для контекстного поиска юзера при указании прав
     const fetchUsers = (search, cb) => {
         if (search) {
             getUsers({search}, (err,resp) => {
@@ -75,6 +86,18 @@ function DiskActivity(props) {
         } else {
             dispatch(addUserList([]));
         }
+    }
+
+    // Фетчер для контекстного поиска роли при указании прав для юзера
+    const fetchUserRole = (search, cb) => {
+        if (!search) {
+            setUserRoleList(userRoleList);
+            return;
+        }
+        const filtered = userRoleList.filter(
+            el => el.display_val.toUpperCase().indexOf(search.toUpperCase()) >= 0 
+        );
+        setUserRoleList(filtered);
     }
 
     // Первичная загрузка данных,
@@ -112,7 +135,15 @@ function DiskActivity(props) {
     const actionCallModalNewEntityUserCallback = (user_id) => {
         setShowModalEntityUser(false);
         if (!user_id) return;
-        addDiskEntityUser({entity_id : entity_id, user_id : user_id, user_role : "WRITE"}, (err,resp) => {
+        setSelectedUserId(user_id);
+        setShowModalEntityUserRole(true);
+    }
+
+    const actionCallModalNewEntityUserRoleCallback = (user_role) => {
+        setShowModalEntityUserRole(false);
+        if (!user_role) return;
+        if (!selectedUserId) return;
+        addDiskEntityUser({entity_id : entity_id, user_id : selectedUserId, user_role : user_role}, (err,resp) => {
             if (!err) {
                 fetchEntityUsers();
             } else {
@@ -157,6 +188,13 @@ function DiskActivity(props) {
         callBack={actionCallModalNewEntityUserCallback} 
         fetcher={fetchUsers}
         data={User.userList}/>
+    <ModalAutoComplete 
+        title={"Укажите права пользователю"} 
+        placeholder="Начните вводить для поиска"
+        show={showModalEntityUserRole} 
+        callBack={actionCallModalNewEntityUserRoleCallback} 
+        fetcher={fetchUserRole}
+        data={userRoleListOptions}/>
     <Row>
         <Col>
             <Navbar />
