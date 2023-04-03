@@ -2,6 +2,7 @@ var express = require('express');
 var router = express.Router();
 var mysql = require('../mysqlhelper');
 var entityModel = require('../models/disk_entity');
+const { READ, WRITE, OWNER, FILE, PATH, ROOT } = require('../models/disk_entity').CONSTANTS;
 var commonNote = require('../models/common_note');
 
 // Возвращает указанный эелемент и его потомков
@@ -23,9 +24,9 @@ router.get('/:entity_id?', async (req, res, next) => {
             // контекстный поиск, не валидируем entity, потому что не надо
             entity.childEntityList = await entityModel.getEntitySearch({search,user_id },con);
         }
-
+        console.log(entity.entity_type , ROOT)
         if (!search 
-            && (entity.entity_type === "PATH" || entity.entity_type === "ROOT")) {
+            && (entity.entity_type === PATH || entity.entity_type === ROOT)) {
             // Если текущий entity = Папка или ROOT элемент
             // достаем потомков
             entity.childEntityList = await entityModel.getEntityChild(
@@ -103,7 +104,7 @@ router.post('/', async (req, res, next) => {
         // Проверки
         if (!entity_name) throw "Missing entity_name in body params";
         if (!entity_type) throw "Missing entity_type in body params";
-        if (!["PATH","FILE"].includes(entity_type)) throw "Not valid entity_type in body params, only PATH or FILE";
+        if (![PATH,FILE].includes(entity_type)) throw "Not valid entity_type in body params, only PATH or FILE";
 
         con = await mysql.getConnection();
         await mysql.begin(con);
@@ -228,7 +229,7 @@ router.post('/:entity_id/users', async (req, res, next) => {
         if (!entity_id) throw "Missing entity_id in url params";
         if (!user_id) throw "Missing user_id in body params";
         if (!user_role) throw "Missing user_role in body params";
-        if (!["WRITE","OWNER"].includes(user_role)) throw "Not valid user_role in body params, only WRITE or OWNER";
+        if (![WRITE,OWNER].includes(user_role)) throw "Not valid user_role in body params, only WRITE or OWNER";
 
         con = await mysql.getConnection();
         await mysql.begin(con);
@@ -240,7 +241,7 @@ router.post('/:entity_id/users', async (req, res, next) => {
         if (!entity) throw 'Permission denied';
 
         // только OWNERам можно раздавать права
-        if (entity.user_role !== 'OWNER') throw 'Permission denied, you are not OWNER of this entity';
+        if (entity.user_role !== OWNER) throw 'Permission denied, you are not OWNER of this entity';
 
         await entityModel.createEntityUser({entity_tree : entity.entity_tree, user_id, user_role}, con);
 
@@ -274,7 +275,7 @@ router.post('/:entity_id/users/revoke', async (req, res, next) => {
         if (!entity) throw 'Permission denied';
 
         // только OWNERам можно раздавать права
-        if (entity.user_role !== 'OWNER') throw 'Permission denied, you are not OWNER of this entity';
+        if (entity.user_role !== OWNER) throw 'Permission denied, you are not OWNER of this entity';
 
         // проверим можно ли менять права на тек уровне вложенности
         const entityUsers = await entityModel.getEntityUsers(
@@ -285,7 +286,7 @@ router.post('/:entity_id/users/revoke', async (req, res, next) => {
             if (eUser.user_id == user_id && !eUser.is_editable) {
                 throw 'Permission denied, role not editable';
             } else
-            if (eUser.user_id == user_id && eUser.user_role == "OWNER") {
+            if (eUser.user_id == user_id && eUser.user_role == OWNER) {
                 throw 'Permission denied, owner role not editable';
             }
         }
@@ -442,7 +443,7 @@ router.post('/:entity_id/note/:note_id', async (req, res, next) => {
         if (!entity) throw 'Permission denied';
 
         const common_note = await commonNote.getNote({note_id}, con);
-        if (entity.user_role === "OWNER" || common_note.user_id === user_id) {
+        if (entity.user_role === OWNER || common_note.user_id === user_id) {
 
         } else {
             // изменять могут либо свои комменты либо если OWNER

@@ -1,12 +1,28 @@
 const mysql = require('../mysqlhelper');
 
+const CONSTANTS = {
+    // роль только читать
+    READ : "READ",
+    // роль писать но не управлять (нельзя добавлять новых юзеров в правах / нельзя удалять все комменты у entity)
+    WRITE : "WRITE",
+    // роль владелец, может все
+    OWNER : "OWNER",
+
+    // тип entity FILE - файл, содержит текст / не имеет потомков
+    FILE : "FILE",
+    // тип entity PATH - папка, не содержит текст / имеет потомков
+    PATH : "PATH",
+    // ROOT элемент
+    ROOT : "ROOT",
+}
+
 // Детали entity
 // forUpdate - для блокирования записи
 const getEntity = async ({entity_id, user_id}, con, forUpdate = false) => {
     if (!entity_id) {
         return {
             "entity_name" : "..",
-            "entity_type" : "ROOT"
+            "entity_type" : CONSTANTS.ROOT
         };
     }
     let sql = 
@@ -160,7 +176,7 @@ const deleteEntity = async ({entity_id, user_id, entity_name, entity_type}, con)
     // Не уверен что это здесь должно быть
     // формируем нотификации
     const login = (await mysql.query(con,"select login from ref_users where user_id = ?",[user_id]))[0].login;
-    const notify = `${login} удалил ${entity_type==='PATH'?"папку":"файл"} ${entity_name}`;
+    const notify = `${login} удалил ${entity_type===CONSTANTS.PATH?"папку":"файл"} ${entity_name}`;
     const entityUsers = await getEntityUsers({entity_id, user_id}, con);
     for (const userRole of entityUsers) {
         // формируем нотификации
@@ -203,7 +219,7 @@ const updateEntity = async ({entity_id, user_id, entity_name, entity_note, entit
     // Не уверен что это здесь должно быть
     // формируем нотификации
     const login = (await mysql.query(con,"select login from ref_users where user_id = ?",[user_id]))[0].login;
-    const notify = `${login} изменил ${entity_type==='PATH'?"папку":"файл"} ${entity_name}`;
+    const notify = `${login} изменил ${entity_type===CONSTANTS.PATH?"папку":"файл"} ${entity_name}`;
     const entityUsers = await getEntityUsers({entity_id, user_id}, con);
     for (const userRole of entityUsers) {
         // формируем нотификации
@@ -263,7 +279,7 @@ const createEntity = async ({entity_name, entity_type, entity_note, parent_entit
     let notify;
     if (parentEntity) {
         const login = (await mysql.query(con,"select login from ref_users where user_id = ?",[user_id]))[0].login;
-        notify = `${login} создал ${entity_type==='PATH'?"папку":"файл"} ${entity_name} в ${parentEntity.entity_name}`;
+        notify = `${login} создал ${entity_type===CONSTANTS.PATH?"папку":"файл"} ${entity_name} в ${parentEntity.entity_name}`;
     }
     // 
 
@@ -333,5 +349,7 @@ module.exports = {
     createEntity,
 
     createEntityUser,
-    revokeEntityUser
+    revokeEntityUser,
+
+    CONSTANTS
 };
