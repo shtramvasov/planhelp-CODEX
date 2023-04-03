@@ -292,9 +292,9 @@ router.post('/:entity_id/users/revoke', async (req, res, next) => {
             } else
             if (eUser.user_id == user_id && eUser.user_role == OWNER) {
                 // Если пытаются забрать права у OWNER
-                // сам у себя забрать нельзя
-                if (entity.login === eUser.login)
-                    throw 'Permission denied, you cant revoke for you self user';
+                // // сам у себя забрать нельзя
+                // if (entity.login === eUser.login)
+                //     throw 'Permission denied, you cant revoke for you self user';
                 // это может сделать только другой OWNER
                 if (!entity.user_role === OWNER)
                     throw 'Permission denied, owner role not editable';
