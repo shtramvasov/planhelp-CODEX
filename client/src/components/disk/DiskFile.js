@@ -304,8 +304,10 @@ function DiskFile(props) {
         </Col>
     </Row>
     <Row>
-        <Col lg={12} style={{ whiteSpace: "pre-wrap" }}>
-            <MardownObject value = {Disk.entity.entity_note} />
+        <Col lg={12}>
+            {/* hack for \n for reactMarkdown replace(/\n/gi, '  \n') */}
+            {/* replace all \n for space + space + \n */}
+            <MardownObject value = {(Disk.entity.entity_note)?.replace(/\n/gi, '  \n')} />
         </Col>
         <Col lg={6}>
             {entityNoteItems}
