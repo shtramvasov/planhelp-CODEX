@@ -57,7 +57,7 @@ router.get('/:entity_id/activity', async (req, res, next) => {
         const entity = await entityModel.getEntity({entity_id,user_id},con);
         if (!entity) throw 'Permission denied';
         if (entity.user_role === READ) throw 'Permission denied, read only role';
-        
+
         const entityActivity = await entityModel.getEntityActivity({entity_id,user_id}, con);
         
         res.send(entityActivity);
@@ -233,7 +233,7 @@ router.post('/:entity_id/users', async (req, res, next) => {
         if (!entity_id) throw "Missing entity_id in url params";
         if (!user_id) throw "Missing user_id in body params";
         if (!user_role) throw "Missing user_role in body params";
-        if (![WRITE,OWNER].includes(user_role)) throw "Not valid user_role in body params, only WRITE or OWNER";
+        if (![READ,WRITE,OWNER].includes(user_role)) throw "Not valid user_role in body params, only WRITE or OWNER";
 
         con = await mysql.getConnection();
         await mysql.begin(con);
@@ -291,7 +291,13 @@ router.post('/:entity_id/users/revoke', async (req, res, next) => {
                 throw 'Permission denied, role not editable';
             } else
             if (eUser.user_id == user_id && eUser.user_role == OWNER) {
-                throw 'Permission denied, owner role not editable';
+                // Если пытаются забрать права у OWNER
+                // сам у себя забрать нельзя
+                if (entity.login === eUser.login)
+                    throw 'Permission denied, you cant revoke for you self user';
+                // это может сделать только другой OWNER
+                if (!entity.user_role === OWNER)
+                    throw 'Permission denied, owner role not editable';
             }
         }
 
