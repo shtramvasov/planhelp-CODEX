@@ -18,8 +18,18 @@ import 'moment/locale/ru';
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 // Редактор markdown
-import MdEditor from 'react-markdown-editor-lite';
+import MdEditor, { Plugins } from 'react-markdown-editor-lite';
 import 'react-markdown-editor-lite/lib/index.css';
+
+// Отключаем плагины редактирвоания, которые не работают
+// - Подчеркивание (не работает)
+MdEditor.unuse(Plugins.FontUnderline)
+// - Блок цитата (не работает)
+MdEditor.unuse(Plugins.BlockQuote)
+// - Фулл скрин (не нужен)
+MdEditor.unuse(Plugins.FullScreen)
+
+
 
 moment.locale('ru');
 
@@ -338,7 +348,7 @@ function DiskFile(props) {
     </Row>
     <Row>
         <Col>
-            <MdEditor onChange={handleEditorChange} value={entityNote}  style={{ height: '500px' }} renderHTML={ text => <MardownObject value = {text} /> } />
+            <MdEditor view={{menu: true, md: true, html: false}}  onChange={handleEditorChange} value={entityNote}  style={{ height: '500px' }} renderHTML={ text => <MardownObject value = {text} /> } />
         </Col>
     </Row>
     </form>
