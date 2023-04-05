@@ -30,7 +30,6 @@ function Disk(props) {
         getDiskEntity({entity_id : entity_id, search : searchParams.get("search")},(err,resp) => {
             if (!err) {
                 if (resp.entity_type==="FILE") {
-                    console.log("its file");
                     navigate(`/disk/${entity_id}/file/read`);
                 }
                 dispatch(addEntity(resp));
@@ -229,6 +228,47 @@ function Disk(props) {
         )
     }
 
+    // Панель действий
+    const ActionBar = (user_role) => {
+        return (
+            <>
+            { user_role != "READ" ? 
+            <>
+            <Row style={{marginBottom:"8px"}}>
+                <Col>
+                <Form.Group controlId="formFindText">
+                    {/* Создать папку */}
+                    <Button variant="outline-primary" onClick={actionCallModalNewPath}>
+                    <i className="bi bi-folder-plus"></i>
+                    </Button>
+                    {/* Создать entity */}
+                    <Button style={{marginLeft : "2px"}} variant="outline-primary" onClick={actionCallModalNewFile}>
+                    <i className="bi bi-file-earmark-plus"></i>
+                    </Button>
+                    {/* Загрузить файл */}
+                    <Button style={{marginLeft : "2px"}} variant="outline-primary" onClick={actionCallModalUploadFile}>
+                    <i className="bi bi-cloud-arrow-up"></i> 
+                    </Button>
+
+                    {/* Изменить папку */}
+                    { entity_id ?
+                    <Button style={{marginLeft : "2px"}} type="button" variant="outline-secondary" onClick={handleEditEntity}>Изменить папку</Button>
+                    :""}
+
+                    {/* Свойства папки */}
+                    {
+                    Disk.entity.entity_type === "ROOT"?"":
+                    <Button style={{marginLeft : "2px"}} type="button" variant="outline-secondary" onClick={handleInfoEntity}><i className="bi bi-info-circle"></i></Button>
+                    }
+                </Form.Group>
+                </Col>
+            </Row>
+            </>
+            : "" }
+            </>
+        )
+    }
+
     return (
         
     <Container>
@@ -259,28 +299,11 @@ function Disk(props) {
         </ul>
         </Col>
     </Row> */}
-    <Row style={{marginBottom:"8px"}}>
-        <Col>
-            <Form.Group controlId="formFindText">
-                <Button variant="outline-primary" onClick={actionCallModalNewPath}>
-                    <i className="bi bi-folder-plus"></i>
-                </Button>
-                <Button style={{marginLeft : "2px"}} variant="outline-primary" onClick={actionCallModalNewFile}>
-                    <i className="bi bi-file-earmark-plus"></i>
-                </Button>
-                <Button style={{marginLeft : "2px"}} variant="outline-primary" onClick={actionCallModalUploadFile}>
-                    <i className="bi bi-cloud-arrow-up"></i> 
-                </Button>
-                {entity_id ?
-                <Button style={{marginLeft : "2px"}} type="button" variant="outline-secondary" onClick={handleEditEntity}>Изменить папку</Button>
-                :""}
-                {
-                Disk.entity.entity_type === "ROOT"?"":
-                <Button style={{marginLeft : "2px"}} type="button" variant="outline-secondary" onClick={handleInfoEntity}><i className="bi bi-info-circle"></i></Button>
-                }
-            </Form.Group>
-        </Col>
-    </Row>
+
+    
+    <ActionBar user_role = { Disk.entity.user_role } />
+
+
     <Row>
         <Col>
             <h2>{Disk.entity.entity_type === 'PATH'? Disk.entity.entity_name:""}</h2>

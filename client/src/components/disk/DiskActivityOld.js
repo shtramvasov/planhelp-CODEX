@@ -14,6 +14,9 @@ import { useNavigate , useSearchParams} from "react-router-dom";
 import { getDiskEntity, postDiskEntity, deletetDiskEntity, getDiskEntityActivity, getDiskEntityActivityOld } from '../../network/DiskNetwork';
 import { useParams } from 'react-router-dom';
 import Table from 'react-bootstrap/Table';
+import ReactMarkdown from 'react-markdown'
+import remarkGfm from 'remark-gfm'
+
 
 function DiskActivityOld(props) {
     const { entity_id,activity_id } = useParams();
@@ -62,7 +65,19 @@ function DiskActivityOld(props) {
     const handleBack = () => {
         navigate(`/disk/${entity_id}/activity`);
     }
-    console.log(Disk);
+
+    // Создаем объект <table> со стилями bootstrap, для использования его в markdown
+    const MarkdownTable = props => {
+        return (<table className="table table-bordered"> {props.children} </table>)
+    }
+
+    const MardownObject = (props) => {
+        // 1. components: прокидываем свои html объекты
+        // 2. children: markdown -> стилевый текст
+        // 3. remarkPlugins: плагины для поддержки таблиц, стилей текста
+        return <ReactMarkdown components={{ table: MarkdownTable }} children={ props.value } remarkPlugins={[remarkGfm]} /> 
+    }
+
     return (
         <Container>
     <Row>
@@ -84,9 +99,9 @@ function DiskActivityOld(props) {
         </Col>
         <Row>
             <Col>
-                <div style={{paddingTop: "20px",whiteSpace: "pre-line"}}>
-                    {convert(Disk.entityActivityOld.entity_note_old)}
-                </div>
+            {/* hack for \n for reactMarkdown replace(/\n/gi, '  \n') */}
+            {/* replace all \n for space + space + \n */}
+            <MardownObject value = {(Disk.entity.entity_note)?.replace(/\n/gi, '  \n')} />
             </Col>
         </Row>
 
