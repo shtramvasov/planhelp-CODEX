@@ -229,10 +229,11 @@ function Disk(props) {
     }
 
     // Панель действий
-    const ActionBar = (user_role) => {
+    const ActionBar = (info) => {
         return (
             <>
-            { user_role != "READ" ? 
+
+            { info.user_role != "READ" ? 
             <>
             <Row style={{marginBottom:"8px"}}>
                 <Col>

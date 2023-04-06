@@ -274,14 +274,14 @@ function DiskFile(props) {
     }
 
     // Панель действий
-    const ActionBar = (user_role) => {
+    const ActionBar = (info) => {
         return (
             <Row>
                 <Col>
                     <Form.Group className="mb-3">
                         <Button style={{marginLeft : "2px"}} type="button" onClick={handleBackClick} variant="outline-secondary" ><i className="bi bi-chevron-left"></i></Button>   
                         {/* Скрываем действия с файлами если права пользователя только чтение  */}
-                        { user_role != "READ" ? 
+                        { info.user_role != "READ" ? 
                         <>
                         <Button style={{marginLeft : "2px"}} type="button" onClick={handleEditClick} variant="outline-secondary" >Изменить файл</Button>   
                         <Button style={{marginLeft : "2px"}} type="button" variant="outline-secondary" onClick={handleInfoEntity}><i className="bi bi-info-circle"></i></Button>
