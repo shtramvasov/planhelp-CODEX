@@ -11,7 +11,8 @@ export const diskSlice = createSlice({
             created_by: null,
             created_on: "",
             login : "",
-            childEntityList : []
+            childEntityList : [],
+            remindNoteList : []
         },
         entityActivity : [],
         entityActivityOld : {

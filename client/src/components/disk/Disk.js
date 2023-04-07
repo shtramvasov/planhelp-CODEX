@@ -10,6 +10,7 @@ import { getDiskEntity, postDiskEntity, deletetDiskEntity } from '../../network/
 import { postEntityNote } from '../../network/NoteNetwork';
 import { useParams } from 'react-router-dom';
 import ToastMessage from "../helpers/ToastMessage";
+import DiskRemindList from "./DiskRemindList";
 
 function Disk(props) {
     
@@ -311,9 +312,15 @@ function Disk(props) {
         </Col>
     </Row>
     <Row>
-        <Col>
+        <Col lg={Disk.entity.remindNoteList?.length?8:12}>
             <ListGroup> {listItems} </ListGroup>
         </Col>
+        {Disk.entity.remindNoteList?.length ? 
+            <Col lg={4}>
+                <DiskRemindList remindNoteList={Disk.entity.remindNoteList}/> 
+            </Col>
+            : <></>
+        }
     </Row>
     <br />
     {/* <Row>

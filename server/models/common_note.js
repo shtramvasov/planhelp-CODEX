@@ -65,11 +65,43 @@ const getNoteList = async ({user_id, entity_id, limit, offset}, con) => {
         [ entity_id]);
 }
 
+/**
+ * Список не отработавших уведомлений, в сортировке по дате уведомления
+ * @param {*} param0 
+ *  user_id - чьи напоминания
+ *  entity_tree - уровень на котором надо показать
+ * @param {*} con коннект к БД
+ * @returns 
+ */
+const getRemindNoteList = async ({user_id, entity_tree, limit, offset}, con) => {
+    const sqlParams = [];
+    // base sql
+    let sql = `select cn.*, de.entity_name
+                 from common_note cn inner join disk_entity de on cn.entity_id = de.entity_id
+                where cn.is_deleted = 0
+                  and de.is_deleted = 'N'
+                  and cn.is_remind = 1 `;
+    if (user_id) {
+        // если передали user_id
+        sqlParams.push(user_id);
+        sql += ` and cn.user_id = ? `;
+    }
+    if (entity_tree) {
+        // если передали дерево (например когда ROOT путь - дерево undefined)
+        sqlParams.push(entity_tree + '%');
+        sql += ` and entity_tree like ? `;
+    }
+    sql += ` order by cn.remind_on asc `;
+
+    return await mysql.query(con,sql,sqlParams);
+}
+
 module.exports = {
     createNote,
     updateNote,
     deleteNote,
     getNote,
     getNoteList,
+    getRemindNoteList,
     CONSTANTS
 };
