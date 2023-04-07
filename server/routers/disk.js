@@ -31,6 +31,11 @@ router.get('/:entity_id?', async (req, res, next) => {
             entity.childEntityList = await entityModel.getEntityChild(
                 {entity_id, user_id : req.userModel.user_id},con
             );
+            // также достаем для timeline данные всех документов ниже по всему дереву
+            // только для типа entity = PATH
+            entity.remindNoteList = await commonNote.getRemindNoteList(
+                {user_id, entity_tree: entity.entity_tree}, con
+            );
         }
 
         res.send(entity);
