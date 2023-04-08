@@ -1,6 +1,11 @@
 import fetch from 'node-fetch'
 import Cookies from 'js-cookie';
 
+const apiHeaders = {
+    'Content-Type': 'application/json',
+    'Authorization': `Bearer ${Cookies.get("secret")}`
+}
+
 export async function getDiskEntity({entity_id, search}, cb = () => {}) {
     const response = await fetch(`/api/secure/disk/${entity_id?entity_id:""}${search?`?search=${search}`:""}`, {
         method: 'get',
@@ -118,6 +123,20 @@ export async function deletetDiskEntity(
     if (response.ok) {
         const data = await response.json();
         cb(null,data);
+    } else {
+        cb(response.status + " " + response.statusText);
+    }
+}
+
+export async function moveDiskEntity({ selectedEntityIdList, to_entity_id }, cb = () => {}) {
+    const response = await fetch(`/api/secure/disk/${to_entity_id}/move`, 
+    {
+        method : "POST",
+        body : JSON.stringify(selectedEntityIdList),
+        headers : apiHeaders
+    });
+    if (response.ok) {
+        cb(null,null);
     } else {
         cb(response.status + " " + response.statusText);
     }

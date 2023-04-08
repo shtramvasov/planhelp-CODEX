@@ -1,5 +1,5 @@
 import { Navbar }  from "../navbar/Navbar";
-import { Container, Row, Col, Form, Button, ListGroup, Table, Badge} from 'react-bootstrap';
+import { Container, Row, Col, Form, Button, ListGroup, Table, Badge, Dropdown, DropdownButton} from 'react-bootstrap';
 import ModalOneInputText from "../helpers/ModalOneInputText";
 import ModalInputFile from "../helpers/ModalInputFile";
 import React, { useState, useEffect, useRef } from 'react';
@@ -7,7 +7,7 @@ import { useSelector, useDispatch } from 'react-redux'
 import { addEntity, addEntityFiles, addLastUploadFile } from '../../reducers/Disk';
 import { selectEntity, clearSelectedEntityList } from '../../reducers/Disk';
 import { useNavigate , useSearchParams} from "react-router-dom";
-import { getDiskEntity, postDiskEntity, deletetDiskEntity } from '../../network/DiskNetwork';
+import { getDiskEntity, postDiskEntity, moveDiskEntity } from '../../network/DiskNetwork';
 import { postEntityNote } from '../../network/NoteNetwork';
 import { useParams } from 'react-router-dom';
 import ToastMessage from "../helpers/ToastMessage";
@@ -192,6 +192,21 @@ function Disk(props) {
         navigate(`/disk/${entity_id}/activity`);
     }
 
+    const handleMoveSelectedEntitys = (e) => {
+        moveDiskEntity({
+            selectedEntityIdList : Disk.selectedEntityIdList,
+            to_entity_id : entity_id
+        }, (err, data) => {
+            if (err) {
+                alert(err);
+                return;
+            }
+            fetchEntity();
+            dispatch(clearSelectedEntityList());
+        })
+        
+    }
+
     var listItems = Disk.entity.childEntityList ? Disk.entity.childEntityList.map((el) =>
     // onClick={(e) => {handleClick(el.entity_type,el.entity_id)}} 
         <ListGroup.Item key={el.entity_id} 
@@ -283,17 +298,20 @@ function Disk(props) {
                     {/* Кол-во выбранных entity*/}
                     {
                     Disk.selectedEntityIdList.length > 0 ? 
-                        <>
-                        <span style={{marginLeft:"10px"}}>
-                            <strong>Выбрано {Disk.selectedEntityIdList.length}</strong></span>
-                            <Button 
-                                type="button" 
-                                style={{color : "red"}} 
-                                variant="" 
-                                onClick={(e) => {dispatch(clearSelectedEntityList())}}>
-                                    <i class="bi bi-x-lg"></i>
-                                </Button>
-                        </>
+                        <DropdownButton
+                            style={{display:"inline",marginLeft : "2px"}}
+                            title={"Выбрано "+Disk.selectedEntityIdList.length}
+                            variant="">
+                                <Dropdown.Header>Выберите действие выбранных документов</Dropdown.Header>
+                                <Dropdown.Item onClick={(e) => {dispatch(clearSelectedEntityList())}}>
+                                    Отменить выбор
+                                </Dropdown.Item>
+                                <Dropdown.Item onClick={handleMoveSelectedEntitys}>
+                                    Перенести в текущую папку {Disk.entity.entity_name !== ".."?<b>{Disk.entity.entity_name}</b>:""}
+                                </Dropdown.Item>
+                                <Dropdown.Divider />
+                                <Dropdown.Item disabled eventKey="3">Удалить</Dropdown.Item>
+                        </DropdownButton> 
                         : ""
                     }
                 </Form.Group>
