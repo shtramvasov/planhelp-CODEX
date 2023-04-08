@@ -1,5 +1,5 @@
 import { Navbar }  from "../navbar/Navbar";
-import { Container, Row, Col, Form, Button, ListGroup, Table} from 'react-bootstrap';
+import { Container, Row, Col, Form, Button, ListGroup, Table, Badge} from 'react-bootstrap';
 import ModalOneInputText from "../helpers/ModalOneInputText";
 import ModalInputFile from "../helpers/ModalInputFile";
 import React, { useState, useEffect, useRef } from 'react';
@@ -197,7 +197,7 @@ function Disk(props) {
                 ?<i className="bi bi-folder2"> </i>:
                 <i className="bi bi-file-earmark-text"> </i>
             }
-            {el.entity_name}
+            {el.entity_name} {el.child_de_count?<Badge bg="secondary">{el.child_de_count}</Badge>:""}
         </ListGroup.Item>
     ):[];
     // Рут элемент

@@ -64,7 +64,8 @@ const getEntityChild = async ({entity_id, user_id}, con) => {
             de.entity_type, 
             de.created_by, 
             de.created_on,
-            deu.user_role
+            deu.user_role,
+            (select count(*) from disk_entity ch_de where ch_de.parent_entity_id = de.entity_id) child_de_count
         from (select ? p_entity_id, ? p_user_id) params 
                     cross join disk_entity de 
                     inner join disk_entity_users deu 
