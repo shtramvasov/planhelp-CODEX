@@ -91,6 +91,20 @@ const getEntityChild = async ({entity_id, user_id}, con) => {
     return await mysql.query(con, sql, [entity_id , user_id]);
 };
 
+const getEntityBreadcrumb = async({entity_tree, user_id}, con) => {
+    if (!entity_tree) return [];
+    // заменяем "/" символом ","
+    const entityStrArr = entity_tree.replace(/\//g,",").slice(0,-1);
+    return await mysql.query(con,
+        `select de.entity_name, de.entity_id
+           from disk_entity de 
+          where de.entity_id in (${entityStrArr})
+            and de.entity_id in (select deu.entity_id from disk_entity_users deu where deu.user_id = ?)
+          order by FIELD(de.entity_id,${entityStrArr})`,
+        [user_id]
+    );
+}
+
 // Контекстный поиск
 const getEntitySearch = async ({search, user_id}, con) => {
     return await mysql.query(con, 
@@ -339,6 +353,7 @@ const createEntity = async ({entity_name, entity_type, entity_note, parent_entit
 module.exports = {
     getEntityChild,
     getEntity,
+    getEntityBreadcrumb,
     getEntitySearch,
     getEntityActivity,
     getEntityOldVersion,

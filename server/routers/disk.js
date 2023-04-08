@@ -36,6 +36,10 @@ router.get('/:entity_id?', async (req, res, next) => {
             entity.remindNoteList = await commonNote.getRemindNoteList(
                 {user_id, entity_tree: entity.entity_tree}, con
             );
+            // достаем breadcrumb для указанного entity
+            entity.breadcrumb = await entityModel.getEntityBreadcrumb(
+                {user_id, entity_tree: entity.entity_tree},con
+            );
         }
 
         res.send(entity);
