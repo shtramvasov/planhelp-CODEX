@@ -12,7 +12,8 @@ export const diskSlice = createSlice({
             created_on: "",
             login : "",
             childEntityList : [],
-            remindNoteList : []
+            remindNoteList : [],
+            child_de_count : null
         },
         entityActivity : [],
         entityActivityOld : {
@@ -42,7 +43,8 @@ export const diskSlice = createSlice({
             note : "",
             variant : "",
             login : ""
-        }
+        },
+        selectedEntityIdList : []
     },
     reducers: {
         addEntity: (state, action) => {
@@ -57,9 +59,6 @@ export const diskSlice = createSlice({
         addEntityUsers: (state, action) => {
             state.entityUsers = (action.payload);
         },
-        // addEntityFiles: (state, action) => {
-        //     state.entityFiles = (action.payload)  
-        // },
         addLastUploadFile: (state, action) => {
             state.lastUploadFile = (action.payload)
         },
@@ -68,6 +67,23 @@ export const diskSlice = createSlice({
         },
         addEntityNote: (state, action) => {
             state.entityNote = (action.payload);
+        },
+        selectEntity: (state,action) => {
+            // находим позицию элемента в массиве
+            const index = state.selectedEntityIdList.indexOf(action.payload);
+            console.log(index)
+            if (index < 0) {
+                // добавляем в коллекцию
+                console.log("ADD", action.payload);
+                state.selectedEntityIdList.push(action.payload);
+            } else {
+                console.log("RM ",action.payload);
+                state.selectedEntityIdList.splice(index,1);
+            }
+        },
+        clearSelectedEntityList: (state,action) => {
+            // Очистить список всех выбранных entity
+            state.selectedEntityIdList = []
         }
     }
 });
@@ -79,7 +95,8 @@ export const {
     addEntityUsers, 
     addEntityNotes,
     addEntityNote,
-    // addEntityFiles,
-    addLastUploadFile } = diskSlice.actions;
+    addLastUploadFile,
+    selectEntity,
+    clearSelectedEntityList} = diskSlice.actions;
 
 export default diskSlice.reducer;

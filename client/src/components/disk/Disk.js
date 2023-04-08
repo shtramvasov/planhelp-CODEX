@@ -4,7 +4,8 @@ import ModalOneInputText from "../helpers/ModalOneInputText";
 import ModalInputFile from "../helpers/ModalInputFile";
 import React, { useState, useEffect, useRef } from 'react';
 import { useSelector, useDispatch } from 'react-redux'
-import { addEntity, addEntityFiles, addLastUploadFile } from '../../reducers/Disk'
+import { addEntity, addEntityFiles, addLastUploadFile } from '../../reducers/Disk';
+import { selectEntity, clearSelectedEntityList } from '../../reducers/Disk';
 import { useNavigate , useSearchParams} from "react-router-dom";
 import { getDiskEntity, postDiskEntity, deletetDiskEntity } from '../../network/DiskNetwork';
 import { postEntityNote } from '../../network/NoteNetwork';
@@ -168,7 +169,14 @@ function Disk(props) {
 
     // Обработка клика по entity
     const handleClick = (e,entity_type,entity_id) => {
+        
+        if (e.target.id === "select-entity") {
+            // Клик по чекбоксу entity
+            dispatch(selectEntity(entity_id));
+            return
+        }
         e.preventDefault();
+        // Иначе обрабатываем клик по всей entity
         if (entity_type === 'PATH') {
             navigate(`/disk/${entity_id?entity_id:""}`);
         } else {
@@ -191,13 +199,23 @@ function Disk(props) {
             onClick={(e) => {handleClick(e,el.entity_type,el.entity_id)}} 
             variant={el.entity_type === "PATH"?"success":""}
             >
+            <Form style={{float:"left", marginRight:"10px"}}>
+                <Form.Check className="custom-checkbox"
+                    type="checkbox"
+                    id="select-entity"
+                    variant="secondary"
+                    onChange={(e) => {}}
+                    checked={Disk.selectedEntityIdList.includes(el.entity_id)}
+                    />
+                    {/* checked={User.profile.is_notify===1?true:false} */}
+            </Form>
             {
                 el.user_role !== "OWNER"?<i className="bi bi-share"> </i>:
                 el.entity_type === "PATH"
                 ?<i className="bi bi-folder2"> </i>:
                 <i className="bi bi-file-earmark-text"> </i>
             }
-            {el.entity_name} {el.child_de_count?<Badge bg="secondary">{el.child_de_count}</Badge>:""}
+            {el.entity_name} {el.child_de_count?<Badge bg="success">{el.child_de_count}</Badge>:""}
         </ListGroup.Item>
     ):[];
     // Рут элемент
@@ -261,6 +279,22 @@ function Disk(props) {
                     {
                     Disk.entity.entity_type === "ROOT"?"":
                     <Button style={{marginLeft : "2px"}} type="button" variant="outline-secondary" onClick={handleInfoEntity}><i className="bi bi-info-circle"></i></Button>
+                    }
+                    {/* Кол-во выбранных entity*/}
+                    {
+                    Disk.selectedEntityIdList.length > 0 ? 
+                        <>
+                        <span style={{marginLeft:"10px"}}>
+                            <strong>Выбрано {Disk.selectedEntityIdList.length}</strong></span>
+                            <Button 
+                                type="button" 
+                                style={{color : "red"}} 
+                                variant="" 
+                                onClick={(e) => {dispatch(clearSelectedEntityList())}}>
+                                    <i class="bi bi-x-lg"></i>
+                                </Button>
+                        </>
+                        : ""
                     }
                 </Form.Group>
                 </Col>

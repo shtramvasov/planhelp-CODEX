@@ -16,3 +16,8 @@ code {
   text-decoration-style: dotted;
   text-underline-position: under;
 }
+
+.custom-checkbox > .form-check-input:checked {
+  background-color: rgb(100, 100, 100) !important; 
+  border-color: rgb(100, 100, 100) !important;
+}
