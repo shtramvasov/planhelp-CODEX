@@ -1,5 +1,5 @@
 import { Navbar }  from "../navbar/Navbar";
-import { Container, Row, Col, Form, Button, ListGroup, Table, Badge} from 'react-bootstrap';
+import { Container, Row, Col, Form, Button, ListGroup, Table, Badge, Breadcrumb} from 'react-bootstrap';
 import ModalOneInputText from "../helpers/ModalOneInputText";
 import ModalInputFile from "../helpers/ModalInputFile";
 import React, { useState, useEffect, useRef } from 'react';
@@ -271,6 +271,25 @@ function Disk(props) {
         )
     }
 
+    const BreadcrumbPanel = () => {
+        const links = Disk.entity.breadcrumb
+        const entity_id = Disk.entity.entity_id
+
+        return (
+            <Breadcrumb>
+                { links && links.map( (item) => { 
+                    if (item.entity_id == entity_id) {
+                        return <Breadcrumb.Item href={`/disk/${item.entity_id}`} active> { item.entity_name } </Breadcrumb.Item> 
+                    } else {
+                        return <Breadcrumb.Item href={`/disk/${item.entity_id}`}> { item.entity_name } </Breadcrumb.Item> 
+                    }
+                })
+                
+                }
+            </Breadcrumb>
+        )
+    }
+
     return (
         
     <Container>
@@ -302,7 +321,7 @@ function Disk(props) {
         </Col>
     </Row> */}
 
-    
+    <BreadcrumbPanel />
     <ActionBar user_role = { Disk.entity.user_role } />
 
 
