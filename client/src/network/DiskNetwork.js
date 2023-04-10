@@ -112,13 +112,13 @@ export async function postDiskEntity(
     }
 }
 
-export async function deletetDiskEntity(
-    {entity_id}, cb = () => {}) {
-    const response = await fetch(`/api/secure/disk/${entity_id?entity_id:""}`, {
-        method: 'delete',
-        headers: {
-            'Authorization': `Bearer ${Cookies.get("secret")}`
-        }
+export async function deleteDiskEntity(
+    {selectedEntityIdList}, cb = () => {}) {
+    // selectedEntityIdList массив entity_id примитивов
+    const response = await fetch(`/api/secure/disk/delete/all`, {
+        method: 'post',
+        headers: apiHeaders,
+        body : JSON.stringify(selectedEntityIdList)
     });
     if (response.ok) {
         const data = await response.json();
@@ -129,10 +129,10 @@ export async function deletetDiskEntity(
 }
 
 export async function moveDiskEntity({ selectedEntityIdList, to_entity_id }, cb = () => {}) {
-    const response = await fetch(`/api/secure/disk/${to_entity_id}/move`, 
+    const response = await fetch(`/api/secure/disk/move/all`, 
     {
         method : "POST",
-        body : JSON.stringify(selectedEntityIdList),
+        body : JSON.stringify({to_entity_id , selectedEntityIdList}),
         headers : apiHeaders
     });
     if (response.ok) {

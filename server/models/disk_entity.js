@@ -22,7 +22,8 @@ const getEntity = async ({entity_id, user_id}, con, forUpdate = false) => {
     if (!entity_id) {
         return {
             "entity_name" : "..",
-            "entity_type" : CONSTANTS.ROOT
+            "entity_type" : CONSTANTS.ROOT,
+            "entity_tree" : ""
         };
     }
     let sql = 
@@ -132,6 +133,24 @@ const getEntitySearch = async ({search, user_id}, con) => {
     );
 }
 
+const getEntityList = async ({entity_tree}, con, forUpdate = false) => {
+    const sqlParams = [];
+    let sql = 
+        ` select * 
+            from disk_entity de
+           where 1=1 `;
+    if (entity_tree) {
+        // если передали дерево (например когда ROOT путь - дерево undefined)
+        sqlParams.push(entity_tree + '%');
+        sql += ` and entity_tree like ? `;
+    }
+    if (forUpdate) {
+        // Если надо заблокировать для атомарной транзакции
+        sql += ` for update `;
+    }
+    return await mysql.query(con,sql,sqlParams);
+}
+
 // Получение списка всех версий изменения
 const getEntityActivity = async ({entity_id, user_id}, con) => {
     return await mysql.query(con, 
@@ -226,7 +245,42 @@ const deleteEntity = async ({entity_id, user_id, entity_name, entity_type}, con)
     );
 }
 
-const updateEntity = async ({entity_id, user_id, entity_name, entity_note, entity_type},oldEntity, con) => {
+const updateEntity = async (
+    { entity_id, user_id, entity_name, entity_note, entity_type, entity_tree, parent_entity_id },
+    oldEntity, 
+    con) => {
+        console.log(entity_id, user_id, entity_name, entity_note, entity_type, entity_tree, parent_entity_id)
+    // апдейт
+    let sql = `update disk_entity set `
+    const sqlParams = [];
+    if (entity_name !== undefined) {
+        sql += ` entity_name = ?, `
+        sqlParams.push(entity_name);
+    }
+    if (entity_note !== undefined) {
+        sql += ` entity_note = ?, `
+        sqlParams.push(entity_note);
+    }
+    if (entity_type !== undefined) {
+        sql += ` entity_type = ?, `
+        sqlParams.push(entity_type);
+    }
+    if (entity_tree !== undefined) {
+        sql += ` entity_tree = ?, `
+        sqlParams.push(entity_tree);
+    }
+    if (parent_entity_id !== undefined) {
+        sql += ` parent_entity_id = ?, `
+        sqlParams.push(parent_entity_id);
+    }
+    sql = sql.slice(0,-2)
+    sql += ` where entity_id = ? `;
+    sqlParams.push(entity_id);
+    await mysql.query(con, sql, sqlParams);
+    
+    if (entity_note === undefined && entity_name === undefined) {
+        return;
+    }
     if (oldEntity.entity_note == entity_note 
         && oldEntity.entity_name == entity_name) {
             return
@@ -262,10 +316,6 @@ const updateEntity = async ({entity_id, user_id, entity_name, entity_note, entit
         values
             (?,?,?,?,now())`,
         [ entity_id, oldEntity.entity_note, oldEntity.entity_name, user_id ]);
-    await mysql.query(con, 
-        `update disk_entity set entity_name = ?, entity_note = ? where entity_id = ?`,
-        [ entity_name, entity_note, entity_id ] );
-    
 }
 
 const createEntityUser = async ({entity_tree, user_id, user_role}, con) => {
@@ -280,12 +330,17 @@ const createEntityUser = async ({entity_tree, user_id, user_role}, con) => {
 }
 
 const revokeEntityUser = async ({entity_tree, user_id}, con) => {
-    await mysql.query(con,
-        `delete from disk_entity_users
-            where user_id = ?
-              and entity_id in (select entity_id from disk_entity where entity_tree like ?)`,
-        [user_id, entity_tree + '%']
-    );
+    let sql = `delete from disk_entity_users where 1=1`;
+    const sqlParams = [];
+    if (user_id) {
+        sqlParams.push(user_id);
+        sql += ` and user_id = ? `;
+    }
+    if (entity_tree) {
+        sqlParams.push(entity_tree + '%');
+        sql += ` and entity_id in (select entity_id from disk_entity where entity_tree like ?) `
+    }
+    await mysql.query(con,sql,sqlParams);
 }
 
 const createEntity = async ({entity_name, entity_type, entity_note, parent_entity_id, user_id}, parentEntity, con) => {
@@ -354,6 +409,7 @@ const createEntity = async ({entity_name, entity_type, entity_note, parent_entit
 module.exports = {
     getEntityChild,
     getEntity,
+    getEntityList,
     getEntityBreadcrumb,
     getEntitySearch,
     getEntityActivity,

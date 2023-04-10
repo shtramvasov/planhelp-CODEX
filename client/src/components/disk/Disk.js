@@ -7,7 +7,7 @@ import { useSelector, useDispatch } from 'react-redux'
 import { addEntity, addEntityFiles, addLastUploadFile } from '../../reducers/Disk';
 import { selectEntity, clearSelectedEntityList } from '../../reducers/Disk';
 import { useNavigate , useSearchParams} from "react-router-dom";
-import { getDiskEntity, postDiskEntity, moveDiskEntity } from '../../network/DiskNetwork';
+import { getDiskEntity, postDiskEntity, moveDiskEntity, deleteDiskEntity } from '../../network/DiskNetwork';
 import { postEntityNote } from '../../network/NoteNetwork';
 import { useParams } from 'react-router-dom';
 import ToastMessage from "../helpers/ToastMessage";
@@ -192,7 +192,7 @@ function Disk(props) {
         navigate(`/disk/${entity_id}/activity`);
     }
 
-    const handleMoveSelectedEntitys = (e) => {
+    const handleMoveSelectedEntityList = (e) => {
         moveDiskEntity({
             selectedEntityIdList : Disk.selectedEntityIdList,
             to_entity_id : entity_id
@@ -204,7 +204,19 @@ function Disk(props) {
             fetchEntity();
             dispatch(clearSelectedEntityList());
         })
-        
+    }
+
+    const handleDeleteSelectedEntityList = (e) => {
+        deleteDiskEntity({
+            selectedEntityIdList : Disk.selectedEntityIdList
+        }, (err, data) => {
+            if (err) {
+                alert(err);
+                return;
+            }
+            fetchEntity();
+            dispatch(clearSelectedEntityList());
+        })
     }
 
     var listItems = Disk.entity.childEntityList ? Disk.entity.childEntityList.map((el) =>
@@ -214,6 +226,7 @@ function Disk(props) {
             onClick={(e) => {handleClick(e,el.entity_type,el.entity_id)}} 
             variant={el.entity_type === "PATH"?"success":""}
             >
+            {el.user_role !== "READ" ?
             <Form style={{float:"left", marginRight:"10px"}}>
                 <Form.Check className="custom-checkbox"
                     type="checkbox"
@@ -222,8 +235,8 @@ function Disk(props) {
                     onChange={(e) => {}}
                     checked={Disk.selectedEntityIdList.includes(el.entity_id)}
                     />
-                    {/* checked={User.profile.is_notify===1?true:false} */}
-            </Form>
+            </Form>:""
+            }
             {
                 el.user_role !== "OWNER"?<i className="bi bi-share"> </i>:
                 el.entity_type === "PATH"
@@ -302,15 +315,17 @@ function Disk(props) {
                             style={{display:"inline",marginLeft : "2px"}}
                             title={"Выбрано "+Disk.selectedEntityIdList.length}
                             variant="">
-                                <Dropdown.Header>Выберите действие выбранных документов</Dropdown.Header>
+                                <Dropdown.Header>Укажите действие для выбранных документов</Dropdown.Header>
                                 <Dropdown.Item onClick={(e) => {dispatch(clearSelectedEntityList())}}>
                                     Отменить выбор
                                 </Dropdown.Item>
-                                <Dropdown.Item onClick={handleMoveSelectedEntitys}>
+                                <Dropdown.Item onClick={handleMoveSelectedEntityList}>
                                     Перенести в текущую папку {Disk.entity.entity_name !== ".."?<b>{Disk.entity.entity_name}</b>:""}
                                 </Dropdown.Item>
                                 <Dropdown.Divider />
-                                <Dropdown.Item disabled eventKey="3">Удалить</Dropdown.Item>
+                                <Dropdown.Item onClick={handleDeleteSelectedEntityList}>
+                                    Удалить
+                                </Dropdown.Item>
                         </DropdownButton> 
                         : ""
                     }

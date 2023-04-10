@@ -6,7 +6,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useSelector, useDispatch } from 'react-redux'
 import { addEntity, addEntityNotes, addEntityNote, addLastUploadFile } from '../../reducers/Disk';
 import { useNavigate } from "react-router-dom";
-import { getDiskEntity, postDiskEntity, deletetDiskEntity } from '../../network/DiskNetwork';
+import { getDiskEntity, postDiskEntity, deleteDiskEntity } from '../../network/DiskNetwork';
 import { getEntityNoteList, postEntityNote } from '../../network/NoteNetwork';
 import { useParams } from 'react-router-dom';
 import ToastMessage from "../helpers/ToastMessage";
@@ -69,7 +69,9 @@ function DiskFile(props) {
     }
 
     const deleteEntity = () => {
-        deletetDiskEntity({entity_id}, (err,data) => {
+        const selectedEntityIdList = [];
+        selectedEntityIdList.push(entity_id);
+        deleteDiskEntity({selectedEntityIdList}, (err,data) => {
             if (!err) navigate(`/disk/${Disk.entity.parent_entity_id?Disk.entity.parent_entity_id:""}`);
         })
     }

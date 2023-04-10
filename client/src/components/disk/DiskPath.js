@@ -11,7 +11,7 @@ import { useSelector, useDispatch } from 'react-redux'
 import ListGroup from 'react-bootstrap/ListGroup';
 import { addEntity } from '../../reducers/Disk'
 import { useNavigate , useSearchParams} from "react-router-dom";
-import { getDiskEntity, postDiskEntity, deletetDiskEntity } from '../../network/DiskNetwork';
+import { getDiskEntity, postDiskEntity, deleteDiskEntity } from '../../network/DiskNetwork';
 import { useParams } from 'react-router-dom';
 
 function DiskPath(props) {
@@ -59,7 +59,9 @@ function DiskPath(props) {
     }
 
     const handleDeleteEntity = () => {
-        deletetDiskEntity({entity_id}, (err,data) => {
+        const selectedEntityIdList = [];
+        selectedEntityIdList.push(entity_id);
+        deleteDiskEntity({selectedEntityIdList}, (err,data) => {
             if (!err) navigate(`/disk/${Disk.entity.parent_entity_id?Disk.entity.parent_entity_id:""}`);
         })
     }
