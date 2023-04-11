@@ -17,6 +17,12 @@ code {
   text-underline-position: under;
 }
 
+.breadcrumb-item.active .phLink {
+  text-decoration-style: dashed;
+  text-underline-position: under;
+  color: gray;
+}
+
 .custom-checkbox > .form-check-input:checked {
   background-color: rgb(100, 100, 100) !important; 
   border-color: rgb(100, 100, 100) !important;
