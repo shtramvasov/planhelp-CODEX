@@ -16,7 +16,7 @@ import { useParams } from 'react-router-dom';
 import Table from 'react-bootstrap/Table';
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
-
+import Breadcrumb from "../helpers/Breadcrumb";
 
 function DiskActivityOld(props) {
     const { entity_id,activity_id } = useParams();
@@ -84,6 +84,14 @@ function DiskActivityOld(props) {
         <Col>
             <Navbar />
             <hr/>
+        </Col>
+    </Row>
+    <Row>
+        <Col>
+        <Breadcrumb 
+            items={Disk.entity.breadcrumb?.map(
+                (item, i) => {return {url:`/disk/${item.entity_id}`, name: item.entity_name}})}
+        />
         </Col>
     </Row>
     <Row>

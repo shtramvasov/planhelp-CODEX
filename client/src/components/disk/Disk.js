@@ -1,5 +1,5 @@
 import { Navbar }  from "../navbar/Navbar";
-import { Container, Row, Col, Form, Button, ListGroup, Table, Badge, Breadcrumb, Dropdown, DropdownButton} from 'react-bootstrap';
+import { Container, Row, Col, Form, Button, ListGroup, Table, Badge, Dropdown, DropdownButton} from 'react-bootstrap';
 import ModalOneInputText from "../helpers/ModalOneInputText";
 import ModalInputFile from "../helpers/ModalInputFile";
 import React, { useState, useEffect, useRef } from 'react';
@@ -13,6 +13,7 @@ import { useParams } from 'react-router-dom';
 import ToastMessage from "../helpers/ToastMessage";
 import DragDropFile from "../helpers/DragDropFile";
 import DiskRemindList from "./DiskRemindList";
+import Breadcrumb from "../helpers/Breadcrumb";
 
 function Disk(props) {
     
@@ -339,37 +340,6 @@ function Disk(props) {
         )
     }
 
-    const BreadcrumbPanel = () => {
-        const links = Disk.entity.breadcrumb
-        const entity_id = Disk.entity.entity_id
-
-        return (
-            <Breadcrumb>
-                { links && links.map( (item) => { 
-                    if (item.entity_id == entity_id) {
-                        return <li class="breadcrumb-item active" aria-current="page"> 
-                        <a className="phLink" 
-                            action href={`/disk/${item.entity_id ? item.entity_id : ""}`}
-                            onClick={(e) => {handleClick(e,"PATH", item.entity_id)}} >
-                            { item.entity_name } 
-                        </a> 
-                        </li>
-                    } else {
-                        return <li class="breadcrumb-item" aria-current="page"> 
-                        <a className="phLink" 
-                            action href={`/disk/${item.entity_id ? item.entity_id : ""}`}
-                            onClick={(e) => {handleClick(e,"PATH", item.entity_id)}} >
-                            { item.entity_name } 
-                        </a> 
-                        </li>
-                    }
-                })
-                
-                }
-            </Breadcrumb>
-        )
-    }
-
     const FilesContainer = () => {
         return(
             <>
@@ -409,7 +379,10 @@ function Disk(props) {
         </Col>
     </Row> */}
 
-    <BreadcrumbPanel />
+    <Breadcrumb 
+        items={Disk.entity.breadcrumb.map(
+            (item, i) => {return {url:`/disk/${item.entity_id}`, name: item.entity_name}})}
+    />
     <ActionBar user_role = { Disk.entity.user_role } />
 
 

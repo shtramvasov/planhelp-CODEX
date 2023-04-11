@@ -97,14 +97,12 @@ const getEntityBreadcrumb = async({entity_tree, user_id}, con) => {
     if (!entity_tree) return [];
     // заменяем "/" символом ","
     const entityStrArr = entity_tree.replace(/\//g,",").slice(0,-1);
-    return await mysql.query(con,
-        `select de.entity_name, de.entity_id
-           from disk_entity de 
-          where de.entity_id in (${entityStrArr})
+    sql = `select de.entity_name, de.entity_id
+            from disk_entity de 
+        where de.entity_id in (${entityStrArr})
             and de.entity_id in (select deu.entity_id from disk_entity_users deu where deu.user_id = ?)
-          order by FIELD(de.entity_id,${entityStrArr})`,
-        [user_id]
-    );
+        order by FIELD(de.entity_id,${entityStrArr})`;
+    return await mysql.query(con,sql,[user_id]);
 }
 
 // Контекстный поиск

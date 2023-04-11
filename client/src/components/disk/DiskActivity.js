@@ -18,8 +18,10 @@ import { useParams } from 'react-router-dom';
 import Table from 'react-bootstrap/Table';
 import Badge from 'react-bootstrap/Badge';
 import moment from 'moment-timezone';
+import Breadcrumb from "../helpers/Breadcrumb";
 import 'moment/locale/ru';
 moment.locale('ru');
+
 
 function DiskActivity(props) {
     const { entity_id } = useParams();
@@ -199,6 +201,14 @@ function DiskActivity(props) {
         <Col>
             <Navbar />
             <hr/>
+        </Col>
+    </Row>
+    <Row>
+        <Col>
+        <Breadcrumb 
+            items={Disk.entity.breadcrumb?.map(
+                (item, i) => {return {url:`/disk/${item.entity_id}`, name: item.entity_name}})}
+        />
         </Col>
     </Row>
     <Row>
