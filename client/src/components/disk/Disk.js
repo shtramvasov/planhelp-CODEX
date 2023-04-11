@@ -11,6 +11,7 @@ import { getDiskEntity, postDiskEntity, moveDiskEntity, deleteDiskEntity } from 
 import { postEntityNote } from '../../network/NoteNetwork';
 import { useParams } from 'react-router-dom';
 import ToastMessage from "../helpers/ToastMessage";
+import DragDropFile from "../helpers/DragDropFile";
 import DiskRemindList from "./DiskRemindList";
 
 function Disk(props) {
@@ -346,14 +347,34 @@ function Disk(props) {
             <Breadcrumb>
                 { links && links.map( (item) => { 
                     if (item.entity_id == entity_id) {
-                        return <Breadcrumb.Item href={`/disk/${item.entity_id}`} active> { item.entity_name } </Breadcrumb.Item> 
+                        return <li class="breadcrumb-item active" aria-current="page"> 
+                        <a className="phLink" 
+                            action href={`/disk/${Disk.entity.parent_entity_id?Disk.entity.parent_entity_id:""}`}
+                            onClick={(e) => {handleClick(e,"PATH",Disk.entity.parent_entity_id)}} >
+                            { item.entity_name } 
+                        </a> 
+                        </li>
                     } else {
-                        return <Breadcrumb.Item href={`/disk/${item.entity_id}`}> { item.entity_name } </Breadcrumb.Item> 
+                        return <li class="breadcrumb-item" aria-current="page"> 
+                        <a className="phLink" 
+                            action href={`/disk/${Disk.entity.parent_entity_id?Disk.entity.parent_entity_id:""}`}
+                            onClick={(e) => {handleClick(e,"PATH",Disk.entity.parent_entity_id)}} >
+                            { item.entity_name } 
+                        </a> 
+                        </li>
                     }
                 })
                 
                 }
             </Breadcrumb>
+        )
+    }
+
+    const FilesContainer = () => {
+        return(
+            <>
+                <ListGroup> {listItems} </ListGroup>
+            </>
         )
     }
 
@@ -399,7 +420,7 @@ function Disk(props) {
     </Row>
     <Row>
         <Col lg={Disk.entity.remindNoteList?.length?8:12}>
-            <ListGroup> {listItems} </ListGroup>
+            <DragDropFile files = { <FilesContainer /> } callBack= {actionUploadFileCallBack} />
         </Col>
         {Disk.entity.remindNoteList?.length ? 
             <Col lg={4}>
