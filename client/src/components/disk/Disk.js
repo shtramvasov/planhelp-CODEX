@@ -11,7 +11,9 @@ import { getDiskEntity, postDiskEntity, moveDiskEntity, deleteDiskEntity } from 
 import { postEntityNote } from '../../network/NoteNetwork';
 import { useParams } from 'react-router-dom';
 import ToastMessage from "../helpers/ToastMessage";
+import DragDropFile from "../helpers/DragDropFile";
 import DiskRemindList from "./DiskRemindList";
+
 
 function Disk(props) {
     
@@ -338,6 +340,14 @@ function Disk(props) {
         )
     }
 
+    const FilesContainer = () => {
+        return(
+            <>
+                <ListGroup> {listItems} </ListGroup>
+            </>
+        )
+    }
+
     return (
         
     <Container>
@@ -380,7 +390,7 @@ function Disk(props) {
     </Row>
     <Row>
         <Col lg={Disk.entity.remindNoteList?.length?8:12}>
-            <ListGroup> {listItems} </ListGroup>
+            <DragDropFile files = { <FilesContainer /> } callBack= {actionUploadFileCallBack} />
         </Col>
         {Disk.entity.remindNoteList?.length ? 
             <Col lg={4}>

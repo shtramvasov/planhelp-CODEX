@@ -7,7 +7,13 @@ import Nav from 'react-bootstrap/Nav';
 import { getUserProfile, postUserProfile } from '../../network/UserNetwork';
 import { addProfile } from '../../reducers/User';
 
+import { Button, Container, Dropdown, DropdownButton } from 'react-bootstrap';
+import { Navbar as NavBar } from 'react-bootstrap';
+import ProfileIcon from '../../resources/img/profile.svg'
+
 export function Navbar(props) {
+
+    const User = useSelector((state) => state.user);
 
     const fetchUserProfile = () => {
         getUserProfile({},(err,resp) => {
@@ -25,36 +31,51 @@ export function Navbar(props) {
         fetchUserProfile();
     },[]);
     
-    // dispatch(logout());
-    // window.location.href = "/login";
-    // return <div>Logout now...</div>;
+    // Показываем бейдж с кол-во непрочитаных пушей
+    const BadgeCountNotification = () => {
+        return (
+        <>
+        { User.profile.notify_count ? 
+            <span class="position-absolute top-45 start-100 translate-middle badge rounded-pill bg-danger" style={{ marginTop: '5px' }} > 
+                { User.profile.notify_count }
+            </span>
+        : 
+        "" 
+        }
+        </>
+        )
+    }
     
-    const User = useSelector((state) => state.user);
     return  (  
-    <Nav className="justify-content-left" activeKey="/">
-        {/* <Nav.Item>
-            <Nav.Link as={Link} to="/">Главная</Nav.Link>
-        </Nav.Item> */}
-        <Nav.Item>
-            <Nav.Link as={Link} to="/disk">Диск</Nav.Link>
-        </Nav.Item>
-        {/* <Nav.Item>
-            <Nav.Link as={Link} to="/task">Задачи</Nav.Link>
-        </Nav.Item>
-        <Nav.Item>
-            <Nav.Link as={Link} to="/hr">Люди</Nav.Link>
-        </Nav.Item> */}
-        <Nav.Item>
-            <Nav.Link as={Link} to="/notify">Уведомления&nbsp;
-            {User.profile.notify_count?<Badge bg="primary">{User.profile.notify_count}</Badge> :""}
-            </Nav.Link>
-        </Nav.Item>
-        <Nav.Item>
-            <Nav.Link as={Link} to="/profile">Профиль</Nav.Link>
-        </Nav.Item>
-        {/* <Nav.Item>
-            <Nav.Link as={Link} to="/logout">Выйти</Nav.Link>
-        </Nav.Item> */}
-    </Nav>
+        <>
+        <NavBar>
+            <Nav className='justify-content-left'>
+                <Nav.Item>
+                <Nav.Link as={Link} to="/disk">Диск</Nav.Link>
+                </Nav.Item>
+            </Nav>
+
+            <NavBar.Collapse className="justify-content-end">
+                <Nav.Item>
+                <Dropdown>
+                    <Dropdown.Toggle variant="link" bsPrefix="p-0">
+                        <img className='rounded-circle' src={ProfileIcon} width="40" height="40"/>
+                        { BadgeCountNotification() }
+                    </Dropdown.Toggle>
+                    <Dropdown.Menu align='end'>
+                        <Dropdown.Item>
+                            <Nav.Link as={Link} to="/profile" > Профиль </Nav.Link>
+                        </Dropdown.Item>
+                        <Dropdown.Item> 
+                            <Nav.Link as={Link} to="/notify" > Уведомления </Nav.Link>
+                        </Dropdown.Item>
+                        <Dropdown.Divider />
+                        <Dropdown.Item href='/logout'> Выйди из системы </Dropdown.Item>
+                    </Dropdown.Menu>
+                </Dropdown>
+                </Nav.Item>
+            </NavBar.Collapse>
+        </NavBar>
+        </>
     )
 }
