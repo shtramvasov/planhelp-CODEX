@@ -349,16 +349,16 @@ function Disk(props) {
                     if (item.entity_id == entity_id) {
                         return <li class="breadcrumb-item active" aria-current="page"> 
                         <a className="phLink" 
-                            action href={`/disk/${Disk.entity.parent_entity_id?Disk.entity.parent_entity_id:""}`}
-                            onClick={(e) => {handleClick(e,"PATH",Disk.entity.parent_entity_id)}} >
+                            action href={`/disk/${item.entity_id ? item.entity_id : ""}`}
+                            onClick={(e) => {handleClick(e,"PATH", item.entity_id)}} >
                             { item.entity_name } 
                         </a> 
                         </li>
                     } else {
                         return <li class="breadcrumb-item" aria-current="page"> 
                         <a className="phLink" 
-                            action href={`/disk/${Disk.entity.parent_entity_id?Disk.entity.parent_entity_id:""}`}
-                            onClick={(e) => {handleClick(e,"PATH",Disk.entity.parent_entity_id)}} >
+                            action href={`/disk/${item.entity_id ? item.entity_id : ""}`}
+                            onClick={(e) => {handleClick(e,"PATH", item.entity_id)}} >
                             { item.entity_name } 
                         </a> 
                         </li>
