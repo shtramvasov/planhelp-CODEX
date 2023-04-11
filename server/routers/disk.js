@@ -354,6 +354,7 @@ router.post('/move/all', async (req, res, next) => {
             // вешаем блоки на каждую запись
             const selectedEntity = await entityModel.getEntity({entity_id : selectedEntityId,user_id},con, true);
             if (!selectedEntity) throw 'Permission denied';
+            if (selectedEntity.user_role === READ) throw 'Permission denied, read only role';
             // отбираем все права вниз по дереву
             await entityModel.revokeEntityUser({entity_tree : selectedEntity.entity_tree},con);
             for (const targetEntityUser of targetEntityUsers) {
