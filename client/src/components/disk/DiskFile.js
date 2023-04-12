@@ -11,6 +11,7 @@ import { getEntityNoteList, postEntityNote } from '../../network/NoteNetwork';
 import { useParams } from 'react-router-dom';
 import ToastMessage from "../helpers/ToastMessage";
 import Card from 'react-bootstrap/Card';
+import Breadcrumb from "../helpers/Breadcrumb";
 import moment from 'moment-timezone';
 import 'moment/locale/ru';
 
@@ -317,9 +318,16 @@ function DiskFile(props) {
             <hr/>            
         </Col>
     </Row>
+    <Row>
+        <Col>
+        <Breadcrumb 
+            items={Disk.entity.breadcrumb?.map(
+                (item, i) => {return {url:`/disk/${item.entity_id}`, name: item.entity_name}})}
+        />
+        </Col>
+    </Row>
     {mode==="read"?
     <div>    
-    
     <ActionBar user_role = { Disk.entity.user_role } />
     
     <Row>

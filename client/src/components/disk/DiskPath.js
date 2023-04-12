@@ -13,6 +13,7 @@ import { addEntity } from '../../reducers/Disk'
 import { useNavigate , useSearchParams} from "react-router-dom";
 import { getDiskEntity, postDiskEntity, deleteDiskEntity } from '../../network/DiskNetwork';
 import { useParams } from 'react-router-dom';
+import Breadcrumb from "../helpers/Breadcrumb";
 
 function DiskPath(props) {
 
@@ -76,6 +77,14 @@ function DiskPath(props) {
         <Col>
             <Navbar />
             <hr/>
+        </Col>
+    </Row>
+    <Row>
+        <Col>
+        <Breadcrumb 
+            items={Disk.entity.breadcrumb?.map(
+                (item, i) => {return {url:`/disk/${item.entity_id}`, name: item.entity_name}})}
+        />
         </Col>
     </Row>
     <Row>

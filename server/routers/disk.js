@@ -19,7 +19,12 @@ router.get('/:entity_id?', async (req, res, next) => {
         // валидируем доступ если entity не найден - значит нет доступа
         const entity = await entityModel.getEntity({entity_id,user_id},con);
         if (!entity) throw 'Permission denied';
-
+        if (!search) {
+            // достаем breadcrumb для указанного entity
+            entity.breadcrumb = await entityModel.getEntityBreadcrumb(
+                {user_id, entity_tree: entity.entity_tree},con
+            );
+        }
         if (search) {
             // контекстный поиск, не валидируем entity, потому что не надо
             entity.childEntityList = await entityModel.getEntitySearch({search,user_id },con);
@@ -35,10 +40,6 @@ router.get('/:entity_id?', async (req, res, next) => {
             // только для типа entity = PATH
             entity.remindNoteList = await commonNote.getRemindNoteList(
                 {user_id, entity_tree: entity.entity_tree}, con
-            );
-            // достаем breadcrumb для указанного entity
-            entity.breadcrumb = await entityModel.getEntityBreadcrumb(
-                {user_id, entity_tree: entity.entity_tree},con
             );
         }
 
