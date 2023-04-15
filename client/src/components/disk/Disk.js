@@ -284,8 +284,6 @@ function Disk(props) {
 
             { info.user_role != "READ" ? 
             <>
-            <Row style={{marginBottom:"8px"}}>
-                <Col>
                 <Form.Group controlId="formFindText">
                     {/* Создать папку */}
                     <Button variant="outline-primary" onClick={actionCallModalNewPath}>
@@ -332,8 +330,6 @@ function Disk(props) {
                         : ""
                     }
                 </Form.Group>
-                </Col>
-            </Row>
             </>
             : "" }
             </>
@@ -357,13 +353,12 @@ function Disk(props) {
     <Row>
         <Col>
             <Navbar />
-            <hr/>
         </Col>
     </Row>
-    <Row>
+    <Row style={{marginTop: "8px"}}>
         <Col>
             <form onSubmit={actionFindSubmit}>
-                <Form.Group controlId="formFindText" style={{marginBottom:"8px"}}>
+                <Form.Group controlId="formFindText">
                     <Form.Control type="text" placeholder="Поиск" defaultValue={searchParams.get("search")}/>
                 </Form.Group>
             </form>
@@ -378,17 +373,23 @@ function Disk(props) {
         </ul>
         </Col>
     </Row> */}
-
-    <Breadcrumb 
-        items={Disk.entity.breadcrumb.map(
-            (item, i) => {return {url:`/disk/${item.entity_id}`, name: item.entity_name}})}
-    />
-    <ActionBar user_role = { Disk.entity.user_role } />
-
-
+    <Row style={{marginTop: "8px"}}>
+        <Col>
+            <Breadcrumb 
+                items={Disk.entity.breadcrumb.map(
+                    (item, i) => {return {url:`/disk/${item.entity_id}`, name: item.entity_name}})}
+            />
+        </Col>
+    </Row>
     <Row>
         <Col>
+            <ActionBar user_role = { Disk.entity.user_role } />
+        </Col>
+    </Row>
+    <Row style={{marginTop: "8px"}}>
+        <Col>
             <h2>{Disk.entity.entity_type === 'PATH'? Disk.entity.entity_name:""}</h2>
+            <h2>{Disk.entity.entity_type === 'ROOT'? "Документы":""}</h2>
         </Col>
     </Row>
     <Row>

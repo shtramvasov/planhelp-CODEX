@@ -27,3 +27,7 @@ code {
   background-color: rgb(100, 100, 100) !important; 
   border-color: rgb(100, 100, 100) !important;
 }
+
+.navbar-nav .nav-link.active, .navbar-nav .show>.nav-link {
+  font-weight: 500;
+}
