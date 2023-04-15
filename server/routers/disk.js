@@ -24,6 +24,9 @@ router.get('/:entity_id?', async (req, res, next) => {
             entity.breadcrumb = await entityModel.getEntityBreadcrumb(
                 {user_id, entity_tree: entity.entity_tree},con
             );
+            entity.levelEntityList = await entityModel.getEntityChild(
+                {entity_id : entity.parent_entity_id, user_id : req.userModel.user_id},con
+            );
         }
         if (search) {
             // контекстный поиск, не валидируем entity, потому что не надо
