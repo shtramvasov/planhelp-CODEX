@@ -359,6 +359,24 @@ router.post('/move/all', async (req, res, next) => {
             const selectedEntity = await entityModel.getEntity({entity_id : selectedEntityId,user_id},con, true);
             if (!selectedEntity) throw 'Permission denied';
             if (selectedEntity.user_role === READ) throw 'Permission denied, read only role';
+
+            // Необходимо убедиться, что права target пути не ущемляет права тех
+            // кто имеет доступ к selected пути
+            // targetEntityUsers - список прав в target пути
+            // selectedEntityUsers - список прав в selected пути
+            const selectedEntityUsers = await entityModel.getEntityUsers({entity_id : selectedEntityId},con);
+            const isAllowAction = selectedEntityUsers.every((selectedUser) => {
+                return targetEntityUsers.some((targetUser) => {
+                    return targetUser.login === selectedUser.login 
+                            && targetUser.user_role === selectedUser.user_role
+                })
+            });
+            // только для роли WRITE
+            // потому что WRITE не имеет право менять / добавлять права
+            if (selectedEntity.user_role === WRITE) {
+                if (!isAllowAction) throw 'Permission denied, user roles revoke exception';
+            }
+
             // отбираем все права вниз по дереву
             await entityModel.revokeEntityUser({entity_tree : selectedEntity.entity_tree},con);
             for (const targetEntityUser of targetEntityUsers) {
