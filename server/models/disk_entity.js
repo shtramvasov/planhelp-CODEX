@@ -60,7 +60,9 @@ const getEntity = async ({entity_id, user_id}, con, forUpdate = false) => {
 // Список потомков на уровень ниже от переданного entity_id
 const getEntityChild = async ({entity_id, user_id}, con) => {
     let sql =
-        `select de.entity_id,
+        `select 
+            de.entity_name REGEXP '^[0-9]' is_decimal_name,
+            de.entity_id,
             de.entity_name, 
             de.entity_type, 
             de.created_by, 
@@ -87,9 +89,15 @@ const getEntityChild = async ({entity_id, user_id}, con) => {
         sql = sql + 
             ` and parent_deu.entity_id is null `;
     }
+    // если имя файла начинается на цифры
+    // сортируем иначе такие файлы, кастуем в decimal
     sql = sql + 
         ` and de.is_deleted = 'N'
-        order by de.entity_type desc, de.entity_name, de.entity_id`;
+        order by de.entity_type desc, 
+                 is_decimal_name desc,
+                 cast(de.entity_name as DECIMAL(8,2)),
+                 de.entity_name, 
+                 de.entity_id`;
     return await mysql.query(con, sql, [entity_id , user_id]);
 };
 
