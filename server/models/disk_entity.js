@@ -16,8 +16,10 @@ const CONSTANTS = {
     ROOT : "ROOT",
 }
 
-// Детали entity
-// forUpdate - для блокирования записи
+// Детализация disk_entity
+//  entity_id - entity детали
+//  user_id - юзер, для которого надо проверить доступ до этого entity
+//  forUpdate - для блокирования записи
 const getEntity = async ({entity_id, user_id}, con, forUpdate = false) => {
     if (!entity_id) {
         return {
@@ -45,6 +47,8 @@ const getEntity = async ({entity_id, user_id}, con, forUpdate = false) => {
                     inner join disk_entity_users deu 
                             on de.entity_id = deu.entity_id 
                             and deu.user_id = params.p_user_id
+                    -- если папка расшарена, то родителя показывать нелья
+                    -- если к нему нет доступа
                     left join disk_entity_users parent_deu 
                             on parent_deu.entity_id = de.parent_entity_id
                             and parent_deu.user_id = params.p_user_id
@@ -58,9 +62,13 @@ const getEntity = async ({entity_id, user_id}, con, forUpdate = false) => {
 }
 
 // Список потомков на уровень ниже от переданного entity_id
+//  entity_id - entity детали
+//  user_id - юзер, для которого надо проверить доступ до этого entity
 const getEntityChild = async ({entity_id, user_id}, con) => {
     let sql =
         `select 
+            -- поле необходимо для определения начинается ли название на цифры
+            -- далее используется в сортировке
             de.entity_name REGEXP '^[0-9]' is_decimal_name,
             de.entity_id,
             de.entity_name, 
@@ -74,6 +82,8 @@ const getEntityChild = async ({entity_id, user_id}, con) => {
                     inner join disk_entity_users deu 
                                 on deu.entity_id = de.entity_id
                                 and deu.user_id = params.p_user_id
+                    -- если папка расшарена, то родителя показывать нелья
+                    -- если к нему нет доступа
                     left join disk_entity_users parent_deu 
                                 on parent_deu.entity_id = de.parent_entity_id
                                 and parent_deu.user_id = params.p_user_id
@@ -101,6 +111,9 @@ const getEntityChild = async ({entity_id, user_id}, con) => {
     return await mysql.query(con, sql, [entity_id , user_id]);
 };
 
+// Возвращает список всех родителей от последнего по дереву
+//  entity_tree - дерево ID parent_1/child_1/child_2/...etc
+//  user_id - для проверки прав, чтобы не показывать родителей до которых нет доступа
 const getEntityBreadcrumb = async({entity_tree, user_id}, con) => {
     if (!entity_tree) return [];
     // заменяем "/" символом ","
@@ -139,6 +152,8 @@ const getEntitySearch = async ({search, user_id}, con) => {
     );
 }
 
+// возвращается все элементы по дереву ниже(включая текущий)
+// TODO перенести в getEntityChild
 const getEntityList = async ({entity_tree}, con, forUpdate = false) => {
     const sqlParams = [];
     let sql = 
@@ -201,6 +216,8 @@ const getEntityUsers = async ({entity_id, parent_entity_id, user_id}, con) => {
                 for (const curEntity of entityUsers) {
                     for (const parentEntity of parentEntityUsers) {
                         if (curEntity.user_id === parentEntity.user_id) {
+                            // если у parent_entity такие же юзеры что и у текущей
+                            // то не разрешаем действий по удалению прав
                             curEntity.is_editable = false;
                             continue;
                         }
@@ -255,7 +272,6 @@ const updateEntity = async (
     { entity_id, user_id, entity_name, entity_note, entity_type, entity_tree, parent_entity_id },
     oldEntity, 
     con) => {
-        console.log(entity_id, user_id, entity_name, entity_note, entity_type, entity_tree, parent_entity_id)
     // апдейт
     let sql = `update disk_entity set `
     const sqlParams = [];
