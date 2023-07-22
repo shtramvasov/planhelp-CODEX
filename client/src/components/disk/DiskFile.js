@@ -18,6 +18,7 @@ import 'moment/locale/ru';
 // Обработчик markdown 
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
+import rehypeRaw from "rehype-raw";
 // Редактор markdown
 import MdEditor, { Plugins } from 'react-markdown-editor-lite';
 import 'react-markdown-editor-lite/lib/index.css';
@@ -255,7 +256,7 @@ function DiskFile(props) {
         // 1. components: прокидываем свои html объекты
         // 2. children: markdown -> стилевый текст
         // 3. remarkPlugins: плагины для поддержки таблиц, стилей текста
-        return <ReactMarkdown components={{ table: MarkdownTable }} children={ props.value } remarkPlugins={[remarkGfm]} /> 
+        return <ReactMarkdown components={{ table: MarkdownTable }} children={ props.value } remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]} /> 
     }
 
     const handleEditorChange = ({ html, text }) => {
