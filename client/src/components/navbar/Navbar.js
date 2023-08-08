@@ -55,11 +55,11 @@ export function Navbar(props) {
                 <Nav.Link as={Link} to="/disk" active={location.pathname.includes("/disk")}>Документы</Nav.Link>
                 </Nav.Item>
             </Nav>
-            <Nav className='justify-content-left'>
+            {/* <Nav className='justify-content-left'>
                 <Nav.Item>
                 <Nav.Link as={Link} to="/task" active={location.pathname.includes("/task")}>Задачи</Nav.Link>
                 </Nav.Item>
-            </Nav>
+            </Nav> */}
 
             <NavBar.Collapse className="justify-content-end">
                 <Nav.Item>
@@ -76,7 +76,7 @@ export function Navbar(props) {
                             <Nav.Link as={Link} to="/notify" > Уведомления </Nav.Link>
                         </Dropdown.Item>
                         <Dropdown.Divider />
-                        <Dropdown.Item href='/logout'> Выйди из системы </Dropdown.Item>
+                        <Dropdown.Item href='/logout'> Выйти </Dropdown.Item>
                     </Dropdown.Menu>
                 </Dropdown>
                 </Nav.Item>
