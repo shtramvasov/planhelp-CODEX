@@ -336,8 +336,8 @@ function DiskFile(props) {
             <h2>{Disk.entity.entity_name}</h2>
         </Col>
     </Row>
-    <Row>
-        <Col lg={12} className="shadow p-3 mb-5 bg-white rounded">
+    <Row className="p-2 mt-0 pt-0">
+        <Col lg={12} className="shadow p-3 bg-white rounded">
             {/* hack for \n for reactMarkdown replace(/\n/gi, '  \n') */}
             {/* replace all \n for space + space + \n */}
             <MardownObject value = {(Disk.entity.entity_note)?.replace(/\n/gi, '  \n')} />
