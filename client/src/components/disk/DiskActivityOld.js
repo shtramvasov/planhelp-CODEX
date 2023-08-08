@@ -105,8 +105,8 @@ function DiskActivityOld(props) {
             <h2>Версия файла {Disk.entity.entity_name}</h2>
             </div>
         </Col>
-        <Row>
-            <Col lg={12} className="shadow p-3 mb-5 bg-white rounded">
+        <Row className="pt-0 p-4">
+            <Col lg={12} className="shadow p-3 bg-white rounded">
             {/* hack for \n for reactMarkdown replace(/\n/gi, '  \n') */}
             {/* replace all \n for space + space + \n */}
             <MardownObject value = {(Disk.entityActivityOld.entity_note_old)?.replace(/\n/gi, '  \n')} />

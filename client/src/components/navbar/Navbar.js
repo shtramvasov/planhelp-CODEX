@@ -45,14 +45,20 @@ export function Navbar(props) {
         </>
         )
     }
-    
+
     return  (  
         <>
         <NavBar bg="light" variant="light" 
             style={{borderRadius:"0px 0px 8px 8px", paddingLeft: "8px", paddingRight:"16px"}}>
             <Nav className='justify-content-left'>
                 <Nav.Item>
-                <Nav.Link as={Link} to="/disk" active={location.pathname.includes("/disk")}>Документы</Nav.Link>
+                <Nav.Link 
+                    as={Link} 
+                    to="/disk" 
+                    active={location.pathname.includes("/disk") || location.pathname == "/"}
+                >
+                    Документы
+                </Nav.Link>
                 </Nav.Item>
             </Nav>
             {/* <Nav className='justify-content-left'>
