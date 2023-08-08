@@ -52,7 +52,7 @@ export const diskSlice = createSlice({
             if (!action.payload.breadcrumb) {
                 action.payload.breadcrumb = [];
             }
-            action.payload.breadcrumb.unshift({entity_name:"Мой диск",entity_id:""});
+            action.payload.breadcrumb.unshift({entity_name:"Документы",entity_id:""});
             state.entity = (action.payload);
         },
         addEntityActivity: (state, action) => {

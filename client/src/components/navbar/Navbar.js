@@ -1,7 +1,7 @@
 import { useSelector, useDispatch } from 'react-redux'
 import { useEffect } from "react";
 import { login, logout } from '../../reducers/User'
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate, Link, useLocation } from "react-router-dom";
 import Badge from 'react-bootstrap/Badge';
 import Nav from 'react-bootstrap/Nav';
 import { getUserProfile, postUserProfile } from '../../network/UserNetwork';
@@ -12,7 +12,7 @@ import { Navbar as NavBar } from 'react-bootstrap';
 import ProfileIcon from '../../resources/img/profile.svg'
 
 export function Navbar(props) {
-
+    const location = useLocation();
     const User = useSelector((state) => state.user);
 
     const fetchUserProfile = () => {
@@ -48,12 +48,18 @@ export function Navbar(props) {
     
     return  (  
         <>
-        <NavBar>
+        <NavBar bg="light" variant="light" 
+            style={{borderRadius:"0px 0px 8px 8px", paddingLeft: "8px", paddingRight:"16px"}}>
             <Nav className='justify-content-left'>
                 <Nav.Item>
-                <Nav.Link as={Link} to="/disk">Диск</Nav.Link>
+                <Nav.Link as={Link} to="/disk" active={location.pathname.includes("/disk")}>Документы</Nav.Link>
                 </Nav.Item>
             </Nav>
+            {/* <Nav className='justify-content-left'>
+                <Nav.Item>
+                <Nav.Link as={Link} to="/task" active={location.pathname.includes("/task")}>Задачи</Nav.Link>
+                </Nav.Item>
+            </Nav> */}
 
             <NavBar.Collapse className="justify-content-end">
                 <Nav.Item>
@@ -70,7 +76,7 @@ export function Navbar(props) {
                             <Nav.Link as={Link} to="/notify" > Уведомления </Nav.Link>
                         </Dropdown.Item>
                         <Dropdown.Divider />
-                        <Dropdown.Item href='/logout'> Выйди из системы </Dropdown.Item>
+                        <Dropdown.Item href='/logout'> Выйти </Dropdown.Item>
                     </Dropdown.Menu>
                 </Dropdown>
                 </Nav.Item>
