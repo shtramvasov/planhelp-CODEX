@@ -252,7 +252,7 @@ function DiskFile(props) {
         return (<table className="table table-bordered"> {props.children} </table>)
     }
 
-    const MardownObject = (props) => {
+    const MarkdownObject = (props) => {
         // 1. components: прокидываем свои html объекты
         // 2. children: markdown -> стилевый текст
         // 3. remarkPlugins: плагины для поддержки таблиц, стилей текста
@@ -336,12 +336,16 @@ function DiskFile(props) {
             <h2>{Disk.entity.entity_name}</h2>
         </Col>
     </Row>
-    <Row className="p-2 mt-0 pt-0">
-        <Col lg={12} className="shadow p-3 bg-white rounded">
-            {/* hack for \n for reactMarkdown replace(/\n/gi, '  \n') */}
-            {/* replace all \n for space + space + \n */}
-            <MardownObject value = {(Disk.entity.entity_note)?.replace(/\n/gi, '  \n')} />
-        </Col>
+    {Disk.entity.entity_note?
+        <Row className="p-2 mt-0 pt-0">
+            <Col lg={12} className="shadow p-3 bg-white rounded">
+                {/* hack for \n for reactMarkdown replace(/\n/gi, '  \n') */}
+                {/* replace all \n for space + space + \n */}
+                <MarkdownObject value = {(Disk.entity.entity_note)?.replace(/\n/gi, '  \n')} />
+            </Col>
+        </Row>:""
+    }
+    <Row className="mt-2">
         <Col lg={6}>
             {entityNoteItems}
         </Col>
@@ -371,7 +375,7 @@ function DiskFile(props) {
     </Row>
     <Row>
         <Col>
-            <MdEditor view={{menu: true, md: true, html: false}}  onChange={handleEditorChange} value={entityNote}  style={{ height: '500px' }} renderHTML={ text => <MardownObject value = {text} /> } />
+            <MdEditor view={{menu: true, md: true, html: false}}  onChange={handleEditorChange} value={entityNote}  style={{ height: '500px' }} renderHTML={ text => <MarkdownObject value = {text} /> } />
         </Col>
     </Row>
     </form>
