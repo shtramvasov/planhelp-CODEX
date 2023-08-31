@@ -6,7 +6,7 @@ class Model {
     // EXAMPLE
     // const account = await Account.find(pginstance, {
     //   select : "*",
-    //   join: [
+    //   joins: [
     //       {
     //           type: 'left join',
     //           table: 'table',
@@ -52,8 +52,12 @@ class Model {
         const clearedWhere = this.clear(where);
         const statement = this.generateFindStatement({table: table || this.table, select, where : clearedWhere, joins: sqlJoins, order, limit, offset, for_update, group});
         console.log(statement);
-        const result = await pginstance.query(statement.sql, statement.params);
-        return result.rows; 
+        // postgresql version
+        // const result = await pginstance.query(statement.sql, statement.params);
+
+        // mysql version
+        const result = await mysql.query(pginstance,statement.sql, statement.params);
+        return result; 
     }
 
     // EXAMPLE
@@ -92,7 +96,11 @@ class Model {
         let clearedWhere = this.clear(where);
         const statement = this.generateUpdateStatement({values : clearedValues, where : clearedWhere, returning});
         console.log(statement);
-        const result = await pginstance.query(statement.sql, statement.params);
+        // postgresql version
+        // const result = await pginstance.query(statement.sql, statement.params);
+        
+        // mysql version
+        const result = await mysql.query(pginstance,statement.sql, statement.params);
         return result.rows; 
     }
 
@@ -115,8 +123,13 @@ class Model {
         let clearedValues = this.clear(values);
         const statement = this.generateCreateStatement({values : clearedValues, returning, on_conflict});
         console.log(statement);
-        const result = await pginstance.query(statement.sql, statement.params);
-        return result.rows;
+        // postgresql version
+        // const result = await pginstance.query(statement.sql, statement.params);
+        
+        // mysql version
+        const result = await mysql.query(pginstance,statement.sql, statement.params);
+        const last_insert_id = (await mysql.query(pginstance,`select LAST_INSERT_ID() last_insert_id`))[0].last_insert_id;
+        return last_insert_id;
     }
 
     static async delete(pginstance, {
@@ -125,7 +138,11 @@ class Model {
         let clearedWhere = this.clear(where);
         const statement = this.generateDeleteStatement({ where : clearedWhere });
         console.log(statement);
-        const result = await pginstance.query(statement.sql, statement.params);
+        // postgresql version
+        // const result = await pginstance.query(statement.sql, statement.params);
+        
+        // mysql version
+        const result = await mysql.query(pginstance,statement.sql, statement.params);
         return result.rows; 
     }
 
@@ -196,7 +213,11 @@ class Model {
                 sql += ` and ${keyWhere} ${where[keyWhere].expression} `
             } else {
                 params.push(where[keyWhere]);
-                sql += ` and ${keyWhere} = $${params.length} `
+                // postgresql version
+                //sql += ` and ${keyWhere} = $${params.length} `
+
+                // mysql version
+                sql += ` and ${keyWhere} = ? `
             }
         }
 
@@ -234,7 +255,11 @@ class Model {
             } else {
                 params.push(values[keyValue]);
                 sql += ` ${keyValue}, `;
-                sqlValues += ` $${params.length}, `;
+                // postgresql version
+                // sqlValues += ` $${params.length}, `;
+
+                // mysql version
+                sqlValues += ` ?, `;
             }
         }
         sql = sql.slice(0,-2);
@@ -243,9 +268,11 @@ class Model {
         sql = sql.slice(0,-2);
         sql += ` ) `; 
 
-        if (on_conflict) sql += ` on conflict ${on_conflict} `;
+        // postgresql version
+        // if (on_conflict) sql += ` on conflict ${on_conflict} `;
 
-        sql += ` returning ${returning || '*'} `
+        // postgresql version
+        // sql += ` returning ${returning || '*'} `
 
         return {
             sql : sql,
@@ -263,7 +290,11 @@ class Model {
                 sql += ` ${keyValue} = ${values[keyValue].expression}, `
             } else {
                 params.push(values[keyValue]);
-                sql += ` ${keyValue} = $${params.length}, `
+                // postgresql version
+                //sql += ` ${keyValue} = $${params.length}, `
+
+                // mysql version
+                sql += ` ${keyValue} = ?, `
             }
         }
         sql = sql.slice(0,-2);
@@ -290,7 +321,11 @@ class Model {
                 sql += ` and ${keyWhere} ${where[keyWhere].expression} `
             } else {
                 params.push(where[keyWhere]);
-                sql += ` and ${keyWhere} = $${params.length} `
+                // postgresql version
+                //sql += ` and ${keyWhere} = $${params.length} `
+
+                // mysql version
+                sql += ` and ${keyWhere} = ? `
             }
         }
 
@@ -328,7 +363,11 @@ class Model {
                 sql += ` and ${keyWhere} ${where[keyWhere].expression} `
             } else {
                 params.push(where[keyWhere]);
-                sql += ` and ${keyWhere} = $${params.length} `
+                // postgresql version
+                // sql += ` and ${keyWhere} = $${params.length} `
+
+                // mysql version
+                sql += ` and ${keyWhere} = ? `
             }
         }
         return {
