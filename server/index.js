@@ -13,6 +13,7 @@ const fileRouter = require('./routers/file');
 const downloadRouter = require('./routers/download');
 const commonNote = require('./routers/common_note');
 const projectRouter = require('./routers/project');
+const projectTaskRouter = require('./routers/project_task');
 const auth = require('./auth');
 
 const app = express();
@@ -35,6 +36,7 @@ app.use('/api/secure/notify', notifyRouter);
 app.use('/api/secure/note', commonNote);
 app.use('/api/secure/file',fileRouter);
 app.use('/api/secure/project',projectRouter);
+app.use('/api/secure/project/task',projectTaskRouter);
 
 app.use('/api/login',loginRouter);
 app.use('/api/telegram',tlgrmRouter);

@@ -4,7 +4,9 @@ var mysql = require('../mysqlhelper');
 var Project = require('../models/project');
 var RefUsers = require('../models/ref_users');
 var ProjectUser = require('../models/project_user');
+var ProjectStatus = require('../models/project_status');
 
+// Список проектов или детали проекта
 router.get('/:project_id?', async (req, res, next) => {
     const { project_id } = req.params;
     const { user_id } = req.userModel;
@@ -43,6 +45,7 @@ router.get('/:project_id?', async (req, res, next) => {
                 }
             });
         }
+        projectOne.project_status_list = await ProjectStatus.find(con, {where : { project_id }});
         res.send(projectOne);
     } catch(error) {
         next(error);
@@ -51,7 +54,7 @@ router.get('/:project_id?', async (req, res, next) => {
     }
 });
 
-
+// Создание проекта
 router.post('/', async (req, res, next) => {
     const { user_id } = req.userModel;
     const { project_name, project_note } = req.body;
@@ -84,6 +87,7 @@ router.post('/', async (req, res, next) => {
     }
 });
 
+// Изменени проекта
 router.post('/:project_id', async (req, res, next) => {
     const { user_id } = req.userModel;
     const { project_id } = req.params;
@@ -113,6 +117,7 @@ router.post('/:project_id', async (req, res, next) => {
     }
 });
 
+// Добавление роли в проект
 router.post('/:project_id/users', async (req, res, next) => {
     const profile_user_id = req.userModel.user_id;
     const { project_id } = req.params;
@@ -134,6 +139,38 @@ router.post('/:project_id/users', async (req, res, next) => {
     }
 });
 
+// Добавление / Изменение статусов задач в проекте
+router.post('/:project_id/status/:status_id?', async (req, res, next) => {
+    const profile_user_id = req.userModel.user_id;
+    const { project_id, status_id } = req.params;
+    const { status_name, status_color, is_deleted } = req.body;
+    let con;
+    try {
+        con = await mysql.getConnection();
+        const projectRole = await ProjectUser.find(con,{where : {project_id, user_id : profile_user_id}});
+
+        if (projectRole.user_role !== "OWNER") 'Permission denied';
+
+        if (!status_id) {
+            await ProjectStatus.create(con,{values : { 
+                project_id, status_name, status_color, is_deleted : is_deleted || 'N' 
+            }});
+        } else {
+            await ProjectStatus.update(con,{
+                values : { project_id, status_name, status_color, is_deleted : is_deleted || 'N' },
+                where : { status_id, project_id }
+            });
+        }
+
+        res.send({ok:true});
+    } catch(error) {
+        next(error);
+    } finally {
+        con && await mysql.releaseConnection(con);
+    }
+});
+
+// Отбирает права у проекта для юзера
 router.post('/:project_id/users/revoke', async (req, res, next) => {
     const profile_user_id = req.userModel.user_id;
     const { project_id } = req.params;
@@ -155,6 +192,4 @@ router.post('/:project_id/users/revoke', async (req, res, next) => {
     }
 });
 
-
-// users/revoke
 module.exports = router;
