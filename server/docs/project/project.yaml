@@ -1,0 +1,135 @@
+components:
+  schemas:
+     Project:
+      type: object
+      properties:
+        project_id:
+        project_name:
+        project_note:
+        created_on:
+        created_by:
+        is_deleted:
+        total_task_count:
+        total_user_count:
+        user_role:
+     ProjectUpdate:
+      type: object
+      properties:
+        project_name:
+        project_note:
+        is_deleted:
+     ProjectList:
+       type: array
+       items:
+         $ref: '#/components/schemas/Project'
+     ProjectUser:
+       type: object
+       properties:
+         user_id:
+         user_role:
+     ProjectStatus:
+       type: object
+       properties:
+         status_id:
+         status_name:
+         status_color:
+         is_deleted:
+
+paths:
+  /api/secure/project:
+    get:
+      summary: get Project list
+      responses:
+        200:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProjectList'
+        500:
+          description: Server error
+  /api/secure/project/{project_id}:
+    get:
+      summary: get Project Detail
+      responses:
+        200:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Project'
+        500:
+          description: Server error
+  /api/secure/project/:
+    post:
+      summary: create new Project
+      parameters:
+      - in: body
+        schema : 
+          $ref: '#/components/schemas/ProjectUpdate'
+      responses:
+        200:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Project'
+        500:
+          description: Server error
+  /api/secure/project/${project_id}:
+    post:
+      summary: update Project by project_id
+      parameters:
+      - in: body
+        schema : 
+          $ref: '#/components/schemas/ProjectUpdate'
+      responses:
+        200:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Project'
+        500:
+          description: Server error
+  /api/secure/project/${project_id}/users:
+    post:
+      summary: add user to Project by project_id
+      parameters:
+      - in: body
+        schema : 
+          $ref: '#/components/schemas/ProjectUser'
+      responses:
+        200:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProjectUser'
+        500:
+          description: Server error
+  /api/secure/project/${project_id}/users/revoke:
+    post:
+      summary: del user from Project by project_id
+      parameters:
+      - in: body
+        schema : 
+          $ref: '#/components/schemas/ProjectUser'
+      responses:
+        200:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProjectUser'
+        500:
+          description: Server error
+  /api/secure/project/${project_id}/status/${status_id?}:
+    post:
+      summary: create or update status Project by project_id
+      parameters:
+      - in: body
+        schema : 
+          $ref: '#/components/schemas/ProjectStatus'
+      responses:
+        200:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProjectStatus'
+        500:
+          description: Server error
