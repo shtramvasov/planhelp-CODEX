@@ -11,12 +11,14 @@ router.get('/', async (req, res, next) => {
 
 // Изменение профиля
 router.post('/', async (req, res, next) => {
-    const { user_id } = req.userModel;
+    const { user_id, login } = req.userModel;
     const { secret, email, telegram_chat_id, is_notify, timezone } = req.body;
     let con;
     try {
         // if (!secret) throw "Missing secret in body params";
-
+	if (login === "operator" || login === "support" || login === "client") { 
+    	    throw "Service account can't update";
+        }
         con = await mysql.getConnection();
         await mysql.begin(con);
 

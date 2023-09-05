@@ -16,8 +16,9 @@ const auth = require('./auth');
 
 const app = express();
 app.set('trust proxy', 'loopback') 
-app.use(bodyParser.json());
+//app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({extended: true}));
+app.use(bodyParser.json({limit: '50mb'}));
 
 app.use(fileUpload({
     createParentPath: true,
