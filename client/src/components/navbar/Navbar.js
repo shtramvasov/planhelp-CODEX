@@ -61,11 +61,16 @@ export function Navbar(props) {
                 </Nav.Link>
                 </Nav.Item>
             </Nav>
-            {/* <Nav className='justify-content-left'>
+            <Nav className='justify-content-left'>
                 <Nav.Item>
-                <Nav.Link as={Link} to="/task" active={location.pathname.includes("/task")}>Задачи</Nav.Link>
+                <Nav.Link as={Link} to="/task" active={location.pathname.includes("/task")}>Проекты</Nav.Link>
                 </Nav.Item>
-            </Nav> */}
+            </Nav>
+            <Nav className='justify-content-left'>
+                <Nav.Item>
+                <Nav.Link as={Link} to="/hr" active={location.pathname.includes("/hr")}>Люди</Nav.Link>
+                </Nav.Item>
+            </Nav>
 
             <NavBar.Collapse className="justify-content-end">
                 <Nav.Item>

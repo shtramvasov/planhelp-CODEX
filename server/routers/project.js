@@ -33,7 +33,7 @@ router.get('/:project_id?', async (req, res, next) => {
             return;
         }
         const projectOne = projectList[0];
-        projectOne.created_by_model = await RefUsers.find(con,{ select : "login, user_id",where : {user_id : user_id} });
+        projectOne.created_by_model = (await RefUsers.find(con,{ select : "login, user_id",where : {user_id : user_id} }))[0];
         if (projectOne.user_role !== 'READ') {
             projectOne.project_user_list = await ProjectUser.find(con,{ 
                 select : "project_user.user_id, ref_users.login, project_user.user_role",
