@@ -7,7 +7,8 @@ class ProjectStatus extends Model {
         "project_id",
         "status_name",
         "status_color",
-        "is_deleted"
+        "is_deleted",
+        "orderby"
     ]
 
     static table = "project_status";
