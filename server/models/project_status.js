@@ -6,9 +6,10 @@ class ProjectStatus extends Model {
         "status_id",
         "project_id",
         "status_name",
-        "status_color",
+        "variant",
         "is_deleted",
-        "orderby"
+        "orderby",
+        "is_closed"
     ]
 
     static table = "project_status";

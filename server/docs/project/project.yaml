@@ -32,9 +32,10 @@ components:
        properties:
          status_id:
          status_name:
-         status_color:
+         variant:
          orderby:
          is_deleted:
+         is_closed:
 
 paths:
   /api/secure/project:
