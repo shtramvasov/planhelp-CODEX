@@ -10,11 +10,22 @@ var ProjectTask = require('../models/project_task');
 router.get('/:project_id/:task_id?', async (req, res, next) => {
     const profile_user_id = req.userModel.user_id;
     const { project_id, task_id } = req.params;
-    const { limit, offset, executor_id, responsible_id, reviewer_id, status_id } = req.query;
+    const { limit, offset, executor_id, responsible_id, reviewer_id, status_id} = req.query;
+    let { status_ids } = req.query;
     let con;
     try {
         con = await mysql.getConnection();
         // TODO сделать проверку прав
+        // TODO перенести в модель?
+        const _custom = []
+        if (status_ids) {
+            status_ids = status_ids.replace(/:/g,",");
+            _custom.push( { 
+                sql : ` and (project_task.status_id in (${status_ids}) )`, 
+                no_value : true 
+            } );
+        }
+        console.log(status_ids);
         const taskList = await ProjectTask.find(con, {
             select : `project_task.*,
                       ru_created.login as "ru_created_login",
@@ -38,8 +49,11 @@ router.get('/:project_id/:task_id?', async (req, res, next) => {
                      on : "project_task.reviewer_id = ru_reviewer.user_id" },
             ],
             where : {
-                is_deleted : "N", project_id, task_id, executor_id, responsible_id, reviewer_id, status_id
-            }
+                is_deleted : "N", project_id, task_id, executor_id, responsible_id, reviewer_id, status_id,
+                _custom : _custom
+            },
+            limit : +limit || 50,
+            offset : +offset || 0
         });
 
         if (!task_id) {

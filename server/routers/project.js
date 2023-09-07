@@ -143,7 +143,7 @@ router.post('/:project_id/users', async (req, res, next) => {
 router.post('/:project_id/status/:status_id?', async (req, res, next) => {
     const profile_user_id = req.userModel.user_id;
     const { project_id, status_id } = req.params;
-    const { status_name, status_color, is_deleted } = req.body;
+    const { status_name, status_color, is_deleted, orderby } = req.body;
     let con;
     try {
         con = await mysql.getConnection();
@@ -157,7 +157,7 @@ router.post('/:project_id/status/:status_id?', async (req, res, next) => {
             }});
         } else {
             await ProjectStatus.update(con,{
-                values : { project_id, status_name, status_color, is_deleted : is_deleted || 'N' },
+                values : { project_id, status_name, status_color, is_deleted : is_deleted || 'N', orderby},
                 where : { status_id, project_id }
             });
         }

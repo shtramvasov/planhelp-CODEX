@@ -226,11 +226,11 @@ class Model {
 
         if (limit != null){
             params.push(limit)
-            sql += ` limit $${params.length} `;
+            sql += ` limit ? `;
         }
         if (offset != null){
             params.push(offset)
-            sql += ` offset $${params.length} `;
+            sql += ` offset ? `;
         } 
         
         if (for_update) sql += ` for update ${for_update} `;
