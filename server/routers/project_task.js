@@ -34,10 +34,13 @@ router.get('/:project_id/:task_id?', async (req, res, next) => {
                       ru_responsible.login  as "ru_responsible_login",
                       ru_responsible.user_id  as "ru_responsible_id",
                       ru_reviewer.login  as "ru_reviewer_login",
-                      ru_reviewer.user_id  as "ru_reviewer_id"`,
+                      ru_reviewer.user_id  as "ru_reviewer_id",
+                      project_status.*`,
             joins : [
                 { table : "ref_users ru_created", 
                      on : "project_task.created_by = ru_created.user_id" },
+                { table : "project_status", 
+                     on : "project_task.status_id = project_status.status_id" },
                 { table : "ref_users ru_executor", 
                    type : "left join",
                      on : "project_task.executor_id = ru_executor.user_id" },
@@ -49,9 +52,12 @@ router.get('/:project_id/:task_id?', async (req, res, next) => {
                      on : "project_task.reviewer_id = ru_reviewer.user_id" },
             ],
             where : {
-                is_deleted : "N", project_id, task_id, executor_id, responsible_id, reviewer_id, status_id,
+                "project_task.is_deleted" : "N", 
+                "project_task.project_id" : project_id, 
+                task_id, executor_id, responsible_id, reviewer_id, status_id,
                 _custom : _custom
             },
+            order : "task_id desc",
             limit : +limit || 50,
             offset : +offset || 0
         });

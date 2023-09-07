@@ -5,10 +5,17 @@ import { useParams } from 'react-router-dom';
 import React, { useState, useEffect, useRef } from 'react';
 import Breadcrumb from "../helpers/Breadcrumb";
 import { useSelector, useDispatch } from 'react-redux';
-import { getProject } from "../../network/TaskNetwork";
-import { addProject, addProjectList } from '../../reducers/Project';
+import { getProject, getProjectTaskList } from "../../network/TaskNetwork";
+import { addProject, addTaskList } from '../../reducers/Project';
+import moment from 'moment-timezone';
+import 'moment/locale/ru';
+moment.locale('ru');
 
 function TaskProjectForm(props) {
+    const [ searchParams ] = useSearchParams();
+    const limit = searchParams.get("limit");
+    const offset = searchParams.get("offset")?searchParams.get("offset"):0;
+
     const dispatch = useDispatch();
     const navigate = useNavigate();
     const { project_id } = useParams();
@@ -18,10 +25,14 @@ function TaskProjectForm(props) {
     // Первичная загрузка данных,
     // Последующие загрзки при измененеии entity_id
     useEffect(() => {
-        fetchProjectList();
+        fetchProject();
     },[]);
 
-    const fetchProjectList = () => {
+    useEffect(() => {
+        fetchProjectTaskList();
+    },[offset])
+
+    const fetchProject = () => {
         getProject({project_id},(err,resp) => {
             if (!err) {
                 dispatch(addProject(resp));
@@ -30,6 +41,42 @@ function TaskProjectForm(props) {
             }
         });
     };
+
+    const fetchProjectTaskList = () => {
+        getProjectTaskList({limit:limit?limit:"", offset:offset?offset:"",project_id},(err,resp) => {
+            if (!err) {
+                dispatch(addTaskList(resp));
+            } else {
+                alert("Ошибка: "+err);
+            }
+        });
+    };
+
+    const paginateForward = () => {
+        navigate(`/task/project/${project_id}?limit=50&offset=${parseInt(offset?offset:0)+50}`);
+    }
+
+    const paginateBackward = () => {
+        navigate(`/task/project/${project_id}?limit=50&offset=${parseInt(offset)-50}`);
+    }
+
+    const listItems = Project.taskList.map((el,index) => 
+        <ListGroup.Item key={1} 
+            action href={"https://ya.ru"}
+            onClick={(e) => {}} 
+            variant={el.is_closed === "Y"? "secondary":""}>
+                <div class="d-flex w-100 justify-content-between">
+                    <h5 class="mb-1">{el.task_title}</h5>
+                    <small>{moment(el.created_on,'YYYY-MM-DDTHH:mm:ss.SSSZ').fromNow()}</small>
+                </div>
+                <p class="mb-1">
+                    {el.executor_id?<><i className="bi bi-person"></i> {el.ru_executor_login} &nbsp;</> :""}
+                    {el.ru_responsible_id?<><i className="bi bi-person-check"></i> {el.ru_responsible_login} &nbsp;</> :""}
+                    {el.ru_reviewer_id?<><i className="bi bi-arrow-right"></i> {el.ru_reviewer_login} &nbsp;</> :""}
+                </p>
+                <small><Badge bg={el.variant}>{el.status_name}</Badge></small>
+        </ListGroup.Item>
+    )
 
     return (
     <Container>
@@ -64,7 +111,8 @@ function TaskProjectForm(props) {
     <Row style={{marginTop: "8px"}}>
         <Col lg={12}>
         <ListGroup>
-        <ListGroup.Item key={1} 
+            {listItems}
+        {/* <ListGroup.Item key={1} 
             action href={"https://ya.ru"}
             onClick={(e) => {}} 
             variant="">
@@ -123,9 +171,23 @@ function TaskProjectForm(props) {
     </div>
     <p class="mb-1">Donec id elit non mi porta gravida at eget metus. Maecenas sed diam eget risus varius blandit.</p>
     <small>Donec id elit non mi porta.</small>
-        </ListGroup.Item>
+        </ListGroup.Item> */}
     </ListGroup>  
             
+        </Col>
+    </Row>
+    <Row style={{marginBottom: "32px"}}>
+        <Col>
+        <br/><br/>
+            {offset!=0?
+            <a href="#" onClick={paginateBackward} style={{fontSize:"1.6em"}}>
+                <i className="bi bi-arrow-left-circle"></i>
+            </a>:""
+            }
+            &nbsp;
+            <a href="#" onClick={paginateForward} style={{fontSize:"1.6em"}}>
+                <i className="bi bi-arrow-right-circle"></i>
+            </a>
         </Col>
     </Row>
     </Container>

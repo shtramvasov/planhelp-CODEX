@@ -34,7 +34,28 @@ export const projectSlice = createSlice({
                 //     "is_deleted": "N"
                 // }
             ]
-        }
+        },
+        task : {
+            task_id : null,
+            project_id : null,
+            task_title : "",
+            task_note : "",
+            created_on : "",
+            created_by : null,
+            is_deleted : "",
+            status_id : null,
+            executor_id : null,
+            responsible_id : null,
+            reviewer_id : null,
+            ru_created_login : "",
+            ru_executor_login : "",
+            ru_executor_id : null,
+            ru_responsible_login : null,
+            ru_responsible_id : null,
+            ru_reviewer_login : null,
+            ru_reviewer_id : null
+        },
+        taskList : []
     },
     reducers: {
         addProject: (state, action) => {
@@ -43,12 +64,20 @@ export const projectSlice = createSlice({
         addProjectList: (state, action) => {
             state.projectList = (action.payload);
         },
+        addTask: (state, action) => {
+            state.task = (action.payload);
+        },
+        addTaskList: (state, action) => {
+            state.taskList = (action.payload);
+        }
     }
 });
 
 export const { 
     addProject,
-    addProjectList
+    addProjectList,
+    addTask,
+    addTaskList
 } = projectSlice.actions;
 
 export default projectSlice.reducer;

@@ -45,7 +45,7 @@ router.get('/:project_id?', async (req, res, next) => {
                 }
             });
         }
-        projectOne.project_status_list = await ProjectStatus.find(con, {where : { project_id }});
+        projectOne.project_status_list = await ProjectStatus.find(con, {where : { project_id , is_deleted : 'N'}});
         res.send(projectOne);
     } catch(error) {
         next(error);
