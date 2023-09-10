@@ -12,6 +12,7 @@ import NotifyList from "./notify/NotifyList";
 import Task from "./task/Task";
 import TaskProjectForm from "./task/TaskProjectForm";
 import TaskProjectList from "./task/TaskProjectList";
+import TaskProjectTaskForm from "./task/TaskProjectTaskForm";
 import Hr from "./hr/Hr";
 
 import { useSelector, useDispatch } from 'react-redux'
@@ -58,8 +59,12 @@ const router = createBrowserRouter([
         element: <TaskProjectForm />,
     },
     {
-        path: "/task/project/:project_id",
+        path: "/task/project/:project_id/",
         element: <TaskProjectList />,
+    },
+    {
+        path: "/task/project/:project_id/:task_id",
+        element: <TaskProjectTaskForm />,
     },
     {
         path: "/task",

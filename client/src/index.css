@@ -31,3 +31,10 @@ code {
 .navbar-nav .nav-link.active, .navbar-nav .show>.nav-link {
   font-weight: 500;
 }
+
+.modal-80w {
+  min-width:80%;
+}
+.modal-90w {
+  min-width:90%;
+}

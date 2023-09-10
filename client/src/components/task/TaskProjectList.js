@@ -1,5 +1,5 @@
 import { Navbar }  from "../navbar/Navbar";
-import { Container, Row, Col, Form, Button, ListGroup, Table, Badge, Dropdown, DropdownButton} from 'react-bootstrap';
+import { Container, Row, Col, Form, Button, ListGroup, Table, Badge, Dropdown, DropdownButton, InputGroup } from 'react-bootstrap';
 import { useNavigate , useSearchParams} from "react-router-dom";
 import { useParams } from 'react-router-dom';
 import React, { useState, useEffect, useRef } from 'react';
@@ -7,23 +7,27 @@ import Breadcrumb from "../helpers/Breadcrumb";
 import { useSelector, useDispatch } from 'react-redux';
 import { getProject, getProjectTaskList } from "../../network/TaskNetwork";
 import { addProject, addTaskList } from '../../reducers/Project';
+import Select from 'react-select';
+import ModalTask from "./ModalTask";
 import moment from 'moment-timezone';
 import 'moment/locale/ru';
 moment.locale('ru');
 
-function TaskProjectForm(props) {
+function TaskProjectList(props) {
     const [ searchParams ] = useSearchParams();
     const limit = searchParams.get("limit");
     const offset = searchParams.get("offset")?searchParams.get("offset"):0;
 
+
     const dispatch = useDispatch();
     const navigate = useNavigate();
-    const { project_id } = useParams();
+    const { project_id, task_id } = useParams();
+
+    const [showModalTaskDetail, setShowModalTaskDetail] = useState(false);
 
     const Project = useSelector((state) => state.project);
-    
-    // Первичная загрузка данных,
-    // Последующие загрзки при измененеии entity_id
+
+    // Первичная загрузка данных
     useEffect(() => {
         fetchProject();
     },[]);
@@ -31,6 +35,20 @@ function TaskProjectForm(props) {
     useEffect(() => {
         fetchProjectTaskList();
     },[offset])
+
+    useEffect(() => {
+        if (task_id) setShowModalTaskDetail(true);
+    },[task_id]);
+
+    const actionCallModaTask = (e) => {
+        e.preventDefault();
+        // dispatch(addEntityNote({}));
+        setShowModalTaskDetail(true);
+    }
+    const actionCallModaTaskCallback = (commonNote) => {
+        //moment(commonNote.remind_on,'YYYY-MM-DD HH:mm:ss').tz('UTC').format('YYYY-MM-DD HH:mm:ss')
+        setShowModalTaskDetail(false);
+    }
 
     const fetchProject = () => {
         getProject({project_id},(err,resp) => {
@@ -61,18 +79,18 @@ function TaskProjectForm(props) {
     }
 
     const listItems = Project.taskList.map((el,index) => 
-        <ListGroup.Item key={1} 
-            action href={"https://ya.ru"}
-            onClick={(e) => {}} 
+        <ListGroup.Item key={index} 
+            action href={`/task/project/${el.project_id}/${el.task_id}/`} // ??????? решить вопрос с url для деталей задачи
+            onClick={(e) => {actionCallModaTask(e)}} 
             variant={el.is_closed === "Y"? "secondary":""}>
                 <div class="d-flex w-100 justify-content-between">
                     <h5 class="mb-1">{el.task_title}</h5>
                     <small>{moment(el.created_on,'YYYY-MM-DDTHH:mm:ss.SSSZ').fromNow()}</small>
                 </div>
                 <p class="mb-1">
-                    {el.executor_id?<><i className="bi bi-person"></i> {el.ru_executor_login} &nbsp;</> :""}
-                    {el.ru_responsible_id?<><i className="bi bi-person-check"></i> {el.ru_responsible_login} &nbsp;</> :""}
-                    {el.ru_reviewer_id?<><i className="bi bi-arrow-right"></i> {el.ru_reviewer_login} &nbsp;</> :""}
+                    {el.executor_id?<><i class="bi bi-person"></i> {el.ru_executor_login} &nbsp;</> :""}
+                    {el.ru_responsible_id?<><i class="bi bi-person-check"></i> {el.ru_responsible_login} &nbsp;</> :""}
+                    {el.ru_reviewer_id?<><i class="bi bi-arrow-right"></i> {el.ru_reviewer_login} &nbsp;</> :""}
                 </p>
                 <small><Badge bg={el.variant}>{el.status_name}</Badge></small>
         </ListGroup.Item>
@@ -80,6 +98,13 @@ function TaskProjectForm(props) {
 
     return (
     <Container>
+    <ModalTask 
+        fullscreen={true}
+        show={showModalTaskDetail} 
+        callBack={actionCallModaTaskCallback}
+        // note={Disk.entityNote} 
+    />
+
     <Row>
         <Col>
             <Navbar />
@@ -91,89 +116,72 @@ function TaskProjectForm(props) {
         <Breadcrumb 
             items={[
                 {url:`/task`, name: "Мои проекты"},
-                {url:`/task/project/add`, name: Project.project.project_name}
+                {url:``, name: Project.project.project_name}
             ]}
         />
         </Col>
     </Row>
+
     <Row>
         <Col>
-            <Button variant="outline-primary" onClick={() => navigate(`/task/project/add`)}>
-                <i className="bi bi-clipboard-plus"></i>
-            </Button>
-        </Col>
-    </Row>
-    <Row style={{marginTop: "8px"}}>
-        <Col>
+            <div style={{float:"left",paddingRight:"4px"}}>
             <h2>{Project.project.project_name}</h2>
+            </div>
+            <div>
+            <Form.Group className="mb-3">
+                <Button type="button" variant="" onClick={actionCallModaTask} >
+                    <i className="bi bi-plus-circle"></i>
+                </Button>
+            </Form.Group>
+            </div>
         </Col>
     </Row>
-    <Row style={{marginTop: "8px"}}>
+    <Row>
+        <Col>
+        <InputGroup>
+            <Select 
+                isMulti 
+                closeMenuOnSelect={false} 
+                placeholder="Статус" 
+                options={Project.project.project_status_list.map(status => {
+                        return {value : status.status_id, label : status.status_name}
+                })}
+            />
+            &nbsp;
+            <Select 
+                isMulti 
+                closeMenuOnSelect={false} 
+                placeholder="Исполнитель" 
+                options={Project.project.project_user_list.map(user => {
+                    return {value : user.user_id, label : user.login}
+                })}
+            />
+            &nbsp;
+            <Select 
+                isMulti 
+                closeMenuOnSelect={false} 
+                placeholder="Ответственный" 
+                options={Project.project.project_user_list.map(user => {
+                    return {value : user.user_id, label : user.login}
+                })}
+            />
+            &nbsp;
+            <Select 
+                isMulti 
+                closeMenuOnSelect={false} 
+                placeholder="Ревьювер" 
+                options={Project.project.project_user_list.map(user => {
+                    return {value : user.user_id, label : user.login}
+                })}
+            />
+        </InputGroup>        
+        </Col>
+    </Row>
+    <Row style={{marginTop: "16px"}}>
         <Col lg={12}>
-        <ListGroup>
-            {listItems}
-        {/* <ListGroup.Item key={1} 
-            action href={"https://ya.ru"}
-            onClick={(e) => {}} 
-            variant="">
-                <div class="d-flex w-100 justify-content-between">
-                    <h5 class="mb-1">JavaScript behavior WEB / ЛК УК</h5>
-                    <small>3 дня назад</small>
-                </div>
-                
-                <p class="mb-1">
-                    <i className="bi bi-person"></i> forson &nbsp;
-                    <i className="bi bi-person-check"></i> predeinay &nbsp;
-                    <i className="bi bi-arrow-right"></i> timofey &nbsp;
-                </p>
-                <small><Badge bg="success">New</Badge></small>
-                
-        </ListGroup.Item>
-        <ListGroup.Item key={1} 
-            action href={"https://ya.ru"}
-            onClick={(e) => {}} 
-            variant="">
-                <div class="d-flex w-100 justify-content-between">
-                    <h5 class="mb-1">Conveying meaning to assistive technologies Android / ios</h5>
-                    <small>3 дня назад</small>
-                </div>
-                
-                <p class="mb-1">
-                    <i className="bi bi-person"></i> forson &nbsp;
-                    <i className="bi bi-person-check"></i> predeinay &nbsp;
-                    <i className="bi bi-arrow-right"></i> timofey &nbsp;
-                </p>
-                <small><Badge bg="warning">Testing</Badge></small>
-        </ListGroup.Item>
-        <ListGroup.Item key={1} 
-            action href={"https://ya.ru"}
-            onClick={(e) => {}} 
-            variant="secondary">
-                <div class="d-flex w-100 justify-content-between">
-                    <h5 class="mb-1">Conveying meaning to assistive technologies Android / ios</h5>
-                    <small>3 дня назад</small>
-                </div>
-                
-                <p class="mb-1">
-                    <i className="bi bi-person"></i> dmk &nbsp;
-                    <i className="bi bi-person-check"></i> predeinay &nbsp;
-                    <i className="bi bi-arrow-right"></i> timofey &nbsp;
-                </p>
-                <small><Badge bg="secondary">Close</Badge></small>
-        </ListGroup.Item>
-        <ListGroup.Item key={1} 
-            action href={"https://ya.ru"}
-            onClick={(e) => {}} 
-            variant="secondary">
-                <div class="d-flex w-100 justify-content-between">
-      <h5 class="mb-1">List group item heading</h5>
-      <small>3 days ago</small>
-    </div>
-    <p class="mb-1">Donec id elit non mi porta gravida at eget metus. Maecenas sed diam eget risus varius blandit.</p>
-    <small>Donec id elit non mi porta.</small>
-        </ListGroup.Item> */}
-    </ListGroup>  
-            
+            <ListGroup>
+                {listItems}
+            </ListGroup>      
         </Col>
     </Row>
     <Row style={{marginBottom: "32px"}}>
@@ -181,12 +189,12 @@ function TaskProjectForm(props) {
         <br/><br/>
             {offset!=0?
             <a href="#" onClick={paginateBackward} style={{fontSize:"1.6em"}}>
-                <i className="bi bi-arrow-left-circle"></i>
+                <i class="bi bi-arrow-left-circle"></i>
             </a>:""
             }
             &nbsp;
             <a href="#" onClick={paginateForward} style={{fontSize:"1.6em"}}>
-                <i className="bi bi-arrow-right-circle"></i>
+                <i class="bi bi-arrow-right-circle"></i>
             </a>
         </Col>
     </Row>
@@ -195,4 +203,4 @@ function TaskProjectForm(props) {
 }
 
 
-export default TaskProjectForm;
+export default TaskProjectList;

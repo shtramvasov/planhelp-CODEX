@@ -1,0 +1,64 @@
+import { Navbar }  from "../navbar/Navbar";
+import { Container, Row, Col, Form, Button, ListGroup, Table, Badge, Dropdown, DropdownButton, InputGroup } from 'react-bootstrap';
+import { useNavigate , useSearchParams} from "react-router-dom";
+import { useParams } from 'react-router-dom';
+import React, { useState, useEffect, useRef } from 'react';
+import Breadcrumb from "../helpers/Breadcrumb";
+import { useSelector, useDispatch } from 'react-redux';
+import { getProject, getProjectTaskList } from "../../network/TaskNetwork";
+import { addProject, addTaskList } from '../../reducers/Project';
+import Select from 'react-select';
+import TaskForm from "./TaskForm";
+import moment from 'moment-timezone';
+import 'moment/locale/ru';
+moment.locale('ru');
+
+function TaskProjectTaskForm(props) {
+    const dispatch = useDispatch();
+    const navigate = useNavigate();
+    const { project_id, task_id } = useParams();
+    const Project = useSelector((state) => state.project);
+    
+    useEffect(() => {
+        fetchProject();
+    },[]);
+
+    const fetchProject = () => {
+        getProject({project_id},(err,resp) => {
+            if (!err) {
+                dispatch(addProject(resp));
+            } else {
+                alert("Ошибка: "+err);
+            }
+        });
+    };
+
+    return (
+    <Container>
+        <Row>
+            <Col>
+                <Navbar />
+                <hr/>
+            </Col>
+        </Row>
+        <Row>
+            <Col>
+            <Breadcrumb 
+                items={[
+                    {url:`/task`, name: "Мои проекты"},
+                    {url:`/task/project/${Project.project.project_id}`, name: Project.project.project_name},
+                    {url:``, name: "Project.task.task_title"}
+                ]}
+            />
+            </Col>
+        </Row>
+        <Row>
+            <Col>
+                <TaskForm />
+            </Col>
+        </Row>
+    </Container>
+    )
+}
+
+export default TaskProjectTaskForm;

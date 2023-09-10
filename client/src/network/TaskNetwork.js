@@ -68,3 +68,16 @@ export async function getProjectTaskList(
         cb(response.status + " " + response.statusText);
     }
 }
+
+export async function getTask({project_id, task_id}, cb = () => {}) {
+    const response = await fetch(`/api/secure/project/task/${project_id}/${task_id}`, {
+        method: 'get',
+        headers: {'Authorization': `Bearer ${Cookies.get("secret")}`}
+    });
+    if (response.ok) {
+        const data = await response.json();
+        cb(null,data);
+    } else {
+        cb(response.status + " " + response.statusText);
+    }
+}
