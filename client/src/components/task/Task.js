@@ -30,10 +30,15 @@ function Task(props) {
         });
     };
 
+    const navigateToDetail = (project) => {
+        let projectId = project.project_id
+        navigate(`/task/project/${projectId}`);
+    }
+
     const listItems = Project.projectList.map((el) => {
         return <>
         <Col lg={6}>
-            <div className="card mb-3">
+            <div className="card mb-3" onClick={ (e) => { navigateToDetail(el) } }>
             <div className="row">
                 <div className="col-md-8">
                 <div className="card-body">

@@ -46,6 +46,44 @@ export async function postProject({project_id, project_name, project_note}, cb =
     }
 }
 
+export async function addUserToProject({ project_id, selectedUserId, user_role }, cb = () => {}) {
+    const response = await fetch(`/api/secure/project/${project_id}/users`, {
+        method: 'post',
+        body: JSON.stringify({ 
+            user_id: selectedUserId, 
+            user_role: user_role}),
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${Cookies.get("secret")}`
+        }
+    });
+    if (response.ok) {
+        const data = await response.json();
+        cb(null,data);
+    } else {
+        cb(response.status + " " + response.statusText);
+    }
+}
+
+export async function delUserToProject({ project_id, selectedUserId, user_role }, cb = () => {}) {
+    const response = await fetch(`/api/secure/project/${project_id}/users/revoke`, {
+        method: 'post',
+        body: JSON.stringify({ 
+            user_id: selectedUserId, 
+            user_role: user_role}),
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${Cookies.get("secret")}`
+        }
+    });
+    if (response.ok) {
+        const data = await response.json();
+        cb(null,data);
+    } else {
+        cb(response.status + " " + response.statusText);
+    }
+}
+
 export async function getProjectTaskList(
     {limit, offset, executor_id, responsible_id, reviewer_id, status_id, status_ids, project_id }
     , cb = () => {}) {
@@ -81,3 +119,4 @@ export async function getTask({project_id, task_id}, cb = () => {}) {
         cb(response.status + " " + response.statusText);
     }
 }
+

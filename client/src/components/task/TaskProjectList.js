@@ -5,12 +5,14 @@ import { useParams } from 'react-router-dom';
 import React, { useState, useEffect, useRef } from 'react';
 import Breadcrumb from "../helpers/Breadcrumb";
 import { useSelector, useDispatch } from 'react-redux';
-import { getProject, getProjectTaskList } from "../../network/TaskNetwork";
+import { addUserToProject, getProject, getProjectTaskList } from "../../network/TaskNetwork";
 import { addProject, addTaskList } from '../../reducers/Project';
 import Select from 'react-select';
 import ModalTask from "./ModalTask";
 import moment from 'moment-timezone';
 import 'moment/locale/ru';
+
+
 moment.locale('ru');
 
 function TaskProjectList(props) {
@@ -18,13 +20,12 @@ function TaskProjectList(props) {
     const limit = searchParams.get("limit");
     const offset = searchParams.get("offset")?searchParams.get("offset"):0;
 
-
+    
     const dispatch = useDispatch();
     const navigate = useNavigate();
     const { project_id, task_id } = useParams();
 
     const [showModalTaskDetail, setShowModalTaskDetail] = useState(false);
-
     const Project = useSelector((state) => state.project);
 
     // Первичная загрузка данных
@@ -78,6 +79,22 @@ function TaskProjectList(props) {
         navigate(`/task/project/${project_id}?limit=50&offset=${parseInt(offset)-50}`);
     }
 
+    const navigateToActivity = () => {
+        navigate(`/task/project/${project_id}/activity`);
+    }
+
+    const ActivityButton = (project) => {
+        if (project.user_role === "OWNER") {
+            return(
+                <Button type="button" variant="" onClick={navigateToActivity} >
+                    <i className="bi bi-info-circle"></i>
+                </Button>
+            )
+        } else {
+            return ""
+        }
+    }
+
     const listItems = Project.taskList.map((el,index) => 
         <ListGroup.Item key={index} 
             action href={`/task/project/${el.project_id}/${el.task_id}/`} // ??????? решить вопрос с url для деталей задачи
@@ -104,7 +121,6 @@ function TaskProjectList(props) {
         callBack={actionCallModaTaskCallback}
         // note={Disk.entityNote} 
     />
-
     <Row>
         <Col>
             <Navbar />
@@ -121,7 +137,6 @@ function TaskProjectList(props) {
         />
         </Col>
     </Row>
-
     <Row>
         <Col>
             <div style={{float:"left",paddingRight:"4px"}}>
@@ -132,6 +147,7 @@ function TaskProjectList(props) {
                 <Button type="button" variant="" onClick={actionCallModaTask} >
                     <i className="bi bi-plus-circle"></i>
                 </Button>
+                {  ActivityButton(Project.project) }
             </Form.Group>
             </div>
         </Col>
