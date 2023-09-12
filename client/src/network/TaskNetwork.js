@@ -27,12 +27,14 @@ export async function getProject({project_id}, cb = () => {}) {
     }
 }
 
-export async function postProject({project_id, project_name, project_note}, cb = () => {}) {
-    const response = await fetch(`/api/secure/project/${project_id?project_id:""}`, {
+export async function postProject({project_id, project_name, project_note, is_deleted}, cb = () => {}) {
+    const response = await fetch(`/api/secure/project/${project_id ? project_id : ""}`, {
         method: 'post',
         body: JSON.stringify({
             project_name: project_name, 
-            project_note : project_note}),
+            project_note : project_note,
+            is_deleted: is_deleted
+        }),
         headers: {
             'Content-Type': 'application/json',
             'Authorization': `Bearer ${Cookies.get("secret")}`

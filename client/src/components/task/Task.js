@@ -6,6 +6,9 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useSelector, useDispatch } from 'react-redux'
 import { getProjectList } from "../../network/TaskNetwork";
 import { addProjectList } from '../../reducers/Project';
+import moment from 'moment-timezone';
+import 'moment/locale/ru';
+moment.locale('ru');
 
 function Task(props) {
     const dispatch = useDispatch();
@@ -44,7 +47,12 @@ function Task(props) {
                 <div className="card-body">
                     <h5 className="card-title">{el.project_name}</h5>
                     <p className="card-text">{el.project_note}</p>
-                    <p className="card-text"><small className="text-body-secondary">Last updated 3 mins ago</small></p>
+                    <p className="card-text">
+                        <small className="text-body-secondary">
+                            Проект создан: { moment(el.created_on,'YYYY-MM-DDTHH:mm:ss.SSSZ').fromNow() } <br />
+                            (Вроде как тут планировалось показывать last update, но поле только created_on есть)
+                        </small>
+                    </p>
                 </div>
                 </div>
             </div>

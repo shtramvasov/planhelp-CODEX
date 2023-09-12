@@ -83,6 +83,10 @@ function TaskProjectList(props) {
         navigate(`/task/project/${project_id}/activity`);
     }
 
+    const navigateToEditProject = () => {
+        navigate(`/task/project/${project_id}/edit`)
+    }
+
     const ActivityButton = (project) => {
         if (project.user_role === "OWNER") {
             return(
@@ -139,8 +143,10 @@ function TaskProjectList(props) {
     </Row>
     <Row>
         <Col>
-            <div style={{float:"left",paddingRight:"4px"}}>
-            <h2>{Project.project.project_name}</h2>
+            <div style={{float:"left", paddingRight:"4px"}}>
+                <h2 style={{ cursor: "pointer" }}  onClick={navigateToEditProject}>
+                    { Project.project.project_name }
+                </h2>
             </div>
             <div>
             <Form.Group className="mb-3">
