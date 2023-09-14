@@ -8,9 +8,10 @@ import Col from 'react-bootstrap/Col';
 import moment from 'moment-timezone';
 import { getTask } from '../../network/TaskNetwork';
 import { addTask } from '../../reducers/Project';
-import { useNavigate , useSearchParams} from "react-router-dom";
+import { Link, useNavigate , useSearchParams} from "react-router-dom";
 import { useSelector, useDispatch } from 'react-redux';
 import { useParams } from 'react-router-dom';
+import LinkInput from '../helpers/LinkInput';
 import 'moment/locale/ru';
 moment.locale('ru');
 
@@ -43,24 +44,37 @@ function TaskForm(props) {
                 <Row>
                     <Col>
                         <Form.Group className="mb-3" controlId="modalText">
-                            <Form.Control
+                            <LinkInput
+                                type="textField"
+                                placeholder="Hello world"
+                                defaultValue="Какой то заголовок"
+                                callBack={(value) => { console.log(value) }}
+                             />
+                            {/* <Form.Control
                                 type="text"
                                 placeholder={"Тайтл"}
                                 // defaultValue={props.note.note}
-                                autoFocus/>
+                                autoFocus/> */}
                         </Form.Group>
                     </Col>
                 </Row>
                 <Row>
                     <Col>
                         <Form.Group className="mb-3" controlId="modalText">
-                            <Form.Control
+                            <LinkInput
+                                type="textArea"
+                                rows={10}
+                                placeholder="Hello world"
+                                defaultValue="Какой то текст задачи"
+                                callBack={(value) => { console.log(value) }}
+                            />
+                            {/* <Form.Control
                                 type="text"
                                 as="textarea"
                                 rows={10}
                                 placeholder={"Текст задачи"}
                                 // defaultValue={props.note.note}
-                                autoFocus/>
+                                autoFocus/> */}
                         </Form.Group>
                     </Col>
                 </Row>
@@ -73,7 +87,12 @@ function TaskForm(props) {
                             <small>Исполнитель</small>
                         </div>
                         <div>
-                            <a href="https://t.me/planhelpbot" className="phLink">predeinay</a>
+                            <LinkInput 
+                                type="selectList"
+                                placeholder="Исполнитель"
+                                defaultDisplay="timofey"
+                                callBack={(value) => { console.log(value) }}
+                                />
                         </div>
                     </Col>
                 </Row>
@@ -83,7 +102,12 @@ function TaskForm(props) {
                             <small>Ответственный</small>
                         </div>
                         <div>
-                            <a href="https://t.me/planhelpbot" className="phLink">forson</a>
+                        <LinkInput 
+                                type="selectList"
+                                placeholder="Исполнитель"
+                                defaultDisplay="timofey"
+                                callBack={(value) => { console.log(value) }}
+                                />
                         </div>
                     </Col>
                 </Row>
@@ -93,7 +117,12 @@ function TaskForm(props) {
                             <small>Ревьювер</small>
                         </div>
                         <div>
-                            <a href="https://t.me/planhelpbot" className="phLink">timofey</a>
+                        <LinkInput 
+                                type="selectList"
+                                placeholder="Исполнитель"
+                                defaultDisplay="timofey"
+                                callBack={(value) => { console.log(value) }}
+                                />
                         </div>
                     </Col>
                 </Row>
@@ -103,7 +132,12 @@ function TaskForm(props) {
                             <small>Статус</small>
                         </div>
                         <div>
-                            <a href="https://t.me/planhelpbot" className="phLink">todo</a>
+                        <LinkInput 
+                                type="selectList"
+                                placeholder="Исполнитель"
+                                defaultDisplay="timofey"
+                                callBack={(value) => { console.log(value) }}
+                                />
                         </div>
                     </Col>
                 </Row>
