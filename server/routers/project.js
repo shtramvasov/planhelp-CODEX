@@ -14,6 +14,7 @@ router.get('/:project_id?', async (req, res, next) => {
     try {
         con = await mysql.getConnection();
 
+        // список разрешенных проектов или один
         const projectList = await Project.find(con,{
             select : "project.*, pu.user_role",
             joins : [
@@ -33,19 +34,23 @@ router.get('/:project_id?', async (req, res, next) => {
             return;
         }
         const projectOne = projectList[0];
-        projectOne.created_by_model = (await RefUsers.find(con,{ select : "login, user_id",where : {user_id : user_id} }))[0];
-        if (projectOne.user_role !== 'READ') {
-            projectOne.project_user_list = await ProjectUser.find(con,{ 
-                select : "project_user.user_id, ref_users.login, project_user.user_role",
-                joins : [
-                    { table : "ref_users", on : "project_user.user_id = ref_users.user_id" }
-                ],
-                where : {
-                    project_id
-                }
+        // Если детали проекта - достаем доп свойства
+        projectOne.created_by_model = 
+            (await RefUsers.find(con,{ select : "login, user_id",where : {user_id : user_id} }))[0];
+        projectOne.project_user_list = await ProjectUser.find(con,{ 
+            select : "project_user.user_id, ref_users.login, project_user.user_role",
+            joins : [
+                { table : "ref_users", on : "project_user.user_id = ref_users.user_id" }
+            ],
+            where : {
+                project_id
+            }
+        });
+        projectOne.project_status_list = 
+            await ProjectStatus.find(con, {
+                where : { project_id , is_deleted : ProjectStatus.CONSTANTS.N},
+                orderby : "orderby"
             });
-        }
-        projectOne.project_status_list = await ProjectStatus.find(con, {where : { project_id , is_deleted : 'N'}});
         res.send(projectOne);
     } catch(error) {
         next(error);
@@ -67,18 +72,46 @@ router.post('/', async (req, res, next) => {
                 project_note : project_note,
                 created_on : { expression : "now()" },
                 created_by : user_id,
-                is_deleted : "N",
+                is_deleted : Project.CONSTANTS.N,
                 total_task_count : 0,
                 total_user_count : 0
             }
         });
+        // тот кто сто создал проект - owner
         await ProjectUser.create(con, {
             values : {
                 project_id,
                 user_id,
-                user_role : "OWNER"
+                user_role : ProjectUser.CONSTANTS.OWNER
             }
         });
+        // создаем дефолтный набор статусов
+        await ProjectStatus.create(con, {values:{
+            project_id, status_name : "К выполнению", variant : "info", 
+            is_deleted : ProjectStatus.CONSTANTS.N, orderby: 1, is_closed : 
+            ProjectStatus.CONSTANTS.N
+        }});
+        await ProjectStatus.create(con, {values:{
+            project_id, status_name : "В работе", variant : "success", 
+            is_deleted : ProjectStatus.CONSTANTS.N, orderby: 2, is_closed : 
+            ProjectStatus.CONSTANTS.N
+        }});
+        await ProjectStatus.create(con, {values:{
+            project_id, status_name : "Проверяется", variant : "warning", 
+            is_deleted : ProjectStatus.CONSTANTS.N, orderby: 3, is_closed : 
+            ProjectStatus.CONSTANTS.N
+        }});
+        await ProjectStatus.create(con, {values:{
+            project_id, status_name : "Выполнено", variant : "primary", 
+            is_deleted : ProjectStatus.CONSTANTS.N, orderby: 4, is_closed : 
+            ProjectStatus.CONSTANTS.N
+        }});
+        await ProjectStatus.create(con, {values:{
+            project_id, status_name : "Закрыто", variant : "secondary", 
+            is_deleted : ProjectStatus.CONSTANTS.N, orderby: 5, is_closed : 
+            ProjectStatus.CONSTANTS.Y
+        }});
+
         res.send({project_id});
     } catch(error) {
         next(error);
@@ -87,7 +120,7 @@ router.post('/', async (req, res, next) => {
     }
 });
 
-// Изменени проекта
+// Изменение проекта
 router.post('/:project_id', async (req, res, next) => {
     const { user_id } = req.userModel;
     const { project_id } = req.params;
@@ -95,10 +128,13 @@ router.post('/:project_id', async (req, res, next) => {
     let con;
     try {
         con = await mysql.getConnection();
-        
-        const projectRole = await ProjectUser.find(con,{where : {project_id, user_id}});
+        if (is_deleted) {
+            if (![Project.CONSTANTS.Y,Project.CONSTANTS.N].includes(is_deleted)) 
+                throw "Not valid is_deleted in body params, only Y or N";
+        }
+        const projectRole = (await ProjectUser.find(con,{where : {project_id, user_id}}))[0];
 
-        if (projectRole.user_role !== "OWNER") 'Permission denied';
+        if (projectRole.user_role !== ProjectUser.CONSTANTS.OWNER) 'Permission denied';
 
         await Project.update(con,{
             values : {
@@ -125,9 +161,11 @@ router.post('/:project_id/users', async (req, res, next) => {
     let con;
     try {
         con = await mysql.getConnection();
-        const projectRole = await ProjectUser.find(con,{where : {project_id, user_id : profile_user_id}});
+        if (![ProjectUser.CONSTANTS.READ,ProjectUser.CONSTANTS.WRITE,ProjectUser.CONSTANTS.OWNER]
+            .includes(user_role)) throw "Not valid user_role in body params, only WRITE or OWNER or READ";
+        const projectRole = (await ProjectUser.find(con,{where : {project_id, user_id : profile_user_id}}))[0];
 
-        if (projectRole.user_role !== "OWNER") 'Permission denied';
+        if (projectRole.user_role !== ProjectUser.CONSTANTS.OWNER) 'Permission denied';
 
         await ProjectUser.create(con,{values : { project_id, user_id, user_role }});
 
@@ -147,17 +185,29 @@ router.post('/:project_id/status/:status_id?', async (req, res, next) => {
     let con;
     try {
         con = await mysql.getConnection();
-        const projectRole = await ProjectUser.find(con,{where : {project_id, user_id : profile_user_id}});
+        if (is_deleted) {
+            if (![ProjectStatus.CONSTANTS.Y,ProjectStatus.CONSTANTS.N].includes(is_deleted)) 
+                throw "Not valid is_deleted in body params, only Y or N";
+        }
+        if (is_closed) {
+            if (![ProjectStatus.CONSTANTS.Y,ProjectStatus.CONSTANTS.N].includes(is_deleted)) 
+                throw "Not valid is_closed in body params, only Y or N";
+        }
+        const projectRole = (await ProjectUser.find(con,{where : {project_id, user_id : profile_user_id}}))[0];
 
-        if (projectRole.user_role !== "OWNER") 'Permission denied';
+        if (projectRole.user_role !== ProjectUser.CONSTANTS.OWNER) 'Permission denied';
 
         if (!status_id) {
             await ProjectStatus.create(con,{values : { 
-                project_id, status_name, variant, is_deleted : is_deleted || 'N' , orderby, is_closed
+                project_id, status_name, variant, 
+                is_deleted : is_deleted || ProjectStatus.CONSTANTS.N, 
+                orderby, is_closed
             }});
         } else {
             await ProjectStatus.update(con,{
-                values : { project_id, status_name, variant, is_deleted : is_deleted || 'N', orderby, is_closed},
+                values : { project_id, status_name, variant, 
+                    is_deleted : is_deleted || ProjectStatus.CONSTANTS.N, orderby, is_closed
+                },
                 where : { status_id, project_id }
             });
         }
@@ -178,9 +228,9 @@ router.post('/:project_id/users/revoke', async (req, res, next) => {
     let con;
     try {
         con = await mysql.getConnection();
-        const projectRole = await ProjectUser.find(con,{where : {project_id, user_id : profile_user_id}});
+        const projectRole = (await ProjectUser.find(con,{where : {project_id, user_id : profile_user_id}}))[0];
 
-        if (projectRole.user_role !== "OWNER") 'Permission denied';
+        if (projectRole.user_role !== ProjectUser.CONSTANTS.OWNER) 'Permission denied';
 
         await ProjectUser.delete(con,{where : { project_id, user_id }});
 

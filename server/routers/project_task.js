@@ -15,8 +15,10 @@ router.get('/:project_id/:task_id?', async (req, res, next) => {
     let con;
     try {
         con = await mysql.getConnection();
-        // TODO сделать проверку прав
-        // TODO перенести в модель?
+        
+        const projectRole = (await ProjectUser.find(con,{where : {project_id, user_id : profile_user_id}}))[0];
+        if (!projectRole) throw 'Permission denied';
+
         const _custom = []
         if (status_ids) {
             status_ids = status_ids.replace(/:/g,",");
@@ -25,7 +27,6 @@ router.get('/:project_id/:task_id?', async (req, res, next) => {
                 no_value : true 
             } );
         }
-        console.log(status_ids);
         const taskList = await ProjectTask.find(con, {
             select : `project_task.*,
                       ru_created.login as "ru_created_login",
@@ -35,11 +36,13 @@ router.get('/:project_id/:task_id?', async (req, res, next) => {
                       ru_responsible.user_id  as "ru_responsible_id",
                       ru_reviewer.login  as "ru_reviewer_login",
                       ru_reviewer.user_id  as "ru_reviewer_id",
-                      project_status.*`,
+                      project_status.status_name,
+                      project_status.variant`,
             joins : [
                 { table : "ref_users ru_created", 
                      on : "project_task.created_by = ru_created.user_id" },
                 { table : "project_status", 
+                   type : "left join",
                      on : "project_task.status_id = project_status.status_id" },
                 { table : "ref_users ru_executor", 
                    type : "left join",
@@ -52,9 +55,9 @@ router.get('/:project_id/:task_id?', async (req, res, next) => {
                      on : "project_task.reviewer_id = ru_reviewer.user_id" },
             ],
             where : {
-                "project_task.is_deleted" : "N", 
+                "project_task.is_deleted" : ProjectTask.CONSTANTS.N, 
                 "project_task.project_id" : project_id, 
-                task_id, executor_id, responsible_id, reviewer_id, status_id,
+                task_id, executor_id, responsible_id, reviewer_id, "project_task.status_id" : status_id,
                 _custom : _custom
             },
             order : "task_id desc",
@@ -84,7 +87,9 @@ router.post('/:project_id/:task_id?', async (req, res, next) => {
     let con;
     try {
         con = await mysql.getConnection();
-        // TODO сделать проверку прав
+        
+        const projectRole = (await ProjectUser.find(con,{where : {project_id, user_id : profile_user_id}}))[0];
+        if (!projectRole) 'Permission denied';
 
         if (!task_id) {
             task_id = await ProjectTask.create(con, {

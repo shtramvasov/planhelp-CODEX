@@ -2,6 +2,11 @@ const Model = require('./Model');
 
 class Project extends Model {
 
+    static CONSTANTS = {
+        N : "N",
+        Y : "Y"
+    }
+    
     static fields = [
         "project_id",
         "project_name",
