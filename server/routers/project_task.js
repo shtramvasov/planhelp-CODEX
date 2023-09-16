@@ -15,8 +15,10 @@ router.get('/:project_id/:task_id?', async (req, res, next) => {
     let con;
     try {
         con = await mysql.getConnection();
-        // TODO сделать проверку прав
-        // TODO перенести в модель?
+        
+        const projectRole = (await ProjectUser.find(con,{where : {project_id, user_id : profile_user_id}}))[0];
+        if (!projectRole) throw 'Permission denied';
+
         const _custom = []
         if (status_ids) {
             status_ids = status_ids.replace(/:/g,",");
@@ -53,7 +55,7 @@ router.get('/:project_id/:task_id?', async (req, res, next) => {
                      on : "project_task.reviewer_id = ru_reviewer.user_id" },
             ],
             where : {
-                "project_task.is_deleted" : "N", 
+                "project_task.is_deleted" : ProjectTask.CONSTANTS.N, 
                 "project_task.project_id" : project_id, 
                 task_id, executor_id, responsible_id, reviewer_id, "project_task.status_id" : status_id,
                 _custom : _custom
@@ -85,7 +87,9 @@ router.post('/:project_id/:task_id?', async (req, res, next) => {
     let con;
     try {
         con = await mysql.getConnection();
-        // TODO сделать проверку прав
+        
+        const projectRole = (await ProjectUser.find(con,{where : {project_id, user_id : profile_user_id}}))[0];
+        if (!projectRole) 'Permission denied';
 
         if (!task_id) {
             task_id = await ProjectTask.create(con, {
