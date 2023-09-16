@@ -12,7 +12,7 @@ import ModalTaskEdit from "./ModalTaskEdit";
 import ModalTaskCreate from "./ModalTaskCreate";
 import moment from 'moment-timezone';
 import 'moment/locale/ru';
-import querystring from "querystring";
+import queryString from "query-string";
 moment.locale('ru');
 
 function TaskProjectList(props) {
@@ -50,7 +50,7 @@ function TaskProjectList(props) {
 
     const onChangeUrl = ({status_id, executor_id, responsible_id, reviewer_id, offset, limit}) => {
 
-        const currentUrlObj = querystring.parse(document.location.search.slice(1));
+        const currentUrlObj = queryString.parse(document.location.search.slice(1));
         
         if (status_id !== undefined) currentUrlObj.status_id = status_id;
         if (executor_id !== undefined) currentUrlObj.executor_id = executor_id;
@@ -59,7 +59,7 @@ function TaskProjectList(props) {
         if (limit !== undefined) currentUrlObj.limit = limit;
         if (offset !== undefined) currentUrlObj.offset = offset;
 
-        navigate(`/task/project/${project_id}?${querystring.stringify(currentUrlObj)}`);
+        navigate(`/task/project/${project_id}?${queryString.stringify(currentUrlObj)}`);
         
     }
 
