@@ -117,6 +117,7 @@ function LinkInput(props) {
                 closeMenuOnSelect={false} 
                 placeholder={props.placeholder}
                 options={props.options}
+                value={props.value}
                 onChange={onChangeSelect}
             />
         :

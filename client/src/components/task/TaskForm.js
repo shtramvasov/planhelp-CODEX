@@ -65,6 +65,21 @@ function TaskForm(props) {
         
     }
 
+    // мапированный массив статусов
+    const statusSelectOptions = Project.project.project_status_list.map(status => {
+        return {value : status.status_id, label : status.status_name}
+    });
+    // дефолтное значение статуса
+    const statusSelectOptionsDefault = statusSelectOptions.filter(status => status.value == Project.task.status_id)[0];
+    // мапированный массив пользователей
+    const userSelectOptions = Project.project.project_user_list.map(user => {
+        return {value : user.user_id, label : user.login}
+    });
+    const executorSelectOptionsDefault = userSelectOptions.filter(user => user.value == Project.task.executor_id)[0];
+    const responsibleSelectOptionsDefault = userSelectOptions.filter(user => user.value == Project.task.responsible_id)[0];
+    const reviewerSelectOptionsDefault = userSelectOptions.filter(user => user.value == Project.task.reviewer_id)[0];
+    
+
     return (
     
         <Row>
@@ -107,10 +122,8 @@ function TaskForm(props) {
                                 type="selectList"
                                 placeholder="Исполнитель"
                                 defaultDisplay={Project.task.ru_executor_login?Project.task.ru_executor_login:"Не указан"}
-                                options={
-                                    Project.project.project_user_list.map(user => {
-                                            return {value : user.user_id, label : user.login}
-                                })}
+                                value={executorSelectOptionsDefault}
+                                options={userSelectOptions}
                                 callBack={(value, label) => {saveTask({executor_id : value})}}
                                 />
                         </div>
@@ -125,11 +138,9 @@ function TaskForm(props) {
                         <LinkInput 
                                 type="selectList"
                                 placeholder="Ответственный"
+                                value={responsibleSelectOptionsDefault}
                                 defaultDisplay={Project.task.ru_responsible_login?Project.task.ru_responsible_login:"Не указан"}
-                                options={
-                                    Project.project.project_user_list.map(user => {
-                                            return {value : user.user_id, label : user.login}
-                                })}
+                                options={userSelectOptions}
                                 callBack={(value, label) => {saveTask({responsible_id : value})}}
                                 />
                         </div>
@@ -144,11 +155,9 @@ function TaskForm(props) {
                         <LinkInput 
                                 type="selectList"
                                 placeholder="Ревьювер"
+                                value={reviewerSelectOptionsDefault}
                                 defaultDisplay={Project.task.ru_reviewer_login?Project.task.ru_reviewer_login:"Не указан"}
-                                options={
-                                    Project.project.project_user_list.map(user => {
-                                            return {value : user.user_id, label : user.login}
-                                })}
+                                options={userSelectOptions}
                                 callBack={(value, label) => {saveTask({reviewer_id : value})}}
                                 />
                         </div>
@@ -163,11 +172,9 @@ function TaskForm(props) {
                         <LinkInput 
                                 type="selectList"
                                 placeholder="Статус"
+                                value={statusSelectOptionsDefault}
                                 defaultDisplay={Project.task.status_name?Project.task.status_name:"Не указан"}
-                                options={
-                                    Project.project.project_status_list.map(status => {
-                                            return {value : status.status_id, label : status.status_name}
-                                })}
+                                options={statusSelectOptions}
                                 callBack={(value, label) => {saveTask({status_id : value})}}
                                 />
                         </div>

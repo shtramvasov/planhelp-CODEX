@@ -155,6 +155,20 @@ function TaskProjectList(props) {
         </ListGroup.Item>
     )
 
+    // мапированный массив статусов
+    const statusSelectOptions = Project.project.project_status_list.map(status => {
+        return {value : status.status_id, label : status.status_name}
+    });
+    // дефолтное значение статуса
+    const statusSelectOptionsDefault = statusSelectOptions.filter(status => status.value == status_id)[0];
+    // мапированный массив пользователей
+    const userSelectOptions = Project.project.project_user_list.map(user => {
+        return {value : user.user_id, label : user.login}
+    });
+    const executorSelectOptionsDefault = userSelectOptions.filter(user => user.value == executor_id)[0];
+    const responsibleSelectOptionsDefault = userSelectOptions.filter(user => user.value == responsible_id)[0];
+    const reviewerSelectOptionsDefault = userSelectOptions.filter(user => user.value == reviewer_id)[0];
+    
     return (
     <Container>
 
@@ -214,10 +228,9 @@ function TaskProjectList(props) {
                 onChange={(option) => {
                     onChangeUrl({status_id : option?option.value:null})
                 }}
+                value={statusSelectOptionsDefault}
                 placeholder="Статус" 
-                options={Project.project.project_status_list.map(status => {
-                        return {value : status.status_id, label : status.status_name}
-                })}
+                options={statusSelectOptions}
             />
             &nbsp;
             <Select 
@@ -225,12 +238,11 @@ function TaskProjectList(props) {
                 closeMenuOnSelect={true} 
                 isClearable
                 placeholder="Исполнитель" 
+                value={executorSelectOptionsDefault}
                 onChange={(option) => {
                     onChangeUrl({executor_id : option?option.value:null})
                 }}
-                options={Project.project.project_user_list.map(user => {
-                    return {value : user.user_id, label : user.login}
-                })}
+                options={userSelectOptions}
             />
             &nbsp;
             <Select 
@@ -238,12 +250,11 @@ function TaskProjectList(props) {
                 closeMenuOnSelect={true}
                 isClearable
                 placeholder="Ответственный"
+                value={responsibleSelectOptionsDefault}
                 onChange={(option) => {
                     onChangeUrl({responsible_id : option?option.value:null})
                 }}
-                options={Project.project.project_user_list.map(user => {
-                    return {value : user.user_id, label : user.login}
-                })}
+                options={userSelectOptions}
             />
             &nbsp;
             <Select 
@@ -251,12 +262,11 @@ function TaskProjectList(props) {
                 closeMenuOnSelect={true}
                 isClearable
                 placeholder="Ревьювер" 
+                value={reviewerSelectOptionsDefault}
                 onChange={(option) => {
                     onChangeUrl({reviewer_id : option?option.value:null})
                 }}
-                options={Project.project.project_user_list.map(user => {
-                    return {value : user.user_id, label : user.login}
-                })}
+                options={userSelectOptions}
             />
         </InputGroup>        
         </Col>
