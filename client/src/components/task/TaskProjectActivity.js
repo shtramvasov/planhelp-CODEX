@@ -227,7 +227,7 @@ function TaskProjectActivity(props) {
                 <Breadcrumb 
                     items={[
                         {url:`/task`, name: "Мои проекты"}, 
-                        {url:``, name: Project.project?.project_name.trim()?Project.project.project_name:noText} 
+                        {url:``, name: Project?.project_name.trim()?Project.project_name:noText} 
                     ]}
                 />
                 </Col>
