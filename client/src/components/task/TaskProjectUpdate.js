@@ -8,6 +8,8 @@ import { getProject, postProject } from '../../network/TaskNetwork';
 import { addProject } from '../../reducers/Project';
 import { Navbar } from '../navbar/Navbar';
 
+const noText = "Проект без названия";
+
 function TaskProjectUpdate(props) {
 
     const navigate = useNavigate();
@@ -15,6 +17,7 @@ function TaskProjectUpdate(props) {
     const { project_id } = useParams();
 
     const Project = useSelector((state) => state.project.project);
+    document.title = `Изменить ${Project.project?.project_name.trim()?Project.project.project_name:noText} | planhelp`;
 
     // Первичная загрузка данных
     useEffect(() => { fetchProject()},[]);

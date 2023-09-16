@@ -50,7 +50,7 @@ function Task(props) {
                     <p className="card-text">
                         <small className="text-body-secondary">
                             Проект создан: { moment(el.created_on,'YYYY-MM-DDTHH:mm:ss.SSSZ').fromNow() } <br />
-                            (Вроде как тут планировалось показывать last update, но поле только created_on есть)
+                            {/* (Вроде как тут планировалось показывать last update, но поле только created_on есть) */}
                         </small>
                     </p>
                 </div>

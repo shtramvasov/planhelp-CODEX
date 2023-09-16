@@ -14,6 +14,8 @@ import { addUserList } from "../../reducers/User";
 import ModalAutoComplete from "../helpers/ModalAutoComplete";
 moment.locale('ru');
 
+const noText = "Проект без названия";
+
 function TaskProjectActivity(props) {
 
     const navigate = useNavigate();
@@ -22,6 +24,8 @@ function TaskProjectActivity(props) {
     const User = useSelector((state) => state.user);
     const Project = useSelector((state) => state.project.project);
     const { project_id } = useParams();
+
+    document.title = `Свойства ${Project.project?.project_name.trim()?Project.project.project_name:noText} | planhelp`;
 
     const userRoleList = [
         {display_val:"Полные права",return_val:"OWNER"},
@@ -149,7 +153,7 @@ function TaskProjectActivity(props) {
             </div>
             
             <div>
-                <h2> Свойства для {Project.project_name} </h2>
+                <h2> Свойства для {Project.project?.project_name.trim()?Project.project.project_name:noText} </h2>
             </div>
             </>
         )
@@ -223,7 +227,7 @@ function TaskProjectActivity(props) {
                 <Breadcrumb 
                     items={[
                         {url:`/task`, name: "Мои проекты"}, 
-                        {url:``, name: Project.project_name} 
+                        {url:``, name: Project.project?.project_name.trim()?Project.project.project_name:noText} 
                     ]}
                 />
                 </Col>

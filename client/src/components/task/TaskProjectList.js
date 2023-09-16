@@ -17,6 +17,8 @@ import 'moment/locale/ru';
 import queryString from "query-string";
 moment.locale('ru');
 
+const noText = "Проект без названия";
+
 function TaskProjectList(props) {
 
     const [ searchParams ] = useSearchParams();
@@ -222,7 +224,7 @@ function TaskProjectList(props) {
         <Breadcrumb 
             items={[
                 {url:`/task`, name: "Мои проекты"},
-                {url:``, name: Project.project.project_name}
+                {url:``, name: Project.project?.project_name.trim()?Project.project.project_name:noText}
             ]}
         />
         </Col>
@@ -231,7 +233,7 @@ function TaskProjectList(props) {
         <Col>
             <div style={{float:"left", paddingRight:"4px"}}>
                 <h2 style={{ cursor: "pointer" }}  onClick={navigateToEditProject}>
-                    { Project.project.project_name }
+                    { Project.project?.project_name.trim()?Project.project.project_name:noText }
                 </h2>
             </div>
             <div>
