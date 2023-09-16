@@ -27,12 +27,52 @@ export async function getProject({project_id}, cb = () => {}) {
     }
 }
 
-export async function postProject({project_id, project_name, project_note}, cb = () => {}) {
-    const response = await fetch(`/api/secure/project/${project_id?project_id:""}`, {
+export async function postProject({project_id, project_name, project_note, is_deleted}, cb = () => {}) {
+    const response = await fetch(`/api/secure/project/${project_id ? project_id : ""}`, {
         method: 'post',
         body: JSON.stringify({
             project_name: project_name, 
-            project_note : project_note}),
+            project_note : project_note,
+            is_deleted: is_deleted
+        }),
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${Cookies.get("secret")}`
+        }
+    });
+    if (response.ok) {
+        const data = await response.json();
+        cb(null,data);
+    } else {
+        cb(response.status + " " + response.statusText);
+    }
+}
+
+export async function addUserToProject({ project_id, selectedUserId, user_role }, cb = () => {}) {
+    const response = await fetch(`/api/secure/project/${project_id}/users`, {
+        method: 'post',
+        body: JSON.stringify({ 
+            user_id: selectedUserId, 
+            user_role: user_role}),
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${Cookies.get("secret")}`
+        }
+    });
+    if (response.ok) {
+        const data = await response.json();
+        cb(null,data);
+    } else {
+        cb(response.status + " " + response.statusText);
+    }
+}
+
+export async function delUserToProject({ project_id, selectedUserId, user_role }, cb = () => {}) {
+    const response = await fetch(`/api/secure/project/${project_id}/users/revoke`, {
+        method: 'post',
+        body: JSON.stringify({ 
+            user_id: selectedUserId, 
+            user_role: user_role}),
         headers: {
             'Content-Type': 'application/json',
             'Authorization': `Bearer ${Cookies.get("secret")}`

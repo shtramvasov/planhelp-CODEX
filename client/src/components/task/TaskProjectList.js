@@ -12,14 +12,20 @@ import ModalTaskEdit from "./ModalTaskEdit";
 import ModalTaskCreate from "./ModalTaskCreate";
 import moment from 'moment-timezone';
 import 'moment/locale/ru';
+
+
 import queryString from "query-string";
 moment.locale('ru');
+
+const noText = "Проект без названия";
 
 function TaskProjectList(props) {
 
     const [ searchParams ] = useSearchParams();
     const limit = searchParams.get("limit");
     const offset = searchParams.get("offset")?searchParams.get("offset"):0;
+
+    
     const executor_id = searchParams.get("executor_id");
     const responsible_id = searchParams.get("responsible_id");
     const reviewer_id = searchParams.get("reviewer_id");
@@ -29,6 +35,7 @@ function TaskProjectList(props) {
     const navigate = useNavigate();
     const { project_id } = useParams();
 
+    const [showModalTaskDetail, setShowModalTaskDetail] = useState(false);
     const [showModalTaskEdit, setShowModalTaskEdit] = useState(false);
     const [showModalTaskCreate, setShowModalTaskCreate] = useState(false);
     const [modalProjectTaskData, setModalProjectTaskData] = useState({project_id: undefined, task_id : undefined});
@@ -136,6 +143,26 @@ function TaskProjectList(props) {
         // navigate(`/task/project/${project_id}?limit=50&offset=${parseInt(offset)-50}`);
     }
 
+    const navigateToActivity = () => {
+        navigate(`/task/project/${project_id}/activity`);
+    }
+
+    const navigateToEditProject = () => {
+        navigate(`/task/project/${project_id}/edit`)
+    }
+
+    const ActivityButton = (project) => {
+        if (project.user_role === "OWNER") {
+            return(
+                <Button type="button" variant="" onClick={navigateToActivity} >
+                    <i className="bi bi-info-circle"></i>
+                </Button>
+            )
+        } else {
+            return ""
+        }
+    }
+
     // Список задачи
     const listItems = Project.taskList.map((el,index) => 
         <ListGroup.Item key={index} 
@@ -186,7 +213,6 @@ function TaskProjectList(props) {
         show={showModalTaskCreate} 
         callBack={actionCallModaTaskCreateCallback}
     />
-
     <Row>
         <Col>
             <Navbar />
@@ -198,22 +224,24 @@ function TaskProjectList(props) {
         <Breadcrumb 
             items={[
                 {url:`/task`, name: "Мои проекты"},
-                {url:``, name: Project.project.project_name}
+                {url:``, name: Project.project?.project_name.trim()?Project.project.project_name:noText}
             ]}
         />
         </Col>
     </Row>
-
     <Row>
         <Col>
-            <div style={{float:"left",paddingRight:"4px"}}>
-            <h2>{Project.project.project_name}</h2>
+            <div style={{float:"left", paddingRight:"4px"}}>
+                <h2 style={{ cursor: "pointer" }}  onClick={navigateToEditProject}>
+                    { Project.project?.project_name.trim()?Project.project.project_name:noText }
+                </h2>
             </div>
             <div>
             <Form.Group className="mb-3">
                 <Button type="button" variant="" onClick={actionCallModaTaskCreate} >
                     <i className="bi bi-plus-circle"></i>
                 </Button>
+                {  ActivityButton(Project.project) }
             </Form.Group>
             </div>
         </Col>
