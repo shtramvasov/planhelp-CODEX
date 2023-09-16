@@ -10,6 +10,9 @@ import DiskActivity from "./disk/DiskActivity";
 import DiskActivityOld from "./disk/DiskActivityOld";
 import NotifyList from "./notify/NotifyList";
 import Task from "./task/Task";
+import TaskProjectForm from "./task/TaskProjectForm";
+import TaskProjectList from "./task/TaskProjectList";
+import TaskProjectTaskForm from "./task/TaskProjectTaskForm";
 import Hr from "./hr/Hr";
 
 import { useSelector, useDispatch } from 'react-redux'
@@ -45,6 +48,23 @@ const router = createBrowserRouter([
     {
         path: "/disk/:entity_id/activity/:activity_id",
         element: <DiskActivityOld />,
+    },
+   
+    {
+        path: "/task/project/add",
+        element: <TaskProjectForm />,
+    },
+    {
+        path: "/task/project/:project_id/edit",
+        element: <TaskProjectForm />,
+    },
+    {
+        path: "/task/project/:project_id/",
+        element: <TaskProjectList />,
+    },
+    {
+        path: "/task/project/:project_id/:task_id",
+        element: <TaskProjectTaskForm />,
     },
     {
         path: "/task",

@@ -1,6 +1,21 @@
 const mysql = require('../mysqlhelper');
+const Model = require('./Model');
 
-const getProfile = async({token}, con) => {
+class RefUsers extends Model {
+
+    static fields = [
+        "user_id",
+        "login",
+        "secret",
+        "email",
+        "telegram_chat_id",
+        "is_notify",
+        "timezone"
+    ]
+
+    static table = "ref_users";
+
+static async getProfile({token}, con) {
     return (await mysql.query(con, 
         `select ref_users.*,
                 (select count(*) from notify n where n.user_id = ref_users.user_id and is_read = 0) notify_count
@@ -11,7 +26,7 @@ const getProfile = async({token}, con) => {
     ))[0];
 }
 
-const updateProfile = async({secret,email,telegram_chat_id,is_notify, timezone, user_id},con) => {
+static async updateProfile({secret,email,telegram_chat_id,is_notify, timezone, user_id},con) {
     await mysql.query(con, 
         `update ref_users 
             set secret = coalesce(upper(md5(?)), secret),
@@ -23,7 +38,7 @@ const updateProfile = async({secret,email,telegram_chat_id,is_notify, timezone, 
         [ secret, email, telegram_chat_id, is_notify, timezone, user_id ]);
 }
 
-const login = async({login, password}, con) => {
+static async login({login, password}, con) {
     return (await mysql.query(con, 
         `select *
            from (select ? p_login, ? p_password) params
@@ -34,14 +49,14 @@ const login = async({login, password}, con) => {
     )[0];
 }
 
-const find = async ({search}, con) => {
+static async search({search}, con) {
     return await mysql.query(con,
         `select user_id, login from ref_users where login like ? limit 30`,
         [search + "%"]
     );
 }
 
-createToken = async({user_id, token}, con) => {
+static async createToken({user_id, token}, con) {
     await mysql.query(con, 
         `insert into ref_users_tokens(user_id, token, is_deleted)
          values(?,?,'N')`,
@@ -49,10 +64,5 @@ createToken = async({user_id, token}, con) => {
     );
 }
 
-module.exports = {
-    getProfile,
-    updateProfile,
-    login,
-    createToken,
-    find
 }
+module.exports = RefUsers;

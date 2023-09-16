@@ -36,7 +36,7 @@ export function Navbar(props) {
         return (
         <>
         { User.profile.notify_count ? 
-            <span class="position-absolute top-45 start-100 translate-middle badge rounded-pill bg-danger" style={{ marginTop: '5px' }} > 
+            <span className="position-absolute top-45 start-100 translate-middle badge rounded-pill bg-danger" style={{ marginTop: '5px' }} > 
                 { User.profile.notify_count }
             </span>
         : 
@@ -61,9 +61,14 @@ export function Navbar(props) {
                 </Nav.Link>
                 </Nav.Item>
             </Nav>
+            <Nav className='justify-content-left'>
+                <Nav.Item>
+                <Nav.Link as={Link} to="/task" active={location.pathname.includes("/task")}>Проекты</Nav.Link>
+                </Nav.Item>
+            </Nav>
             {/* <Nav className='justify-content-left'>
                 <Nav.Item>
-                <Nav.Link as={Link} to="/task" active={location.pathname.includes("/task")}>Задачи</Nav.Link>
+                <Nav.Link as={Link} to="/hr" active={location.pathname.includes("/hr")}>Люди</Nav.Link>
                 </Nav.Item>
             </Nav> */}
 

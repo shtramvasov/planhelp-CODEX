@@ -39,7 +39,7 @@ router.get('/find', async (req, res, next) => {
     try {
         con = await mysql.getConnection();
 
-        const users = await userModel.find({search}, con);
+        const users = await userModel.search({search}, con);
         res.send(users);
     } catch(error) {
         next(error);

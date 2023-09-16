@@ -2,6 +2,9 @@ const express = require("express");
 const path = require("path");
 const fileUpload = require('express-fileupload');
 const bodyParser = require('body-parser');
+const swaggerJsdoc = require("swagger-jsdoc");
+const swaggerUi = require("swagger-ui-express");
+
 const config = require('./config');
 
 const diskRouter = require('./routers/disk');
@@ -12,6 +15,8 @@ const tlgrmRouter = require('./routers/tlgrm');
 const fileRouter = require('./routers/file');
 const downloadRouter = require('./routers/download');
 const commonNote = require('./routers/common_note');
+const projectRouter = require('./routers/project');
+const projectTaskRouter = require('./routers/project_task');
 const auth = require('./auth');
 
 const app = express();
@@ -34,10 +39,26 @@ app.use('/api/secure/user', userRouter);
 app.use('/api/secure/notify', notifyRouter);
 app.use('/api/secure/note', commonNote);
 app.use('/api/secure/file',fileRouter);
+app.use('/api/secure/project',projectRouter);
+app.use('/api/secure/project/task',projectTaskRouter);
 
 app.use('/api/login',loginRouter);
 app.use('/api/telegram',tlgrmRouter);
 app.use('/api/download/',downloadRouter);
+
+const options = {
+    definition: {
+        openapi: "3.1.0",
+    },
+    // servers: [
+    //     { url: "http://localhost:3001" },
+    // ],
+    apis: [
+        "./docs/*/*.yaml"
+    ],
+};
+const specs = swaggerJsdoc(options);
+app.use("/api-docs",swaggerUi.serve,swaggerUi.setup(specs));
 
 app.get("/files/*",(req,res,next) => {
     res.sendFile(path.join(__dirname+req.path));
