@@ -6,22 +6,33 @@ import ButtonGroup from 'react-bootstrap/ButtonGroup';
 import Row from 'react-bootstrap/Row';
 import Col from 'react-bootstrap/Col';
 import moment from 'moment-timezone';
-import { getTask } from '../../network/TaskNetwork';
+import { getTask, postTask, getProject } from '../../network/TaskNetwork';
 import { addTask } from '../../reducers/Project';
 import { Link, useNavigate , useSearchParams} from "react-router-dom";
 import { useSelector, useDispatch } from 'react-redux';
 import { useParams } from 'react-router-dom';
 import LinkInput from '../helpers/LinkInput';
+
 import 'moment/locale/ru';
 moment.locale('ru');
 
-function TaskForm(props) {
+/**
+ * Форма, для редактирования задачи
+ * вызывается либо в компоненте TaskProjectTaskForm
+ *            либо в модалке для быстрого доступа из TaskProjectList
+ * @param {*} props 
+ * @returns 
+ */
 
+function TaskForm(props) {
+    
     const [isEdit, setIsEdit] = useState(false);
     const dispatch = useDispatch();
     const navigate = useNavigate();
-    const { project_id, task_id } = useParams();
+    const { project_id, task_id } = props;
 
+    const Project = useSelector((state) => state.project);
+    
     // Первичная загрузка данных
     useEffect(() => {
         fetchTask();
@@ -37,24 +48,36 @@ function TaskForm(props) {
         });
     };
 
+    // const saveTask = () => {
+    //     console.log(task_title, task_note, status_id, executor_id, responsible_id, reviewer_id);
+    // }
+
+    const saveTask = ({task_title, task_note, status_id, executor_id, responsible_id, reviewer_id}) => {
+        postTask({ project_id, task_id, 
+            task_title, task_note, status_id, executor_id, responsible_id, reviewer_id
+        }, (err,resp) => {
+            if (!err) {
+                fetchTask();
+            } else {
+                alert("Ошибка: "+err);
+            }
+        })
+        
+    }
+
     return (
-    <form onSubmit={() => {alert("submit")}}>
+    
         <Row>
             <Col sm={12} lg={10}>
                 <Row>
                     <Col>
                         <Form.Group className="mb-3" controlId="modalText">
                             <LinkInput
-                                type="textField"
-                                placeholder="Hello world"
-                                defaultValue="Какой то заголовок"
-                                callBack={(value) => { console.log(value) }}
+                                type="headerField"
+                                placeholder="Заголовок задачи"
+                                defaultValue={Project.task.task_title}
+                                callBack={(value) => {saveTask({task_title : value})}}
                              />
-                            {/* <Form.Control
-                                type="text"
-                                placeholder={"Тайтл"}
-                                // defaultValue={props.note.note}
-                                autoFocus/> */}
                         </Form.Group>
                     </Col>
                 </Row>
@@ -62,19 +85,12 @@ function TaskForm(props) {
                     <Col>
                         <Form.Group className="mb-3" controlId="modalText">
                             <LinkInput
-                                type="textArea"
-                                rows={10}
-                                placeholder="Hello world"
-                                defaultValue="Какой то текст задачи"
-                                callBack={(value) => { console.log(value) }}
+                                type="markDown"
+                                height="400px"
+                                placeholder="Описание задачи"
+                                defaultValue={Project.task.task_note}
+                                callBack={(value) => {saveTask({task_note : value})}}
                             />
-                            {/* <Form.Control
-                                type="text"
-                                as="textarea"
-                                rows={10}
-                                placeholder={"Текст задачи"}
-                                // defaultValue={props.note.note}
-                                autoFocus/> */}
                         </Form.Group>
                     </Col>
                 </Row>
@@ -90,8 +106,12 @@ function TaskForm(props) {
                             <LinkInput 
                                 type="selectList"
                                 placeholder="Исполнитель"
-                                defaultDisplay="timofey"
-                                callBack={(value) => { console.log(value) }}
+                                defaultDisplay={Project.task.ru_executor_login?Project.task.ru_executor_login:"Не указан"}
+                                options={
+                                    Project.project.project_user_list.map(user => {
+                                            return {value : user.user_id, label : user.login}
+                                })}
+                                callBack={(value, label) => {saveTask({executor_id : value})}}
                                 />
                         </div>
                     </Col>
@@ -104,9 +124,13 @@ function TaskForm(props) {
                         <div>
                         <LinkInput 
                                 type="selectList"
-                                placeholder="Исполнитель"
-                                defaultDisplay="timofey"
-                                callBack={(value) => { console.log(value) }}
+                                placeholder="Ответственный"
+                                defaultDisplay={Project.task.ru_responsible_login?Project.task.ru_responsible_login:"Не указан"}
+                                options={
+                                    Project.project.project_user_list.map(user => {
+                                            return {value : user.user_id, label : user.login}
+                                })}
+                                callBack={(value, label) => {saveTask({responsible_id : value})}}
                                 />
                         </div>
                     </Col>
@@ -119,9 +143,13 @@ function TaskForm(props) {
                         <div>
                         <LinkInput 
                                 type="selectList"
-                                placeholder="Исполнитель"
-                                defaultDisplay="timofey"
-                                callBack={(value) => { console.log(value) }}
+                                placeholder="Ревьювер"
+                                defaultDisplay={Project.task.ru_reviewer_login?Project.task.ru_reviewer_login:"Не указан"}
+                                options={
+                                    Project.project.project_user_list.map(user => {
+                                            return {value : user.user_id, label : user.login}
+                                })}
+                                callBack={(value, label) => {saveTask({reviewer_id : value})}}
                                 />
                         </div>
                     </Col>
@@ -134,16 +162,19 @@ function TaskForm(props) {
                         <div>
                         <LinkInput 
                                 type="selectList"
-                                placeholder="Исполнитель"
-                                defaultDisplay="timofey"
-                                callBack={(value) => { console.log(value) }}
+                                placeholder="Статус"
+                                defaultDisplay={Project.task.status_name?Project.task.status_name:"Не указан"}
+                                options={
+                                    Project.project.project_status_list.map(status => {
+                                            return {value : status.status_id, label : status.status_name}
+                                })}
+                                callBack={(value, label) => {saveTask({status_id : value})}}
                                 />
                         </div>
                     </Col>
                 </Row>
             </Col>
         </Row>
-    </form>
     )
 }
 

@@ -3,11 +3,19 @@ import React, { useState , useEffect} from 'react';
 import {Row,Col} from 'react-bootstrap';
 import Button from 'react-bootstrap/Button';
 import Select from 'react-select';
+import ReactMarkdown from 'react-markdown'
+import remarkGfm from 'remark-gfm'
+import rehypeRaw from "rehype-raw";
+// Редактор markdown
+import MdEditor, { Plugins } from 'react-markdown-editor-lite';
+import 'react-markdown-editor-lite/lib/index.css';
 
 function LinkInput(props) {
 
+    const noText = "Текст отсутствует";
+
     // props
-    //  type "textField", "textArea", "selectList"
+    //  type "textField", "textArea", "selectList", "markDown"
     //  placeholder 
     //  defaultValue
     //  callBack - function
@@ -15,12 +23,27 @@ function LinkInput(props) {
     // for textArea custom
     //  rows
 
+    // for selectList
+    //  options = [{value:"",label:""},{}]
+
+    // for markDown
+    //  height in px, "300px"
     const [isEdit, setIsEdit] = useState(false);
     const [value, setValue] = useState(false);
+
+    useEffect(() => {
+        // if (props.defaultValue?.trim()) {
+        //     console.log("NO DATA");
+        //     setIsEdit(true);
+        // } else {
+        //     setIsEdit(false);
+        // }
+    },[]);
 
     const handleEdit = (e) => {
         e.preventDefault();
         setIsEdit(true);
+        setValue(props.defaultValue);
     }
 
     const handleSumbit = (e) => {
@@ -38,15 +61,63 @@ function LinkInput(props) {
         props.callBack(value, label);
     }
 
+    const onChangeMarkdown = (({html, text}) => {
+        setValue(text);
+    });
+
+    // markdown
+    // Создаем объект <table> со стилями bootstrap, для использования его в markdown
+    const MarkdownTable = props => {
+        return (<table className="table table-bordered"> {props.children} </table>)
+    }
+
+    const MarkdownObject = (props) => {
+        // 1. components: прокидываем свои html объекты
+        // 2. children: markdown -> стилевый текст
+        // 3. remarkPlugins: плагины для поддержки таблиц, стилей текста
+        return <ReactMarkdown 
+            components={{ table: MarkdownTable }} 
+            children={ props.value } 
+            remarkPlugins={[remarkGfm]} 
+            rehypePlugins={[rehypeRaw]} 
+        /> 
+    }
+
+    const markDown = isEdit?
+        <div>
+            <Row>
+                <Col>
+                    <MdEditor 
+                        view={{menu: true, md: true, html: false}}  
+                        onChange={onChangeMarkdown} 
+                        value={value}
+                        style={{ height: props.height }} 
+                        renderHTML={ text => <MarkdownObject value = {text} /> } 
+                    /> 
+                </Col>
+            </Row>
+            <Row style={{marginTop: "8px"}}>
+                <Col>
+                    <Button variant="success" onClick={handleSumbit}><i className="bi bi-check-lg"></i></Button>&nbsp;
+                    <Button variant="outline-secondary" onClick={() => {setIsEdit(false);}}>
+                        <i className="bi bi-x-lg"></i>
+                    </Button>
+                </Col>
+            </Row>
+        </div>
+        : 
+        <div style={{cursor:"pointer", minHeight:props.height}} onClick={handleEdit}>
+            <MarkdownObject 
+                value = {props.defaultValue?.trim()?props.defaultValue?.replace(/\n/gi, '  \n'):noText} 
+            />
+        </div>
+
     const selectList = isEdit?
         <Select 
                 closeMenuOnSelect={false} 
                 placeholder={props.placeholder}
-                options={[{value:1,label:"timofey"},{value:2,label:"predeinay"}]}
+                options={props.options}
                 onChange={onChangeSelect}
-                // options={Project.project.project_status_list.map(status => {
-                //         return {value : status.status_id, label : status.status_name}
-                // })}
             />
         :
         <a href="#"
@@ -63,14 +134,17 @@ function LinkInput(props) {
                     type="text" as="textarea"
                     rows={props.rows}
                     placeholder={props.placeholder}
-                    defaultValue={props.defaultValue}
+                    defaultValue={value}
                     onChange={onChange}
                     autoFocus/>    
                 </Col>
             </Row>
             <Row style={{marginTop: "8px"}}>
                 <Col>
-                <Button onClick={handleSumbit}>Сохранить</Button>
+                    <Button variant="success" onClick={handleSumbit}><i className="bi bi-check-lg"></i></Button>&nbsp;
+                    <Button variant="outline-secondary" onClick={() => {setIsEdit(false);}}>
+                        <i className="bi bi-x-lg"></i>
+                    </Button>
                 </Col>
             </Row>
         </div>
@@ -80,7 +154,7 @@ function LinkInput(props) {
             style={{cursor:"pointer"}}
             onClick={handleEdit}
             >
-            <h6>{props.defaultValue}</h6>
+            {props.defaultValue?.trim()?props.defaultValue:noText}
         </Form.Text>;
 
     const textField = isEdit?
@@ -89,13 +163,16 @@ function LinkInput(props) {
             <Form.Control
                     type="text"
                     placeholder={props.placeholder}
-                    defaultValue={props.defaultValue}
+                    defaultValue={value}
                     autoFocus
                     onChange={onChange}
                 />
             </Col>
             <Col lg="auto" md="auto" sm="auto" xs="auto">
-                <Button onClick={handleSumbit}>Сохранить</Button>
+                <Button variant="success" onClick={handleSumbit}><i className="bi bi-check-lg"></i></Button>&nbsp;
+                <Button variant="outline-secondary" onClick={() => {setIsEdit(false);}}>
+                    <i className="bi bi-x-lg"></i>
+                </Button>
         </Col></Row>
         :
         // Просмотр
@@ -103,13 +180,42 @@ function LinkInput(props) {
             style={{cursor:"pointer"}}
             onClick={handleEdit}
             >
-            <h6>{props.defaultValue}</h6>
+            {props.defaultValue?.trim()?props.defaultValue:noText}
         </Form.Text>;
+
+    const headerField = isEdit?
+    // Редактирование   
+        <Row><Col>
+            <Form.Control
+                    type="text"
+                    placeholder={props.placeholder}
+                    defaultValue={value}
+                    autoFocus
+                    onChange={onChange}
+                />
+            </Col>
+            <Col lg="auto" md="auto" sm="auto" xs="auto">
+                <Button variant="success" onClick={handleSumbit}><i className="bi bi-check-lg"></i></Button>&nbsp;
+                <Button variant="outline-secondary" onClick={() => {setIsEdit(false);}}>
+                    <i className="bi bi-x-lg"></i>
+                </Button>
+        </Col></Row>
+        :
+        // Просмотр
+        <Form.Text
+            style={{cursor:"pointer", color: "black"}}
+            onClick={handleEdit}
+            >
+            <h3>{props.defaultValue?.trim()?props.defaultValue:noText}</h3>
+        </Form.Text>;
+        
 
     return (
         props.type === "textField" ? textField :
         props.type === "textArea" ? textArea : 
         props.type === "selectList" ? selectList : 
+        props.type === "markDown" ? markDown :
+        props.type === "headerField" ? headerField :
         ""
     )
 }

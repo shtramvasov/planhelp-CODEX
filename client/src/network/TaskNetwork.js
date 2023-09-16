@@ -81,3 +81,29 @@ export async function getTask({project_id, task_id}, cb = () => {}) {
         cb(response.status + " " + response.statusText);
     }
 }
+
+export async function postTask({project_id, task_id, 
+        task_title, task_note, status_id, executor_id, responsible_id, reviewer_id
+    }, cb = () => {}) {
+    const response = await fetch(`/api/secure/project/task/${project_id}/${task_id?task_id:""}`, {
+        method: 'post',
+        body: JSON.stringify({
+            task_title: task_title, 
+            task_note : task_note,
+            status_id : status_id,
+            executor_id : executor_id,
+            responsible_id : responsible_id,
+            reviewer_id : reviewer_id
+        }),
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${Cookies.get("secret")}`
+        }
+    });
+    if (response.ok) {
+        const data = await response.json();
+        cb(null,data);
+    } else {
+        cb(response.status + " " + response.statusText);
+    }
+}

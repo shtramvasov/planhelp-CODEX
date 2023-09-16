@@ -19,6 +19,8 @@ function TaskProjectTaskForm(props) {
     const { project_id, task_id } = useParams();
     const Project = useSelector((state) => state.project);
     
+    document.title = Project.task.task_title +" | planhelp";
+
     useEffect(() => {
         fetchProject();
     },[]);
@@ -47,14 +49,14 @@ function TaskProjectTaskForm(props) {
                 items={[
                     {url:`/task`, name: "Мои проекты"},
                     {url:`/task/project/${Project.project.project_id}`, name: Project.project.project_name},
-                    {url:``, name: "Project.task.task_title"}
+                    {url:``, name: `${Project.task.task_title}`}
                 ]}
             />
             </Col>
         </Row>
         <Row>
             <Col>
-                <TaskForm />
+                <TaskForm project_id={project_id} task_id={task_id} />
             </Col>
         </Row>
     </Container>
