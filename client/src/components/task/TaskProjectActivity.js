@@ -25,7 +25,7 @@ function TaskProjectActivity(props) {
     const Project = useSelector((state) => state.project.project);
     const { project_id } = useParams();
 
-    document.title = `Свойства ${Project.project?.project_name.trim()?Project.project.project_name:noText} | planhelp`;
+    document.title = `Свойства ${Project?.project_name.trim()?Project.project_name:noText} | planhelp`;
 
     const userRoleList = [
         {display_val:"Полные права",return_val:"OWNER"},
@@ -153,7 +153,7 @@ function TaskProjectActivity(props) {
             </div>
             
             <div>
-                <h2> Свойства для {Project.project?.project_name.trim()?Project.project.project_name:noText} </h2>
+                <h2> Свойства для {Project?.project_name.trim()?Project.project_name:noText} </h2>
             </div>
             </>
         )
