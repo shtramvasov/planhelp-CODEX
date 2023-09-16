@@ -25,7 +25,6 @@ router.get('/:project_id/:task_id?', async (req, res, next) => {
                 no_value : true 
             } );
         }
-        console.log(status_ids);
         const taskList = await ProjectTask.find(con, {
             select : `project_task.*,
                       ru_created.login as "ru_created_login",
@@ -56,7 +55,7 @@ router.get('/:project_id/:task_id?', async (req, res, next) => {
             where : {
                 "project_task.is_deleted" : "N", 
                 "project_task.project_id" : project_id, 
-                task_id, executor_id, responsible_id, reviewer_id, status_id,
+                task_id, executor_id, responsible_id, reviewer_id, "project_task.status_id" : status_id,
                 _custom : _custom
             },
             order : "task_id desc",

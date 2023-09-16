@@ -12,6 +12,7 @@ import ModalTaskEdit from "./ModalTaskEdit";
 import ModalTaskCreate from "./ModalTaskCreate";
 import moment from 'moment-timezone';
 import 'moment/locale/ru';
+import querystring from "querystring";
 moment.locale('ru');
 
 function TaskProjectList(props) {
@@ -19,6 +20,10 @@ function TaskProjectList(props) {
     const [ searchParams ] = useSearchParams();
     const limit = searchParams.get("limit");
     const offset = searchParams.get("offset")?searchParams.get("offset"):0;
+    const executor_id = searchParams.get("executor_id");
+    const responsible_id = searchParams.get("responsible_id");
+    const reviewer_id = searchParams.get("reviewer_id");
+    const status_id = searchParams.get("status_id");
 
     const dispatch = useDispatch();
     const navigate = useNavigate();
@@ -41,7 +46,22 @@ function TaskProjectList(props) {
     useEffect(() => {
         // загрузка данных о задачах
         fetchProjectTaskList();
-    },[offset])
+    },[offset, executor_id, status_id, responsible_id, reviewer_id])
+
+    const onChangeUrl = ({status_id, executor_id, responsible_id, reviewer_id, offset, limit}) => {
+
+        const currentUrlObj = querystring.parse(document.location.search.slice(1));
+        
+        if (status_id !== undefined) currentUrlObj.status_id = status_id;
+        if (executor_id !== undefined) currentUrlObj.executor_id = executor_id;
+        if (responsible_id !== undefined) currentUrlObj.responsible_id = responsible_id;
+        if (reviewer_id !== undefined) currentUrlObj.reviewer_id = reviewer_id;
+        if (limit !== undefined) currentUrlObj.limit = limit;
+        if (offset !== undefined) currentUrlObj.offset = offset;
+
+        navigate(`/task/project/${project_id}?${querystring.stringify(currentUrlObj)}`);
+        
+    }
 
     // вызов модалки редактирования задачи
     const actionCallModaTaskEdit = (e, {project_id, task_id}) => {
@@ -95,7 +115,10 @@ function TaskProjectList(props) {
 
     // достаем задачи с апи
     const fetchProjectTaskList = () => {
-        getProjectTaskList({limit:limit?limit:"", offset:offset?offset:"",project_id},(err,resp) => {
+        getProjectTaskList({
+            limit:limit?limit:"", offset:offset?offset:"",project_id,
+            status_id, executor_id, responsible_id, reviewer_id
+        },(err,resp) => {
             if (!err) {
                 dispatch(addTaskList(resp));
             } else {
@@ -105,10 +128,12 @@ function TaskProjectList(props) {
     };
 
     const paginateForward = () => {
-        navigate(`/task/project/${project_id}?limit=50&offset=${parseInt(offset?offset:0)+50}`);
+        onChangeUrl({limit : 50, offset: parseInt(offset?offset:0)+50});
+        // navigate(`/task/project/${project_id}?limit=50&offset=${parseInt(offset?offset:0)+50}`);
     }
     const paginateBackward = () => {
-        navigate(`/task/project/${project_id}?limit=50&offset=${parseInt(offset)-50}`);
+        onChangeUrl({limit : 50, offset: parseInt(offset)-50});
+        // navigate(`/task/project/${project_id}?limit=50&offset=${parseInt(offset)-50}`);
     }
 
     // Список задачи
@@ -183,8 +208,12 @@ function TaskProjectList(props) {
         <Col>
         <InputGroup>
             <Select 
-                isMulti 
-                closeMenuOnSelect={false} 
+                // isMulti 
+                closeMenuOnSelect={true} 
+                isClearable
+                onChange={(option) => {
+                    onChangeUrl({status_id : option?option.value:null})
+                }}
                 placeholder="Статус" 
                 options={Project.project.project_status_list.map(status => {
                         return {value : status.status_id, label : status.status_name}
@@ -192,27 +221,39 @@ function TaskProjectList(props) {
             />
             &nbsp;
             <Select 
-                isMulti 
-                closeMenuOnSelect={false} 
+                // isMulti 
+                closeMenuOnSelect={true} 
+                isClearable
                 placeholder="Исполнитель" 
+                onChange={(option) => {
+                    onChangeUrl({executor_id : option?option.value:null})
+                }}
                 options={Project.project.project_user_list.map(user => {
                     return {value : user.user_id, label : user.login}
                 })}
             />
             &nbsp;
             <Select 
-                isMulti 
-                closeMenuOnSelect={false} 
-                placeholder="Ответственный" 
+                // isMulti 
+                closeMenuOnSelect={true}
+                isClearable
+                placeholder="Ответственный"
+                onChange={(option) => {
+                    onChangeUrl({responsible_id : option?option.value:null})
+                }}
                 options={Project.project.project_user_list.map(user => {
                     return {value : user.user_id, label : user.login}
                 })}
             />
             &nbsp;
             <Select 
-                isMulti 
-                closeMenuOnSelect={false} 
+                // isMulti 
+                closeMenuOnSelect={true}
+                isClearable
                 placeholder="Ревьювер" 
+                onChange={(option) => {
+                    onChangeUrl({reviewer_id : option?option.value:null})
+                }}
                 options={Project.project.project_user_list.map(user => {
                     return {value : user.user_id, label : user.login}
                 })}

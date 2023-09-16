@@ -15,6 +15,7 @@
     "moment-timezone": "^0.5.40",
     "node-fetch": "^2.6.7",
     "query-string": "^8.0.3",
+    "querystring": "^0.2.1",
     "react": "^18.2.0",
     "react-bootstrap": "^2.7.0",
     "react-dom": "^18.2.0",
