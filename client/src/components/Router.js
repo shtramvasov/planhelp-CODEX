@@ -19,6 +19,8 @@ import { useSelector, useDispatch } from 'react-redux'
 import { useEffect } from "react";
 import Cookies from 'js-cookie';
 import queryString from 'query-string';
+import TaskProjectActivity from "./task/TaskProjectActivity";
+import TaskProjectUpdate from "./task/TaskProjectUpdate";
 
 const router = createBrowserRouter([
     {
@@ -56,11 +58,15 @@ const router = createBrowserRouter([
     },
     {
         path: "/task/project/:project_id/edit",
-        element: <TaskProjectForm />,
+        element: <TaskProjectUpdate />,
     },
     {
         path: "/task/project/:project_id/",
         element: <TaskProjectList />,
+    },
+    {
+        path: "/task/project/:project_id/activity",
+        element: <TaskProjectActivity />,
     },
     {
         path: "/task/project/:project_id/:task_id",
