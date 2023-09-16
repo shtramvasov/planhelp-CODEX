@@ -47,7 +47,10 @@ router.get('/:project_id?', async (req, res, next) => {
             }
         });
         projectOne.project_status_list = 
-            await ProjectStatus.find(con, {where : { project_id , is_deleted : ProjectStatus.CONSTANTS.N}});
+            await ProjectStatus.find(con, {
+                where : { project_id , is_deleted : ProjectStatus.CONSTANTS.N},
+                orderby : "orderby"
+            });
         res.send(projectOne);
     } catch(error) {
         next(error);
@@ -90,22 +93,22 @@ router.post('/', async (req, res, next) => {
         }});
         await ProjectStatus.create(con, {values:{
             project_id, status_name : "В работе", variant : "success", 
-            is_deleted : ProjectStatus.CONSTANTS.N, orderby: 1, is_closed : 
+            is_deleted : ProjectStatus.CONSTANTS.N, orderby: 2, is_closed : 
             ProjectStatus.CONSTANTS.N
         }});
         await ProjectStatus.create(con, {values:{
             project_id, status_name : "Проверяется", variant : "warning", 
-            is_deleted : ProjectStatus.CONSTANTS.N, orderby: 1, is_closed : 
+            is_deleted : ProjectStatus.CONSTANTS.N, orderby: 3, is_closed : 
             ProjectStatus.CONSTANTS.N
         }});
         await ProjectStatus.create(con, {values:{
             project_id, status_name : "Выполнено", variant : "primary", 
-            is_deleted : ProjectStatus.CONSTANTS.N, orderby: 1, is_closed : 
+            is_deleted : ProjectStatus.CONSTANTS.N, orderby: 4, is_closed : 
             ProjectStatus.CONSTANTS.N
         }});
         await ProjectStatus.create(con, {values:{
             project_id, status_name : "Закрыто", variant : "secondary", 
-            is_deleted : ProjectStatus.CONSTANTS.N, orderby: 1, is_closed : 
+            is_deleted : ProjectStatus.CONSTANTS.N, orderby: 5, is_closed : 
             ProjectStatus.CONSTANTS.Y
         }});
 
