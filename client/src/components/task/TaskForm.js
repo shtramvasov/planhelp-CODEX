@@ -145,7 +145,7 @@ function TaskForm(props) {
                     </Col>
                 </Row>
                 {/* Форма добавления коммента */}
-                <Row style={{marginLeft:"10px"}}>
+                <Row>
                     <Col>
                         <form onSubmit={submitComment}>
                         <Row>
