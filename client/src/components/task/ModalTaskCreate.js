@@ -91,7 +91,7 @@ function ModalTaskCreate(props) {
                             view={{menu: true, md: true, html: false}}  
                             onChange={handleEditorChange} 
                             value={taskNote}  
-                            style={{ height: '300px' }} 
+                            style={{ height: '200px' }} 
                             renderHTML={ text => <MarkdownObject value = {text} /> } 
                         />
                     </Col>

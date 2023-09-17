@@ -53,7 +53,8 @@ export const projectSlice = createSlice({
             ru_responsible_login : null,
             ru_responsible_id : null,
             ru_reviewer_login : null,
-            ru_reviewer_id : null
+            ru_reviewer_id : null,
+            comments : []
         },
         taskList : []
     },

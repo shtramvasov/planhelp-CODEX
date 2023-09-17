@@ -26,7 +26,7 @@ function ModalTaskEdit(props) {
     return (
         <div className="modal-90w">
         <Modal show={props.show} onHide={closeMe} dialogClassName="modal-90w">
-            <form onSubmit={() => {alert("submit")}}>
+            {/* <form onSubmit={() => {alert("submit")}}> */}
                 <Modal.Header closeButton={true}>
                     <Modal.Title>Задача #{task_id}</Modal.Title>
                 </Modal.Header>
@@ -35,7 +35,7 @@ function ModalTaskEdit(props) {
                 </Modal.Body>
                 {/* <Modal.Footer>
                 </Modal.Footer> */}
-            </form>
+            {/* </form> */}
         </Modal>
         </div>
     );
