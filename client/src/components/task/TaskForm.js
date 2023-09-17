@@ -3,10 +3,9 @@ import Button from 'react-bootstrap/Button';
 import Form from 'react-bootstrap/Form';
 import Modal from 'react-bootstrap/Modal';
 import ButtonGroup from 'react-bootstrap/ButtonGroup';
-import Row from 'react-bootstrap/Row';
-import Col from 'react-bootstrap/Col';
+import {Row, Col, Badge} from 'react-bootstrap';
 import moment from 'moment-timezone';
-import { getTask, postTask, getProject } from '../../network/TaskNetwork';
+import { getTask, postTask, getProject, postTaskCommonNote } from '../../network/TaskNetwork';
 import { addTask } from '../../reducers/Project';
 import { Link, useNavigate , useSearchParams} from "react-router-dom";
 import { useSelector, useDispatch } from 'react-redux';
@@ -48,10 +47,6 @@ function TaskForm(props) {
         });
     };
 
-    // const saveTask = () => {
-    //     console.log(task_title, task_note, status_id, executor_id, responsible_id, reviewer_id);
-    // }
-
     const saveTask = ({task_title, task_note, status_id, executor_id, responsible_id, reviewer_id}) => {
         postTask({ project_id, task_id, 
             task_title, task_note, status_id, executor_id, responsible_id, reviewer_id
@@ -61,8 +56,28 @@ function TaskForm(props) {
             } else {
                 alert("Ошибка: "+err);
             }
-        })
-        
+        })    
+    }
+
+    const submitComment = (e) => {
+        e.preventDefault();
+        if (!e.target.taskCommonNote.value.trim()) {
+            return;
+        }
+        postTaskCommonNote(
+            {
+                project_id, 
+                task_id, 
+                note : e.target.taskCommonNote.value
+            }
+            ,(err,resp) => {
+                if (!err) {
+                    fetchTask();
+                    e.target.taskCommonNote.value = "";
+                } else {
+                    alert("Ошибка: "+err);
+                }
+            })
     }
 
     // мапированный массив статусов
@@ -79,6 +94,17 @@ function TaskForm(props) {
     const responsibleSelectOptionsDefault = userSelectOptions.filter(user => user.value == Project.task.responsible_id)[0];
     const reviewerSelectOptionsDefault = userSelectOptions.filter(user => user.value == Project.task.reviewer_id)[0];
     
+    const commentItems = Project.task?.comments.map((comment, index) => {
+        return <div key={index}>
+            <div>
+                <small>{comment.note}</small>
+            </div>
+            <div style={{textAlign: "right"}}>
+                <small style={{fontWeight: "300"}}>{comment.login} {moment(comment.created_on,'YYYY-MM-DDTHH:mm:ss.SSSZ').fromNow()}</small>
+            </div>
+            <hr/>
+        </div>
+    });
 
     return (
     
@@ -101,7 +127,7 @@ function TaskForm(props) {
                         <Form.Group className="mb-3" controlId="modalText">
                             <LinkInput
                                 type="markDown"
-                                height="400px"
+                                height="300px"
                                 placeholder="Описание задачи"
                                 defaultValue={Project.task.task_note}
                                 callBack={(value) => {saveTask({task_note : value})}}
@@ -109,7 +135,41 @@ function TaskForm(props) {
                         </Form.Group>
                     </Col>
                 </Row>
-
+                {/* Комменты */}
+                <Row>
+                    <Col>
+                        <small><b>Комментарии</b></small>&nbsp;
+                        <Badge bg="secondary">{commentItems.length}</Badge>
+                        <hr/>
+                        {commentItems}
+                    </Col>
+                </Row>
+                {/* Форма добавления коммента */}
+                <Row style={{marginLeft:"10px"}}>
+                    <Col>
+                        <form onSubmit={submitComment}>
+                        <Row>
+                            <Col>
+                            <Form.Group className="mb-3" controlId="taskCommonNote">
+                            <Form.Control 
+                                controlid="taskCommonNote"
+                                type="text" 
+                                as="textarea"
+                                rows={2}
+                                placeholder="Ваш комментарий" />
+                            </Form.Group>
+                            </Col>
+                        </Row>
+                        <Row>
+                            <Col>
+                                <Form.Group className="mb-3">
+                                    <Button type="submit" variant="outline-success" >Комментировать</Button>
+                                </Form.Group>
+                            </Col>
+                        </Row>  
+                        </form>
+                    </Col>
+                </Row>
             </Col>
             <Col>
                 <Row style={{marginTop: "8px"}}>

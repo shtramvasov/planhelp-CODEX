@@ -1,6 +1,26 @@
 const mysql = require('../mysqlhelper');
+const Model = require('./Model');
 
-const CONSTANTS = {
+class CommonNote extends Model {
+
+    static fields = [
+        "note_id",
+        "user_id",
+        "entity_id",
+        "created_on",
+        "remind_on",
+        "is_remind",
+        "is_deleted",
+        "note",
+        "variant",
+        "note_type",
+        "note_2",
+        "task_id"
+    ]
+
+    static table = "common_note";
+
+static CONSTANTS = {
     REMIND_ON : 1,
     REMIND_OFF : 0,
     DELETED_ON : 1,
@@ -9,8 +29,7 @@ const CONSTANTS = {
     TYPE_FILE : "FILE",
 }
 
-const createNote = async (
-    {user_id,entity_id,remind_on,is_remind,note,variant,note_type,note_2}, con) => {
+static async createNote({user_id,entity_id,remind_on,is_remind,note,variant,note_type,note_2}, con) {
     return await mysql.query(con,
         `insert into common_note(
             user_id,
@@ -26,7 +45,7 @@ const createNote = async (
         [ user_id, entity_id, remind_on, is_remind, note, variant, note_type, note_2 ]);
 }
 
-const updateNote = async ({user_id,note_id,remind_on,is_remind,note,is_deleted,variant,note_type,note_2}, con) => {
+static async updateNote({user_id,note_id,remind_on,is_remind,note,is_deleted,variant,note_type,note_2}, con) {
     return await mysql.query(con,
         `update common_note
             set is_deleted = coalesce(?, is_deleted),
@@ -40,11 +59,11 @@ const updateNote = async ({user_id,note_id,remind_on,is_remind,note,is_deleted,v
         [ is_deleted, note, is_remind, remind_on, variant, note_type, note_2, note_id ]);
 }
 
-const deleteNote = async ({note_id}, con) => {
-    return await updateNote({note_id, is_deleted : CONSTANTS.DELETED_ON}, con);
+static async deleteNote({note_id}, con) {
+    return await CommonNote.updateNote({note_id, is_deleted : CommonNote.CONSTANTS.DELETED_ON}, con);
 }
 
-const getNote = async ({ note_id }, con) => {
+static async getNote({ note_id }, con) {
     return (await mysql.query(con,
         `select cn.* 
            from common_note cn
@@ -53,7 +72,7 @@ const getNote = async ({ note_id }, con) => {
         [note_id]))[0];
 }
 
-const getNoteList = async ({user_id, entity_id, limit, offset}, con) => {
+static async getNoteList({user_id, entity_id, limit, offset}, con) {
     return await mysql.query(con,
         `select cn.*, u.login
            from common_note cn inner join ref_users u 
@@ -73,7 +92,7 @@ const getNoteList = async ({user_id, entity_id, limit, offset}, con) => {
  * @param {*} con коннект к БД
  * @returns 
  */
-const getRemindNoteList = async ({user_id, entity_tree, limit, offset}, con) => {
+static async getRemindNoteList({user_id, entity_tree, limit, offset}, con) {
     const sqlParams = [];
     // base sql
     let sql = `select cn.*, de.entity_name
@@ -96,12 +115,6 @@ const getRemindNoteList = async ({user_id, entity_tree, limit, offset}, con) => 
     return await mysql.query(con,sql,sqlParams);
 }
 
-module.exports = {
-    createNote,
-    updateNote,
-    deleteNote,
-    getNote,
-    getNoteList,
-    getRemindNoteList,
-    CONSTANTS
-};
+}
+
+module.exports = CommonNote;

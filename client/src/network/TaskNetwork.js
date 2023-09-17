@@ -147,3 +147,23 @@ export async function postTask({project_id, task_id,
         cb(response.status + " " + response.statusText);
     }
 }
+
+
+export async function postTaskCommonNote({project_id, task_id, note_id, note}, cb = () => {}) {
+    const response = await fetch(`/api/secure/project/task/note/${project_id}/${task_id}/`, {
+        method: 'post',
+        body: JSON.stringify({
+            note
+        }),
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${Cookies.get("secret")}`
+        }
+    });
+    if (response.ok) {
+        const data = await response.json();
+        cb(null,data);
+    } else {
+        cb(response.status + " " + response.statusText);
+    }
+}

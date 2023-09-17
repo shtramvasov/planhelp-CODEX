@@ -5,6 +5,7 @@ var Project = require('../models/project');
 var RefUsers = require('../models/ref_users');
 var ProjectUser = require('../models/project_user');
 var ProjectTask = require('../models/project_task');
+var CommonNote = require('../models/common_note');
 
 // Список тасков или детали таски
 router.get('/:project_id/:task_id?', async (req, res, next) => {
@@ -69,7 +70,18 @@ router.get('/:project_id/:task_id?', async (req, res, next) => {
             res.send(taskList);
             return;
         }
-        res.send(taskList[0]);
+        const task = taskList[0];
+        // Достаем комменты
+        const comments = await CommonNote.find(con,{
+            select : "common_note.*, ru_created.login",
+            joins : [ 
+                { table : "ref_users ru_created", on : "common_note.user_id = ru_created.user_id" }
+            ],
+            where : { task_id },
+            orderby : "note_id"
+        })
+        task.comments = comments;
+        res.send(task);
     } catch(error) {
         next(error);
     } finally {
@@ -88,8 +100,9 @@ router.post('/:project_id/:task_id?', async (req, res, next) => {
     try {
         con = await mysql.getConnection();
         
-        const projectRole = (await ProjectUser.find(con,{where : {project_id, user_id : profile_user_id}}))[0];
-        if (!projectRole) 'Permission denied';
+        const projectUser = (await ProjectUser.find(con,{where : {project_id, user_id : profile_user_id}}))[0];
+        if (![ProjectUser.CONSTANTS.WRITE,ProjectUser.CONSTANTS.OWNER]
+            .includes(projectUser.user_role)) throw "Permission denied";
 
         if (!task_id) {
             task_id = await ProjectTask.create(con, {
