@@ -37,7 +37,7 @@ function TaskProjectUpdate(props) {
     const fetchUpdatePrject = (project_name, project_note, is_deleted) => {
         postProject({ project_id, project_name, project_note, is_deleted }, (err, resp) => {
             if (!err) {
-                is_deleted == 1 ? navigateToProjectList() : handleCancelEntity()
+                is_deleted == 'Y' ? navigateToProjectList() : handleCancelEntity()
             } else {
                 alert("Ошибка: "+err);
             }
@@ -54,7 +54,7 @@ function TaskProjectUpdate(props) {
 
     /// Удалить проект
     const handleDeleteProject = () => {
-        fetchUpdatePrject(Project.project_name, Project.project_note, 1)
+        fetchUpdatePrject(Project.project_name, Project.project_note, 'Y')
     }
 
     const handleSubmit = (e) => {
