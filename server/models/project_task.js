@@ -181,7 +181,7 @@ class ProjectTask extends Model {
                 await NotifyTlgrm.create(pginstance, {values:{
                     notify_id : notify_id,
                     status : NotifyTlgrm.CONSTANTS.IN_QUEUE,
-                    telegram_chat_id : user_id
+                    telegram_chat_id : userModel.telegram_chat_id
                 }});
             }
         });
