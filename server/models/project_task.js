@@ -177,7 +177,7 @@ class ProjectTask extends Model {
                 created_on : {expression : "now()"}
             }});
             const userModel = (await RefUsers.find(pginstance,{where:{user_id}}))[0];
-            if (userModel.telegram_chat_id) {
+            if (userModel.telegram_chat_id && userModel.is_notify) {
                 await NotifyTlgrm.create(pginstance, {values:{
                     notify_id : notify_id,
                     status : NotifyTlgrm.CONSTANTS.IN_QUEUE,
