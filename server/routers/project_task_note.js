@@ -22,7 +22,7 @@ router.post('/:project_id/:task_id/:note_id?', async (req, res, next) => {
             .includes(projectUser.user_role)) throw "Permission denied";
 
         if (!note_id) {
-            note_id = await CommonNote.create(con, {
+            note_id = await CommonNote.createWithTrigger(con, {
                 values : {
                     task_id,
                     note,

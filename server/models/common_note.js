@@ -1,5 +1,9 @@
 const mysql = require('../mysqlhelper');
 const Model = require('./Model');
+const ProjectTask = require('./project_task');
+const NotifyTlgrm = require('./notify_tlgrm');
+const Notify = require('./notify');
+const RefUsers = require('./ref_users');
 
 class CommonNote extends Model {
 
@@ -115,6 +119,55 @@ static async getRemindNoteList({user_id, entity_tree, limit, offset}, con) {
     return await mysql.query(con,sql,sqlParams);
 }
 
+    static async createWithTrigger(pginstance, {values,returning = null,on_conflict = null}) {
+        const result = super.create(pginstance, {values,returning,on_conflict});
+        if (!values.task_id) {
+            return result;
+        }
+
+        // get task model before create
+        const projectTaskModel = (await ProjectTask.find(pginstance, {where:{ 
+            task_id : values.task_id
+        }}))[0];
+
+        const taskUrl = `https://planhelp.ru/task/project/${projectTaskModel.project_id}/${projectTaskModel.task_id}/`;
+        let notifyText = "";
+        const notifyUserSet = new Set();
+
+        if (projectTaskModel.executor_id) notifyUserSet.add(projectTaskModel.executor_id);
+        if (projectTaskModel.responsible_id) notifyUserSet.add(projectTaskModel.responsible_id);
+        if (projectTaskModel.reviewer_id) notifyUserSet.add(projectTaskModel.reviewer_id);
+        // get user model
+        const userModel = (await RefUsers.find(pginstance,{where:{
+            user_id : values.user_id
+        }}))[0];
+
+        notifyText = `${userModel.login} написал комментарий -> ${values.note} \n ${taskUrl} \n`;
+        // уюираем юзера, который соверщил действие
+        notifyUserSet.delete(values.user_id);
+
+        // перебираем оставшихся и формируем нотификации
+        notifyUserSet.forEach(async (user_id) => {
+            const notify_id = await Notify.create(pginstance,{values:{
+                user_id : user_id,
+                object_id : values.task_id,
+                object_type : "project_task",
+                notify_note : notifyText,
+                is_read : 0,
+                created_on : {expression : "now()"}
+            }});
+            const userModel = (await RefUsers.find(pginstance,{where:{user_id}}))[0];
+            if (userModel.telegram_chat_id) {
+                await NotifyTlgrm.create(pginstance, {values:{
+                    notify_id : notify_id,
+                    status : NotifyTlgrm.CONSTANTS.IN_QUEUE,
+                    telegram_chat_id : user_id
+                }});
+            }
+        });
+        
+        return result;
+    }
 }
 
 module.exports = CommonNote;
