@@ -19,52 +19,10 @@ router.get('/:project_id/:task_id?', async (req, res, next) => {
         
         const projectRole = (await ProjectUser.find(con,{where : {project_id, user_id : profile_user_id}}))[0];
         if (!projectRole) throw 'Permission denied';
-
-        const _custom = []
-        if (status_ids) {
-            status_ids = status_ids.replace(/:/g,",");
-            _custom.push( { 
-                sql : ` and (project_task.status_id in (${status_ids}) )`, 
-                no_value : true 
-            } );
-        }
-        const taskList = await ProjectTask.find(con, {
-            select : `project_task.*,
-                      ru_created.login as "ru_created_login",
-                      ru_executor.login  as "ru_executor_login",
-                      ru_executor.user_id  as "ru_executor_id",
-                      ru_responsible.login  as "ru_responsible_login",
-                      ru_responsible.user_id  as "ru_responsible_id",
-                      ru_reviewer.login  as "ru_reviewer_login",
-                      ru_reviewer.user_id  as "ru_reviewer_id",
-                      project_status.status_name,
-                      project_status.variant`,
-            joins : [
-                { table : "ref_users ru_created", 
-                     on : "project_task.created_by = ru_created.user_id" },
-                { table : "project_status", 
-                   type : "left join",
-                     on : "project_task.status_id = project_status.status_id" },
-                { table : "ref_users ru_executor", 
-                   type : "left join",
-                     on : "project_task.executor_id = ru_executor.user_id" },
-                { table : "ref_users ru_responsible", 
-                   type : "left join",
-                     on : "project_task.responsible_id = ru_responsible.user_id" },
-                { table : "ref_users ru_reviewer", 
-                   type : "left join",
-                     on : "project_task.reviewer_id = ru_reviewer.user_id" },
-            ],
-            where : {
-                "project_task.is_deleted" : ProjectTask.CONSTANTS.N, 
-                "project_task.project_id" : project_id, 
-                task_id, executor_id, responsible_id, reviewer_id, "project_task.status_id" : status_id,
-                _custom : _custom
-            },
-            order : "task_id desc",
-            limit : +limit || 50,
-            offset : +offset || 0
-        });
+        // Получаем список задач
+        const taskList = await ProjectTask.getList(con, 
+            {project_id, task_id, limit, offset, executor_id, responsible_id, reviewer_id, status_id, status_ids }
+        );
 
         if (!task_id) {
             res.send(taskList);
@@ -79,7 +37,7 @@ router.get('/:project_id/:task_id?', async (req, res, next) => {
             ],
             where : { task_id },
             orderby : "note_id"
-        })
+        });
         task.comments = comments;
         res.send(task);
     } catch(error) {
@@ -115,13 +73,21 @@ router.post('/:project_id/:task_id?', async (req, res, next) => {
                 }
             });
         } else {
-            await ProjectTask.update(con, {
+            await ProjectTask.updateWithTrigger(con, {
                 values : {
-                    task_title,task_note,is_deleted : is_deleted || 'N',status_id,
-                    executor_id, responsible_id, reviewer_id
+                    task_title,
+                    task_note,
+                    is_deleted : is_deleted || 'N',
+                    status_id,
+                    executor_id, 
+                    responsible_id, 
+                    reviewer_id,
+                    updated_by : profile_user_id,
+                    updated_on : { expression : "now()" }
                 },
                 where : { project_id, task_id }
-            });
+            },
+            profile_user_id);
         }
 
         res.send({task_id});

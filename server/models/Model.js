@@ -246,7 +246,6 @@ class Model {
         let sql = ` insert into ${this.table}( `;
         let sqlValues = ` values( `;
         for (const keyValue of Object.keys(values) ) {
-            console.log(keyValue, typeof values[keyValue])
             if ( typeof values[keyValue] === "object" 
                  && values[keyValue] !== null
                  && !Array.isArray(values[keyValue]) ) {
