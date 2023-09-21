@@ -10,7 +10,7 @@ import moment from 'moment-timezone';
 import 'moment/locale/ru';
 moment.locale('ru');
 
-function Task(props) {
+function ProjectList(props) {
     const dispatch = useDispatch();
     const navigate = useNavigate();
     document.title = "Мои проекты | planhelp";
@@ -35,7 +35,7 @@ function Task(props) {
 
     const navigateToDetail = (project) => {
         let projectId = project.project_id
-        navigate(`/task/project/${projectId}`);
+        navigate(`/project/${projectId}/list`);
     }
 
     const listItems = Project.projectList.map((el) => {
@@ -72,7 +72,7 @@ function Task(props) {
     
     <Row>
         <Col>
-            <Button variant="outline-primary" onClick={() => navigate(`/task/project/add`)}>
+            <Button variant="outline-primary" onClick={() => navigate(`/project/add`)}>
                 <i className="bi bi-journal-plus"></i>
             </Button>
         </Col>
@@ -86,4 +86,4 @@ function Task(props) {
 }
 
 
-export default Task;
+export default ProjectList;

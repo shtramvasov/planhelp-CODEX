@@ -6,7 +6,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import Breadcrumb from "../helpers/Breadcrumb";
 import { postProject } from "../../network/TaskNetwork";
 
-function TaskProjectForm(props) {
+function ProjectForm(props) {
 
     const navigate = useNavigate();
     const { project_id } = useParams();
@@ -22,7 +22,7 @@ function TaskProjectForm(props) {
                 if (!err) {
                     // handleCancelClick();
                     // fetchEntity();
-                    navigate("/task")
+                    navigate("/project")
                 }
             }
         );
@@ -40,8 +40,8 @@ function TaskProjectForm(props) {
         <Col>
         <Breadcrumb 
             items={[
-                {url:`/task`, name: "Мои проекты"},
-                {url:`/task/project/add`, name: "Добавить новый проект"}
+                {url:`/project`, name: "Мои проекты"},
+                {url:`/project/add`, name: "Добавить новый проект"}
             ]}
         />
         </Col>
@@ -89,4 +89,4 @@ function TaskProjectForm(props) {
 }
 
 
-export default TaskProjectForm;
+export default ProjectForm;

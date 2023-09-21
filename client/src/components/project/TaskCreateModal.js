@@ -12,6 +12,7 @@ import { Link, useNavigate , useSearchParams} from "react-router-dom";
 import { useSelector, useDispatch } from 'react-redux';
 import { useParams } from 'react-router-dom';
 import LinkInput from '../helpers/LinkInput';
+import Select from 'react-select';
 
 // Обработчик markdown 
 import ReactMarkdown from 'react-markdown'
@@ -29,13 +30,31 @@ moment.locale('ru');
  * @param {*} props 
  * @returns 
  */
-function ModalTaskCreate(props) {
+function TaskCreateModal(props) {
 
     const [taskNote, setTaskNote]  = useState("");
+    const [statusOption, setStatusOption]  = useState({});
+
+    const Project = useSelector((state) => state.project);
+
+    // мапированный массив статусов
+    const statusSelectOptions = Project.project.project_status_list.map(status => {
+        return {value : status.status_id, label : status.status_name}
+    });
+
+    // init
+    useEffect(() => {
+        // первичный статус
+        handelStatusChange(statusSelectOptions[0]);
+    },[Project.project.project_status_list]);
 
     // Создаем объект <table> со стилями bootstrap, для использования его в markdown
     const MarkdownTable = props => {
         return (<table className="table table-bordered"> {props.children} </table>)
+    }
+
+    const handelStatusChange = (statusOption) => {
+        setStatusOption(statusOption);
     }
 
     const handleEditorChange = ({ html, text }) => {
@@ -61,9 +80,11 @@ function ModalTaskCreate(props) {
 
     const submit = (e) => {
         e.preventDefault();
+        
         props.callBack({
             task_title : e.target.taskTitle.value,
-            task_note : taskNote
+            task_note : taskNote,
+            status_id : statusOption.value
         })
         setTaskNote("");
     }
@@ -96,6 +117,19 @@ function ModalTaskCreate(props) {
                         />
                     </Col>
                 </Row>
+                <Row style={{marginTop: "14px"}}>
+                    <Col lg={2}>
+                        <Form.Group className="mb-3" controlId="status_id"> 
+                        <Select 
+                            closeMenuOnSelect={true} 
+                            onChange={(option) => {handelStatusChange(option)}}
+                            value={statusOption}
+                            placeholder="Статус" 
+                            options={statusSelectOptions}
+                        />
+                        </Form.Group>
+                    </Col>
+                </Row>
                 </Modal.Body>
 
                 <Modal.Footer>
@@ -109,4 +143,4 @@ function ModalTaskCreate(props) {
     )
 }
 
-export default ModalTaskCreate;
+export default TaskCreateModal;

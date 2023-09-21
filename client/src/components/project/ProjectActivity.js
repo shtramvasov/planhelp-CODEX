@@ -16,7 +16,7 @@ moment.locale('ru');
 
 const noText = "Проект без названия";
 
-function TaskProjectActivity(props) {
+function ProjectActivity(props) {
 
     const navigate = useNavigate();
     const dispatch = useDispatch();
@@ -124,7 +124,7 @@ function TaskProjectActivity(props) {
     }
 
     const handleCancelEntity = () => {
-        navigate(`/task/project/${project_id}`);
+        navigate(`/project/${project_id}/list`);
     }
 
     const listUsers = Project.project_user_list.map((el) =>
@@ -226,8 +226,12 @@ function TaskProjectActivity(props) {
                 <Col>
                 <Breadcrumb 
                     items={[
-                        {url:`/task`, name: "Мои проекты"}, 
-                        {url:``, name: Project?.project_name.trim()?Project.project_name:noText} 
+                        {url:`/project`, name: "Мои проекты"}, 
+                        {
+                            url:`/project/${Project.project_id}/list`, 
+                            name: Project?.project_name.trim()?Project.project_name:noText
+                        },
+                        {url:``, name: 'Свойства'}
                     ]}
                 />
                 </Col>
@@ -251,4 +255,4 @@ function TaskProjectActivity(props) {
     )    
 }
 
-export default TaskProjectActivity;
+export default ProjectActivity;

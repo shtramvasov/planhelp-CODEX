@@ -63,7 +63,7 @@ export function Navbar(props) {
             </Nav>
             <Nav className='justify-content-left'>
                 <Nav.Item>
-                <Nav.Link as={Link} to="/task" active={location.pathname.includes("/task")}>Проекты</Nav.Link>
+                <Nav.Link as={Link} to="/project" active={location.pathname.includes("/project")}>Проекты</Nav.Link>
                 </Nav.Item>
             </Nav>
             {/* <Nav className='justify-content-left'>

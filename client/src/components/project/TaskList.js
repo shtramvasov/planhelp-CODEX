@@ -8,8 +8,10 @@ import { useSelector, useDispatch } from 'react-redux';
 import { getProject, getProjectTaskList, postTask } from "../../network/TaskNetwork";
 import { addProject, addTaskList } from '../../reducers/Project';
 import Select from 'react-select';
-import ModalTaskEdit from "./ModalTaskEdit";
-import ModalTaskCreate from "./ModalTaskCreate";
+import TaskEditModal from "./TaskEditModal";
+import TaskCreateModal from "./TaskCreateModal";
+import TaskListMode from "./TaskListMode";
+import TaskBoardMode from "./TaskBoardMode";
 import moment from 'moment-timezone';
 import 'moment/locale/ru';
 
@@ -19,7 +21,7 @@ moment.locale('ru');
 
 const noText = "Проект без названия";
 
-function TaskProjectList(props) {
+function TaskList(props) {
 
     const [ searchParams ] = useSearchParams();
     const limit = searchParams.get("limit");
@@ -33,8 +35,8 @@ function TaskProjectList(props) {
 
     const dispatch = useDispatch();
     const navigate = useNavigate();
-    const { project_id } = useParams();
-
+    const { project_id, mode } = useParams();
+    
     const [showModalTaskDetail, setShowModalTaskDetail] = useState(false);
     const [showModalTaskEdit, setShowModalTaskEdit] = useState(false);
     const [showModalTaskCreate, setShowModalTaskCreate] = useState(false);
@@ -66,7 +68,7 @@ function TaskProjectList(props) {
         if (limit !== undefined) currentUrlObj.limit = limit;
         if (offset !== undefined) currentUrlObj.offset = offset;
 
-        navigate(`/task/project/${project_id}?${queryString.stringify(currentUrlObj)}`);
+        navigate(`/project/${project_id}/${mode}?${queryString.stringify(currentUrlObj)}`);
         
     }
 
@@ -85,6 +87,15 @@ function TaskProjectList(props) {
         setShowModalTaskCreate(true);
     }
 
+    // переход на доску
+    const actionGoToBoard = () => {
+        navigate(`/project/${project_id}/board/?${document.location.search.slice(1)}`);
+    }
+    // переход на доску
+    const actionGoToList = () => {
+        navigate(`/project/${project_id}/list/?${document.location.search.slice(1)}`);
+    }
+
     // колбэк после редактирования задачи
     const actionCallModaTaskEditCallback = (commonNote) => {
         //moment(commonNote.remind_on,'YYYY-MM-DD HH:mm:ss').tz('UTC').format('YYYY-MM-DD HH:mm:ss')
@@ -98,7 +109,9 @@ function TaskProjectList(props) {
             postTask({
                     project_id : project_id, 
                     task_title : task.task_title, 
-                    task_note : task.task_note},(err,resp) => {
+                    task_note : task.task_note,
+                    status_id : task.status_id
+                    },(err,resp) => {
                 if (!err) {
                     // рефрешим список заявок
                     fetchProjectTaskList();
@@ -136,19 +149,17 @@ function TaskProjectList(props) {
 
     const paginateForward = () => {
         onChangeUrl({limit : 50, offset: parseInt(offset?offset:0)+50});
-        // navigate(`/task/project/${project_id}?limit=50&offset=${parseInt(offset?offset:0)+50}`);
     }
     const paginateBackward = () => {
         onChangeUrl({limit : 50, offset: parseInt(offset)-50});
-        // navigate(`/task/project/${project_id}?limit=50&offset=${parseInt(offset)-50}`);
     }
 
     const navigateToActivity = () => {
-        navigate(`/task/project/${project_id}/activity`);
+        navigate(`/project/${project_id}/activity`);
     }
 
     const navigateToEditProject = () => {
-        navigate(`/task/project/${project_id}/edit`)
+        navigate(`/project/${project_id}/edit`)
     }
 
     const ActivityButton = (project) => {
@@ -163,24 +174,24 @@ function TaskProjectList(props) {
         }
     }
 
-    // Список задачи
-    const listItems = Project.taskList.map((el,index) => 
-        <ListGroup.Item key={index} 
-            action active={false} href={`/task/project/${el.project_id}/${el.task_id}/`} 
-            onClick={(e) => {actionCallModaTaskEdit(e, {project_id : el.project_id, task_id : el.task_id})}} 
-            variant={el.is_closed === "Y"? "secondary":""}>
-                <div className="d-flex w-100 justify-content-between">
-                    <h5 className="mb-1">{el.task_title}</h5>
-                    <small>{moment(el.created_on,'YYYY-MM-DDTHH:mm:ss.SSSZ').fromNow()}</small>
-                </div>
-                <p className="mb-1">
-                    {el.executor_id?<><i className="bi bi-person"></i> {el.ru_executor_login} &nbsp;</> :""}
-                    {el.ru_responsible_id?<><i className="bi bi-person-check"></i> {el.ru_responsible_login} &nbsp;</> :""}
-                    {el.ru_reviewer_id?<><i className="bi bi-arrow-right"></i> {el.ru_reviewer_login} &nbsp;</> :""}
-                </p>
-                <small><Badge bg={el.status_id?el.variant:"secondary"}>{el.status_id?el.status_name:"Без статуса"}</Badge></small>
-        </ListGroup.Item>
-    )
+    // // Список задачи
+    // const listItems = Project.taskList.map((el,index) => 
+    //     <ListGroup.Item key={index} 
+    //         action active={false} href={`/project/${el.project_id}/task/${el.task_id}/`} 
+    //         onClick={(e) => {actionCallModaTaskEdit(e, {project_id : el.project_id, task_id : el.task_id})}} 
+    //         variant={el.is_closed === "Y"? "secondary":""}>
+    //             <div className="d-flex w-100 justify-content-between">
+    //                 <h5 className="mb-1">{el.task_title}</h5>
+    //                 <small>{moment(el.created_on,'YYYY-MM-DDTHH:mm:ss.SSSZ').fromNow()}</small>
+    //             </div>
+    //             <p className="mb-1">
+    //                 {el.executor_id?<><i className="bi bi-person"></i> {el.ru_executor_login} &nbsp;</> :""}
+    //                 {el.ru_responsible_id?<><i className="bi bi-person-check"></i> {el.ru_responsible_login} &nbsp;</> :""}
+    //                 {el.ru_reviewer_id?<><i className="bi bi-arrow-right"></i> {el.ru_reviewer_login} &nbsp;</> :""}
+    //             </p>
+    //             <small><Badge bg={el.status_id?el.variant:"secondary"}>{el.status_id?el.status_name:"Без статуса"}</Badge></small>
+    //     </ListGroup.Item>
+    // );
 
     // мапированный массив статусов
     const statusSelectOptions = Project.project.project_status_list.map(status => {
@@ -200,7 +211,7 @@ function TaskProjectList(props) {
     <Container>
 
     {/* Модалка редактирования */}
-    <ModalTaskEdit 
+    <TaskEditModal 
         fullscreen={true}
         show={showModalTaskEdit}
         project_id={modalProjectTaskData.project_id}
@@ -208,7 +219,7 @@ function TaskProjectList(props) {
         callBack={actionCallModaTaskEditCallback}
     />
     {/* Модалка создания */}
-    <ModalTaskCreate 
+    <TaskCreateModal 
         fullscreen={true}
         show={showModalTaskCreate} 
         callBack={actionCallModaTaskCreateCallback}
@@ -223,7 +234,7 @@ function TaskProjectList(props) {
         <Col>
         <Breadcrumb 
             items={[
-                {url:`/task`, name: "Мои проекты"},
+                {url:`/project`, name: "Мои проекты"},
                 {url:``, name: Project.project?.project_name.trim()?Project.project.project_name:noText}
             ]}
         />
@@ -242,6 +253,23 @@ function TaskProjectList(props) {
                     <i className="bi bi-plus-circle"></i>
                 </Button>
                 {  ActivityButton(Project.project) }
+                {mode === "list"?
+                    <Button type="button" variant="light" onClick={actionGoToBoard} >
+                        Канбан
+                    </Button>
+                    :
+                    <Button type="button" variant="light" onClick={actionGoToList} >
+                        Список
+                    </Button>
+                }
+                {/* &nbsp;
+                <Button type="button" variant="light" onClick={actionGoToBoard} >
+                    Спринты
+                </Button>
+                &nbsp;
+                <Button type="button" variant="light" onClick={actionGoToBoard} >
+                    Вехи
+                </Button> */}
             </Form.Group>
             </div>
         </Col>
@@ -301,9 +329,11 @@ function TaskProjectList(props) {
     </Row>
     <Row style={{marginTop: "16px"}}>
         <Col lg={12}>
-            <ListGroup>
-                {listItems}
-            </ListGroup>      
+            {mode === "list"? 
+                <TaskListMode actionCallModaTaskEdit={actionCallModaTaskEdit}/> 
+                :
+                <TaskBoardMode /> 
+            }
         </Col>
     </Row>
     <Row style={{marginBottom: "32px"}}>
@@ -325,4 +355,4 @@ function TaskProjectList(props) {
 }
 
 
-export default TaskProjectList;
+export default TaskList;

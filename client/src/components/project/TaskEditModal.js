@@ -15,7 +15,7 @@ moment.locale('ru');
  * @param {*} props 
  * @returns 
  */
-function ModalTaskEdit(props) {
+function TaskEditModal(props) {
 
     const {project_id, task_id} = props;
 
@@ -42,4 +42,4 @@ function ModalTaskEdit(props) {
 }
 
 
-export default ModalTaskEdit;
+export default TaskEditModal;

@@ -13,7 +13,7 @@ import moment from 'moment-timezone';
 import 'moment/locale/ru';
 moment.locale('ru');
 
-function TaskProjectTaskForm(props) {
+function TaskDetail(props) {
     const dispatch = useDispatch();
     const navigate = useNavigate();
     const { project_id, task_id } = useParams();
@@ -47,8 +47,8 @@ function TaskProjectTaskForm(props) {
             <Col>
             <Breadcrumb 
                 items={[
-                    {url:`/task`, name: "Мои проекты"},
-                    {url:`/task/project/${Project.project.project_id}`, name: Project.project.project_name},
+                    {url:`/project`, name: "Мои проекты"},
+                    {url:`/project/${Project.project.project_id}/list`, name: Project.project.project_name},
                     {url:``, name: `${Project.task.task_title}`}
                 ]}
             />
@@ -63,4 +63,4 @@ function TaskProjectTaskForm(props) {
     )
 }
 
-export default TaskProjectTaskForm;
+export default TaskDetail;

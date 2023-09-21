@@ -9,18 +9,23 @@ import DiskPath from "./disk/DiskPath";
 import DiskActivity from "./disk/DiskActivity";
 import DiskActivityOld from "./disk/DiskActivityOld";
 import NotifyList from "./notify/NotifyList";
-import Task from "./task/Task";
-import TaskProjectForm from "./task/TaskProjectForm";
-import TaskProjectList from "./task/TaskProjectList";
-import TaskProjectTaskForm from "./task/TaskProjectTaskForm";
+
+import ProjectList from "./project/ProjectList";
+import ProjectForm from "./project/ProjectForm";
+import ProjectFormUpdate from "./project/ProjectFormUpdate";
+
+import TaskList from "./project/TaskList";
+import TaskBoard from "./project/TaskBoard";
+import TaskDetail from "./project/TaskDetail";
+
 import Hr from "./hr/Hr";
 
 import { useSelector, useDispatch } from 'react-redux'
 import { useEffect } from "react";
 import Cookies from 'js-cookie';
 import queryString from 'query-string';
-import TaskProjectActivity from "./task/TaskProjectActivity";
-import TaskProjectUpdate from "./task/TaskProjectUpdate";
+import ProjectActivity from "./project/ProjectActivity";
+
 
 const router = createBrowserRouter([
     {
@@ -51,31 +56,38 @@ const router = createBrowserRouter([
         path: "/disk/:entity_id/activity/:activity_id",
         element: <DiskActivityOld />,
     },
-   
+    // Проекты и задачи
     {
-        path: "/task/project/add",
-        element: <TaskProjectForm />,
+        path: "/project",
+        element: <ProjectList />,
     },
     {
-        path: "/task/project/:project_id/edit",
-        element: <TaskProjectUpdate />,
+        path: "/project/add",
+        element: <ProjectForm />,
     },
     {
-        path: "/task/project/:project_id/",
-        element: <TaskProjectList />,
+        path: "/project/:project_id/edit",
+        element: <ProjectFormUpdate />,
     },
     {
-        path: "/task/project/:project_id/activity",
-        element: <TaskProjectActivity />,
+        path: "/project/:project_id/activity",
+        element: <ProjectActivity />,
     },
     {
-        path: "/task/project/:project_id/:task_id",
-        element: <TaskProjectTaskForm />,
+        path: "/project/:project_id/:mode",
+        element: <TaskList />,
     },
     {
-        path: "/task",
-        element: <Task />,
+        path: "/project/:project_id/task/:task_id",
+        element: <TaskDetail />,
     },
+    // /project/:project_id/sprint
+    // /project/:project_id/sprint/:sprint_id
+
+    // /project/:project_id/milestone
+    // /project/:project_id/milestone/:milestone_id
+
+    // 
     {
         path: "/hr",
         element: <Hr />,

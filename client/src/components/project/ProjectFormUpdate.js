@@ -10,7 +10,7 @@ import { Navbar } from '../navbar/Navbar';
 
 const noText = "Проект без названия";
 
-function TaskProjectUpdate(props) {
+function ProjectFormUpdate(props) {
 
     const navigate = useNavigate();
     const dispatch = useDispatch();
@@ -45,11 +45,11 @@ function TaskProjectUpdate(props) {
     }
 
     const handleCancelEntity = () => {
-        navigate(`/task/project/${project_id}`);
+        navigate(`/project/${project_id}/list`);
     }
 
     const navigateToProjectList = () => {
-        navigate(`/task`);
+        navigate(`/project`);
     }
 
     /// Удалить проект
@@ -98,8 +98,12 @@ function TaskProjectUpdate(props) {
                 <Col>
                     <Breadcrumb 
                         items={[
-                        {url:`/task`, name: "Мои проекты"}, 
-                        {url:``, name: Project.project_name} 
+                        {url:`/project`, name: "Мои проекты"}, 
+                        {
+                            url:`/project/${Project.project_id}/list`, 
+                            name: Project?.project_name.trim()?Project.project_name:noText
+                        }, 
+                        {url:``, name: "Изменить проект"} 
                         ]}
                     />
                 </Col>
@@ -149,4 +153,4 @@ function TaskProjectUpdate(props) {
 }
 
 
-export default TaskProjectUpdate;
+export default ProjectFormUpdate;
