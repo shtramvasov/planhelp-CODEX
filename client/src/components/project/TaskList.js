@@ -55,7 +55,7 @@ function TaskList(props) {
     useEffect(() => {
         // загрузка данных о задачах
         fetchProjectTaskList();
-    },[offset, executor_id, status_id, responsible_id, reviewer_id])
+    },[offset, executor_id, status_id, responsible_id, reviewer_id, mode])
 
     const onChangeUrl = ({status_id, executor_id, responsible_id, reviewer_id, offset, limit}) => {
 
@@ -332,7 +332,7 @@ function TaskList(props) {
             {mode === "list"? 
                 <TaskListMode actionCallModaTaskEdit={actionCallModaTaskEdit}/> 
                 :
-                <TaskBoardMode /> 
+                <TaskBoardMode actionCallModaTaskEdit={actionCallModaTaskEdit}/> 
             }
         </Col>
     </Row>

@@ -33,7 +33,8 @@ function ProjectList(props) {
         });
     };
 
-    const navigateToDetail = (project) => {
+    const navigateToDetail = (project, e) => {
+        e.preventDefault();
         let projectId = project.project_id
         navigate(`/project/${projectId}/list`);
     }
@@ -41,7 +42,8 @@ function ProjectList(props) {
     const listItems = Project.projectList.map((el) => {
         return <>
         <Col lg={6}>
-            <div className="card mb-3" onClick={ (e) => { navigateToDetail(el) } }>
+            <a href={`/project/${el.project_id}/list`} style={{textDecoration: "none", color: "inherit"}}>
+            <div className="card mb-3" onClick={ (e) => { navigateToDetail(el,e) } }>
             <div className="row">
                 <div className="col-md-8">
                 <div className="card-body">
@@ -57,6 +59,7 @@ function ProjectList(props) {
                 </div>
             </div>
             </div>
+            </a>
         </Col>
         </>
     });
