@@ -100,7 +100,7 @@ class ProjectTask extends Model {
             task_id : where.task_id
         }}))[0];
         
-        const taskUrl = `https://planhelp.ru/task/project/${oldModel.project_id}/${oldModel.task_id}/`;
+        const taskUrl = `https://planhelp.ru/project/${oldModel.project_id}/task/${oldModel.task_id}/`;
         let notifyText = "";
         const notifyUserSet = new Set();
         if (oldModel.executor_id) notifyUserSet.add(oldModel.executor_id);

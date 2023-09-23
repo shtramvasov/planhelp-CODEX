@@ -130,7 +130,7 @@ static async getRemindNoteList({user_id, entity_tree, limit, offset}, con) {
             task_id : values.task_id
         }}))[0];
 
-        const taskUrl = `https://planhelp.ru/task/project/${projectTaskModel.project_id}/${projectTaskModel.task_id}/`;
+        const taskUrl = `https://planhelp.ru/project/${projectTaskModel.project_id}/task/${projectTaskModel.task_id}/`;
         let notifyText = "";
         const notifyUserSet = new Set();
 
