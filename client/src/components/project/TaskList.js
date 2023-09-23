@@ -91,7 +91,7 @@ function TaskList(props) {
     const actionGoToBoard = () => {
         navigate(`/project/${project_id}/board/?${document.location.search.slice(1)}`);
     }
-    // переход на доску
+    // переход на список задач
     const actionGoToList = () => {
         navigate(`/project/${project_id}/list/?${document.location.search.slice(1)}`);
     }

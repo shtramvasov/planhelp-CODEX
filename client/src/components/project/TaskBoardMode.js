@@ -3,21 +3,30 @@ import { useSelector, useDispatch } from 'react-redux'
 import React from 'react';
 import DropStatusLane from "./board/DropStatusLane";
 import DragTaskCard from "./board/DragTaskCard";
+import { addTask } from '../../reducers/Project';
 import { getTask, postTask, getProject, postTaskCommonNote } from '../../network/TaskNetwork';
 
 function TaskBoardMode(props) {
 	const actionCallModaTaskEdit = props.actionCallModaTaskEdit;
 	const Project = useSelector((state) => state.project);
-
+	const dispatch = useDispatch();
+	
 	const onChangeStatus = ({project_id, task_id, status_id}) => {
 		postTask({ project_id, task_id, status_id}, (err,resp) => {
 			if (!err) {
-				// fetchTask();
+				getTask({project_id, task_id},(err,resp) => {
+					if (!err) {
+						dispatch(addTask(resp));
+					} else {
+						alert("Ошибка: "+err);
+					}
+				});
 			} else {
-				// alert("Ошибка: "+err);
+				alert("Ошибка: "+err);
 			}
 		})    
 	}
+	
 	const projectStatus = {};
 	const statusLaneList = Project.project.project_status_list.map((el) => {
 		projectStatus[el.status_id] = [];

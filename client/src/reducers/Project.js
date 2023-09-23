@@ -67,6 +67,13 @@ export const projectSlice = createSlice({
         },
         addTask: (state, action) => {
             state.task = (action.payload);
+            // найдем таску в стейте и обновим ее новыми данными
+            state.taskList = state.taskList.map((task) => {
+                if (task.task_id === state.task.task_id) {
+                    return state.task;
+                }
+                return task;
+            });
         },
         addTaskList: (state, action) => {
             state.taskList = (action.payload);
