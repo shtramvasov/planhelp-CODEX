@@ -5,27 +5,23 @@ import { useParams } from 'react-router-dom';
 import moment from 'moment-timezone';
 import 'moment/locale/ru';
 import { Badge, Button, Col, Container, Form, Row, Table } from 'react-bootstrap';
-import { Navbar }  from "../navbar/Navbar";
-import Breadcrumb from "../helpers/Breadcrumb";
-import { addUserToProject, delUserToProject, getProject } from '../../network/TaskNetwork';
-import { addProject } from '../../reducers/Project';
-import { getUsers } from "../../network/UserNetwork";
-import { addUserList } from "../../reducers/User";
-import ModalAutoComplete from "../helpers/ModalAutoComplete";
+import { addUserToProject, delUserToProject, getProject } from '../../../network/TaskNetwork';
+import { addProject } from '../../../reducers/Project';
+import { getUsers } from "../../../network/UserNetwork";
+import { addUserList } from "../../../reducers/User";
+import ModalAutoComplete from "../../helpers/ModalAutoComplete";
 moment.locale('ru');
 
 const noText = "Проект без названия";
 
-function ProjectActivity(props) {
 
-    const navigate = useNavigate();
+function ProjectAccess(props) {
+
     const dispatch = useDispatch();
 
     const User = useSelector((state) => state.user);
     const Project = useSelector((state) => state.project.project);
     const { project_id } = useParams();
-
-    document.title = `Свойства ${Project?.project_name.trim()?Project.project_name:noText} | planhelp`;
 
     const userRoleList = [
         {display_val:"Полные права",return_val:"OWNER"},
@@ -123,10 +119,6 @@ function ProjectActivity(props) {
         })
     }
 
-    const handleCancelEntity = () => {
-        navigate(`/project/${project_id}/list`);
-    }
-
     const listUsers = Project.project_user_list.map((el) =>
         <tr key = {el.user_id}>
             <td>{el.login}</td>
@@ -134,54 +126,18 @@ function ProjectActivity(props) {
                 <Badge bg="primary">{el.user_role}</Badge>
             </td>
             <td>
+                { el.user_role !== 'OWNER' ?  
                 <Button type="button" variant="outline-danger" onClick={() => fetchRevokeUser(el)}>
                     <i className="bi bi-trash3"></i>
-                </Button>
+                </Button> : ""
+                }
             </td>
         </tr>
     )
 
-    const Header = () => {
-        return(
-            <>
-            <div style={{float:"left",paddingRight:"4px"}}>
-                <Form.Group className="mb-3">
-                    <Button style={{marginLeft : "2px"}} type="button" variant="outline-secondary" onClick={handleCancelEntity}>
-                        <i className="bi bi-chevron-left" />
-                    </Button>
-                </Form.Group>
-            </div>
-            
-            <div>
-                <h2> Свойства для {Project?.project_name.trim()?Project.project_name:noText} </h2>
-            </div>
-            </>
-        )
-    }
-
-    const CreatedDate = () => {
-        return(
-            <>
-                Создал {Project.created_by_model.login} { moment(Project.created_on,'YYYY-MM-DDTHH:mm:ss.SSSZ').fromNow() }
-                <hr/>
-            </>
-        )
-    }
-
     const AccessTable = () => {
         return (
             <>
-            <div style={{float:"left",paddingRight:"4px"}}>
-                <h3>Доступ</h3>
-            </div>
-            <div>
-                <Form.Group className="mb-3">
-                    <Button type="button" variant="" onClick={ actionCallModalAddUserProject } >
-                        <i className="bi bi-person-add" />
-                    </Button>
-                </Form.Group>
-            </div>
-
             <Table striped bordered hover>
                 <thead>
                     <tr>
@@ -196,10 +152,10 @@ function ProjectActivity(props) {
             </Table>
             </>
         )
-    }
+    };
 
     return(
-        <Container>
+        <>
             <ModalAutoComplete 
                 title={"Предоставить доступ пользователю"} 
                 placeholder="Начните вводить для поиска"
@@ -215,44 +171,23 @@ function ProjectActivity(props) {
                 callBack={acctionCallBackModalAddRoleUser} 
                 fetcher={fetchUserRole}
                 data={userRoleListOptions}/>
-
             <Row>
                 <Col>
-                    <Navbar />
-                    <hr/>
-                </Col>
-            </Row>
-            <Row>
-                <Col>
-                <Breadcrumb 
-                    items={[
-                        {url:`/project`, name: "Мои проекты"}, 
-                        {
-                            url:`/project/${Project.project_id}/list`, 
-                            name: Project?.project_name.trim()?Project.project_name:noText
-                        },
-                        {url:``, name: 'Свойства'}
-                    ]}
-                />
-                </Col>
-            </Row>
-            <Row>
-                <Col>
-                    { Header() }
-                </Col>
-            </Row>
-            <Row>
-                <Col>
-                    { CreatedDate() }
-                </Col>
-            </Row>
-            <Row>
-                <Col>
+                    <div style={{float:"left", paddingRight:"4px"}}>
+                        <h3> Настройки доступа </h3>
+                    </div>
+                    <div>
+                        <Form.Group className="mb-3">
+                            <Button type="button" variant="" onClick={ actionCallModalAddUserProject } >
+                                <i className="bi bi-person-add" />
+                            </Button>
+                        </Form.Group>
+                    </div>
                     { AccessTable() }
                 </Col>
             </Row>
-        </Container>
+        </>
     )    
 }
 
-export default ProjectActivity;
+export default ProjectAccess;
