@@ -51,7 +51,7 @@ function NotifyList(props) {
     const actionProcessNotify = (e,notify) => {
         e.preventDefault();
         if (notify.object_type === "disk_entity") navigate(`/disk/${notify.object_id}`); else
-        if (notify.object_type === "project_task") navigate(`/task/project/${notify.project_id}/${notify.object_id}`); 
+        if (notify.object_type === "project_task") navigate(`/project/${notify.project_id}/task/${notify.object_id}`); 
 
     }
 
