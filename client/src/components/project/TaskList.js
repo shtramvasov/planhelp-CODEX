@@ -154,24 +154,8 @@ function TaskList(props) {
         onChangeUrl({limit : 50, offset: parseInt(offset)-50});
     }
 
-    const navigateToActivity = () => {
-        navigate(`/project/${project_id}/activity`);
-    }
-
     const navigateToEditProject = () => {
-        navigate(`/project/${project_id}/edit`)
-    }
-
-    const ActivityButton = (project) => {
-        if (project.user_role === "OWNER") {
-            return(
-                <Button type="button" variant="" onClick={navigateToActivity} >
-                    <i className="bi bi-info-circle"></i>
-                </Button>
-            )
-        } else {
-            return ""
-        }
+        navigate(`/project/${project_id}/settings`)
     }
 
     // // Список задачи
@@ -252,7 +236,7 @@ function TaskList(props) {
                 <Button type="button" variant="" onClick={actionCallModaTaskCreate} >
                     <i className="bi bi-plus-circle"></i>
                 </Button>
-                {  ActivityButton(Project.project) }
+
                 {mode === "list"?
                     <Button type="button" variant="light" onClick={actionGoToBoard} >
                         Канбан

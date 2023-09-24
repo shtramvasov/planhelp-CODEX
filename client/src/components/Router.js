@@ -24,7 +24,8 @@ import { useSelector, useDispatch } from 'react-redux'
 import { useEffect } from "react";
 import Cookies from 'js-cookie';
 import queryString from 'query-string';
-import ProjectActivity from "./project/ProjectActivity";
+
+import ProjectSettings from './project/settings/ProjectSettings';
 
 
 const router = createBrowserRouter([
@@ -66,12 +67,8 @@ const router = createBrowserRouter([
         element: <ProjectForm />,
     },
     {
-        path: "/project/:project_id/edit",
-        element: <ProjectFormUpdate />,
-    },
-    {
-        path: "/project/:project_id/activity",
-        element: <ProjectActivity />,
+        path: "/project/:project_id/settings/*",
+        element: <ProjectSettings />,
     },
     {
         path: "/project/:project_id/:mode",

@@ -167,3 +167,28 @@ export async function postTaskCommonNote({project_id, task_id, note_id, note}, c
         cb(response.status + " " + response.statusText);
     }
 }
+
+export async function postTaskStatus({ project_id, name, variant, is_closed, is_deleted, status_id }, cb = () => {}) {
+    
+    const response = await fetch(`/api/secure/project/${project_id}/status/${status_id ? status_id : ""}`, {
+        method: 'post',
+        body: JSON.stringify({
+            status_name: name, 
+            variant : variant,
+            is_closed : is_closed,
+            is_deleted: is_deleted
+        }),
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${Cookies.get("secret")}`
+        }
+    });
+
+    if (response.ok) {
+        const data = await response.json();
+        cb(null,data);
+    } else {
+        cb(response.status + " " + response.statusText);
+    }
+
+}
