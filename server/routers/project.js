@@ -87,28 +87,33 @@ router.post('/', async (req, res, next) => {
         });
         // создаем дефолтный набор статусов
         await ProjectStatus.create(con, {values:{
-            project_id, status_name : "К выполнению", variant : "info", 
+            project_id, status_name : "Бэклог", variant : "light", 
             is_deleted : ProjectStatus.CONSTANTS.N, orderby: 1, is_closed : 
             ProjectStatus.CONSTANTS.N
         }});
         await ProjectStatus.create(con, {values:{
-            project_id, status_name : "В работе", variant : "success", 
+            project_id, status_name : "К выполнению", variant : "info", 
             is_deleted : ProjectStatus.CONSTANTS.N, orderby: 2, is_closed : 
             ProjectStatus.CONSTANTS.N
         }});
         await ProjectStatus.create(con, {values:{
-            project_id, status_name : "Проверяется", variant : "warning", 
+            project_id, status_name : "В работе", variant : "success", 
             is_deleted : ProjectStatus.CONSTANTS.N, orderby: 3, is_closed : 
             ProjectStatus.CONSTANTS.N
         }});
         await ProjectStatus.create(con, {values:{
-            project_id, status_name : "Выполнено", variant : "primary", 
+            project_id, status_name : "Проверяется", variant : "warning", 
             is_deleted : ProjectStatus.CONSTANTS.N, orderby: 4, is_closed : 
             ProjectStatus.CONSTANTS.N
         }});
         await ProjectStatus.create(con, {values:{
-            project_id, status_name : "Закрыто", variant : "secondary", 
+            project_id, status_name : "Выполнено", variant : "primary", 
             is_deleted : ProjectStatus.CONSTANTS.N, orderby: 5, is_closed : 
+            ProjectStatus.CONSTANTS.N
+        }});
+        await ProjectStatus.create(con, {values:{
+            project_id, status_name : "Закрыто", variant : "secondary", 
+            is_deleted : ProjectStatus.CONSTANTS.N, orderby: 6, is_closed : 
             ProjectStatus.CONSTANTS.Y
         }});
 
