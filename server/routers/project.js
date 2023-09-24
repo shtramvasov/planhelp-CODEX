@@ -190,7 +190,7 @@ router.post('/:project_id/status/:status_id?', async (req, res, next) => {
                 throw "Not valid is_deleted in body params, only Y or N";
         }
         if (is_closed) {
-            if (![ProjectStatus.CONSTANTS.Y,ProjectStatus.CONSTANTS.N].includes(is_deleted)) 
+            if (![ProjectStatus.CONSTANTS.Y,ProjectStatus.CONSTANTS.N].includes(is_closed)) 
                 throw "Not valid is_closed in body params, only Y or N";
         }
         const projectRole = (await ProjectUser.find(con,{where : {project_id, user_id : profile_user_id}}))[0];
