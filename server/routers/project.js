@@ -49,7 +49,7 @@ router.get('/:project_id?', async (req, res, next) => {
         projectOne.project_status_list = 
             await ProjectStatus.find(con, {
                 where : { project_id , is_deleted : ProjectStatus.CONSTANTS.N},
-                orderby : "orderby"
+                order : "orderby"
             });
         res.send(projectOne);
     } catch(error) {
