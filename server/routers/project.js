@@ -129,7 +129,8 @@ router.post('/', async (req, res, next) => {
 router.post('/:project_id', async (req, res, next) => {
     const { user_id } = req.userModel;
     const { project_id } = req.params;
-    const { project_name, project_note, is_deleted } = req.body;
+    const { project_name, project_note, is_deleted, project_status_list } = req.body;
+    // project_status_list - массив статусов проекта
     let con;
     try {
         con = await mysql.getConnection();
@@ -149,7 +150,21 @@ router.post('/:project_id', async (req, res, next) => {
             },
             where : { project_id }
         });
-        
+        // Если передали массив статусов
+        if (project_status_list && Array.isArray(project_status_list) ) {
+            for (const status of project_status_list) {
+                await ProjectStatus.update(con,{
+                    values : { project_id, 
+                        status_name : status.status_name, 
+                        variant : status.variant, 
+                        is_deleted : status.is_deleted || ProjectStatus.CONSTANTS.N, 
+                        orderby : status.orderby, 
+                        is_closed : status.is_closed
+                    },
+                    where : { status_id : status.status_id, project_id }
+                });
+            }
+        }
         res.send({project_id});
     } catch(error) {
         next(error);
