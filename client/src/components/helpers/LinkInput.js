@@ -62,7 +62,7 @@ function LinkInput(props) {
 
     const handleSumbit = (e) => {
         e.preventDefault();
-        setIsEdit(props.isEdit?props.isEdit:false);
+        setIsEdit(props.isEdit !== undefined ?props.isEdit:false);
         props.callBack(value);
         setValue("");
     }
