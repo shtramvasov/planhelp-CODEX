@@ -34,7 +34,7 @@ function LinkInput(props) {
 
     // for markDown
     //  height in px, "300px"
-    const [isEdit, setIsEdit] = useState(props.isEdit?props.isEdit:false);
+    const [isEdit, setIsEdit] = useState(props.isEdit !== undefined ?props.isEdit:false);
     const [value, setValue] = useState("");
     
     const isCancel = props.isCancel !== undefined ? props.isCancel : true;
