@@ -19,6 +19,12 @@ function LinkInput(props) {
     //  placeholder 
     //  defaultValue
     //  callBack - function
+    //  isEdit true / false default value 
+    //  isCancel true / false
+    //  isSubmit true / false 
+    //  submitLabel 
+    //  cancelLabel
+    //  isEditable true / false
 
     // for textArea custom
     //  rows
@@ -28,10 +34,18 @@ function LinkInput(props) {
 
     // for markDown
     //  height in px, "300px"
-    const [isEdit, setIsEdit] = useState(false);
-    const [value, setValue] = useState(false);
+    const [isEdit, setIsEdit] = useState(props.isEdit !== undefined ?props.isEdit:false);
+    const [value, setValue] = useState("");
+    
+    const isCancel = props.isCancel !== undefined ? props.isCancel : true;
+    const isSubmit = props.isSubmit !== undefined ? props.isSubmit : true;
+    const submitLabel = props.submitLabel ? props.submitLabel : <i className="bi bi-check-lg"></i>;
+    const cancelLabel = props.cancelLabel ? props.cancelLabel : <i className="bi bi-x-lg"></i>;
+    const isEditable = props.isEditable !== undefined ? props.isEditable : true;
 
+    // setIsEdit(this.props?.isEdit);
     useEffect(() => {
+        // console.log(this.props?.isEdit)
         // if (props.defaultValue?.trim()) {
         //     console.log("NO DATA");
         //     setIsEdit(true);
@@ -48,8 +62,9 @@ function LinkInput(props) {
 
     const handleSumbit = (e) => {
         e.preventDefault();
-        setIsEdit(false);
+        setIsEdit(props.isEdit !== undefined ?props.isEdit:false);
         props.callBack(value);
+        setValue("");
     }
     
     const onChange = (e) => {
@@ -83,7 +98,7 @@ function LinkInput(props) {
         /> 
     }
 
-    const markDown = isEdit?
+    const markDown = isEdit && isEditable?
         <div>
             <Row>
                 <Col>
@@ -98,10 +113,13 @@ function LinkInput(props) {
             </Row>
             <Row style={{marginTop: "8px"}}>
                 <Col>
-                    <Button variant="success" onClick={handleSumbit}><i className="bi bi-check-lg"></i></Button>&nbsp;
-                    <Button variant="outline-secondary" onClick={() => {setIsEdit(false);}}>
-                        <i className="bi bi-x-lg"></i>
-                    </Button>
+                    { isSubmit ? 
+                        <Button variant="success" onClick={handleSumbit}>{submitLabel}</Button> : ""
+                    }
+                    &nbsp;
+                    { isCancel ? 
+                        <Button variant="outline-secondary" onClick={() => {setIsEdit(false);}}>{cancelLabel}</Button> : ""
+                    }
                 </Col>
             </Row>
         </div>
@@ -112,7 +130,7 @@ function LinkInput(props) {
             />
         </div>
 
-    const selectList = isEdit?
+    const selectList = isEdit && isEditable?
         <Select 
                 closeMenuOnSelect={false} 
                 placeholder={props.placeholder}
@@ -127,7 +145,7 @@ function LinkInput(props) {
                 {props.defaultDisplay}
         </a>
 
-    const textArea = isEdit?
+    const textArea = isEdit && isEditable?
         <div>
             <Row>
                 <Col>
@@ -158,7 +176,7 @@ function LinkInput(props) {
             {props.defaultValue?.trim()?props.defaultValue:noText}
         </Form.Text>;
 
-    const textField = isEdit?
+    const textField = isEdit && isEditable?
     // Редактирование   
         <Row><Col>
             <Form.Control
@@ -184,7 +202,7 @@ function LinkInput(props) {
             {props.defaultValue?.trim()?props.defaultValue:noText}
         </Form.Text>;
 
-    const headerField = isEdit?
+    const headerField = isEdit && isEditable?
     // Редактирование   
         <Row><Col>
             <Form.Control

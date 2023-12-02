@@ -59,21 +59,21 @@ function TaskForm(props) {
         })    
     }
 
-    const submitComment = (e) => {
-        e.preventDefault();
-        if (!e.target.taskCommonNote.value.trim()) {
+    const submitComment = (value) => {
+        // e.preventDefault();
+        if (!value.trim()) {
             return;
         }
         postTaskCommonNote(
             {
                 project_id, 
                 task_id, 
-                note : e.target.taskCommonNote.value
+                note : value
             }
             ,(err,resp) => {
                 if (!err) {
                     fetchTask();
-                    e.target.taskCommonNote.value = "";
+                    // e.target.taskCommonNote.value = "";
                 } else {
                     alert("Ошибка: "+err);
                 }
@@ -97,7 +97,19 @@ function TaskForm(props) {
     const commentItems = Project.task?.comments.map((comment, index) => {
         return <div key={index}>
             <div>
-                <small>{comment.note}</small>
+                <small>
+                <LinkInput
+                    type="markDown"
+                    placeholder="Ваш комментарий"
+                    submitLabel="Комментировать"
+                    isEditable={false}
+                    defaultValue={comment.note}
+                    callBack={(value) => {
+                        submitComment(value);
+                    }}
+                />
+                </small>
+                {/* <small>{comment.note}</small> */}
             </div>
             <div style={{textAlign: "right"}}>
                 <small style={{fontWeight: "300"}}>{comment.login} {moment(comment.created_on,'YYYY-MM-DDTHH:mm:ss.SSSZ').fromNow()}</small>
@@ -147,27 +159,25 @@ function TaskForm(props) {
                 {/* Форма добавления коммента */}
                 <Row>
                     <Col>
-                        <form onSubmit={submitComment}>
+                        {/* <form onSubmit={submitComment}> */}
                         <Row>
                             <Col>
                             <Form.Group className="mb-3" controlId="taskCommonNote">
-                            <Form.Control 
-                                controlid="taskCommonNote"
-                                type="text" 
-                                as="textarea"
-                                rows={2}
-                                placeholder="Ваш комментарий" />
+                                <LinkInput
+                                    type="markDown"
+                                    height="200px"
+                                    placeholder="Ваш комментарий"
+                                    isEdit={true}
+                                    isCancel={false}
+                                    submitLabel="Комментировать"
+                                    callBack={(value) => {
+                                        submitComment(value);
+                                    }}
+                                />
                             </Form.Group>
                             </Col>
                         </Row>
-                        <Row>
-                            <Col>
-                                <Form.Group className="mb-3">
-                                    <Button type="submit" variant="outline-success" >Комментировать</Button>
-                                </Form.Group>
-                            </Col>
-                        </Row>  
-                        </form>
+                        {/* </form> */}
                     </Col>
                 </Row>
             </Col>

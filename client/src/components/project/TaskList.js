@@ -192,7 +192,7 @@ function TaskList(props) {
     const reviewerSelectOptionsDefault = userSelectOptions.filter(user => user.value == reviewer_id)[0];
     
     return (
-    <Container>
+    <Container fluid>
 
     {/* Модалка редактирования */}
     <TaskEditModal 
