@@ -124,7 +124,7 @@ function LinkInput(props) {
             </Row>
         </div>
         : 
-        <div style={{isEditablecursor:"pointer", minHeight:props.height}} onClick={handleEdit}>
+        <div style={{cursor:"pointer", minHeight:props.height}} onClick={handleEdit}>
             <MarkdownObject 
                 value = {props.defaultValue?.trim()?props.defaultValue?.replace(/\n/gi, '  \n'):noText} 
             />
