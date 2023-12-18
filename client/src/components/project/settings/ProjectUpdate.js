@@ -45,11 +45,11 @@ function ProjectUpdate(props) {
     }
 
     const handleCancelEntity = () => {
-        navigate(`/task/project/${project_id}`);
+        navigate(`/project/${project_id}/list`);
     }
 
     const navigateToProjectList = () => {
-        navigate(`/task`);
+        navigate(`/project`);
     }
 
     /// Удалить проект
