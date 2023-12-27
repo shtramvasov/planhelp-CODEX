@@ -12,7 +12,7 @@ router.post('/:project_id/:task_id/:note_id?', async (req, res, next) => {
     const profile_user_id = req.userModel.user_id;
     const { project_id, task_id } = req.params;
     let { note_id } = req.params;
-    const { note, is_deleted } = req.body;
+    const { note, note_2, note_type, is_deleted } = req.body;
     let con;
     try {
         con = await mysql.getConnection();
@@ -26,7 +26,8 @@ router.post('/:project_id/:task_id/:note_id?', async (req, res, next) => {
                 values : {
                     task_id,
                     note,
-                    note_type : CommonNote.CONSTANTS.TYPE_COMMENT,
+                    note_type : note_type,
+                    note_2 : note_2,
                     is_deleted : is_deleted || '0',
                     created_on : { expression : "now()" },
                     user_id : profile_user_id
