@@ -15,7 +15,6 @@ import ProjectForm from "./project/ProjectForm";
 import ProjectFormUpdate from "./project/ProjectFormUpdate";
 
 import TaskList from "./project/TaskList";
-import TaskBoard from "./project/TaskBoard";
 import TaskDetail from "./project/TaskDetail";
 
 import Hr from "./hr/Hr";
