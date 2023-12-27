@@ -34,18 +34,18 @@ function ProjectUpdate(props) {
     };
 
     // Обновить проект
-    const fetchUpdatePrject = (project_name, project_note, is_deleted) => {
+    const fetchUpdateProject = (project_name, project_note, is_deleted) => {
         postProject({ project_id, project_name, project_note, is_deleted }, (err, resp) => {
             if (!err) {
-                is_deleted == 'Y' ? navigateToProjectList() : handleCancelEntity()
+                if (is_deleted == 'Y') {
+                    navigateToProjectList();
+                } else {
+                    fetchProject();
+                }
             } else {
                 alert("Ошибка: "+err);
             }
         })
-    }
-
-    const handleCancelEntity = () => {
-        navigate(`/project/${project_id}/list`);
     }
 
     const navigateToProjectList = () => {
@@ -54,14 +54,14 @@ function ProjectUpdate(props) {
 
     /// Удалить проект
     const handleDeleteProject = () => {
-        fetchUpdatePrject(Project.project_name, Project.project_note, 'Y')
+        fetchUpdateProject(Project.project_name, Project.project_note, 'Y')
     }
 
     const handleSubmit = (e) => {
         e.preventDefault();
         let project_name = e.target.formProjectName.value
         let project_note = e.target.formProjectNote.value
-        fetchUpdatePrject(project_name, project_note)
+        fetchUpdateProject(project_name, project_note)
     }
 
     const Header = () => {

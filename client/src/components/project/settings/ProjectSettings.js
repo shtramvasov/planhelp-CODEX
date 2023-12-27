@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import Breadcrumb from "../../helpers/Breadcrumb";
 import { Container, Row, Col, Button, Form, Nav } from 'react-bootstrap';
-import { Route, Routes, useNavigate , useSearchParams} from "react-router-dom";
+import { Route, Routes, useNavigate , useLocation, Link} from "react-router-dom";
 import { useParams } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { getProject, postProject } from '../../../network/TaskNetwork';
@@ -15,7 +15,7 @@ import ProjectStatus from './ProjectStatus';
 const noText = "Проект без названия";
 
 function ProjectSettings(props) {
-
+    const location = useLocation();
     const navigate = useNavigate();
     const dispatch = useDispatch();
     const { project_id } = useParams();
@@ -36,21 +36,24 @@ function ProjectSettings(props) {
             }
         });
     };
-
+    
     const TabBar = () => {
         return(
             <>
             <Nav variant='tabs' defaultActiveKey={ window.location.pathname }>
                 <Nav.Item>
-                    <Nav.Link href={`/project/${project_id}/settings`}> Настрока проекта </Nav.Link>
+                    <Nav.Link as={Link} to={`/project/${project_id}/settings`}
+                        active={location.pathname == (`/project/${project_id}/settings`)}> Настрока проекта </Nav.Link>
                 </Nav.Item>
 
                 <Nav.Item>
-                    <Nav.Link href={`/project/${project_id}/settings/access`}> Настрока доступа </Nav.Link>
+                    <Nav.Link as={Link} to={`/project/${project_id}/settings/access`}
+                        active={location.pathname == (`/project/${project_id}/settings/access`)}> Настрока доступа </Nav.Link>
                 </Nav.Item>
 
                 <Nav.Item>
-                    <Nav.Link href={`/project/${project_id}/settings/status`}> Настрока статусов </Nav.Link>
+                    <Nav.Link as={Link} to={`/project/${project_id}/settings/status`} 
+                        active={location.pathname == (`/project/${project_id}/settings/status`)}> Настрока статусов </Nav.Link>
                 </Nav.Item>
             </Nav>
             </>

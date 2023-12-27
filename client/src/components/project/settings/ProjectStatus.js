@@ -281,9 +281,15 @@ function ModalStatus(props) {
                         <hr />
                         <Row>
                             <Col>
-                                <Form.Group className="mb-3">
-                                    <Form.Check inline checked = { isClosed === 'Y' } onChange={ didSelectedIsClosedCheckbox } />
-                                    <Form.Label> Является ли статус закрывающим задачи ? </Form.Label>
+                                {/* Тут не так просто controlId а для того чтобы работал нативный клик по label */}
+                                <Form.Group className="mb-3" controlId="formClosedCheckbox">
+                                    <Form.Check 
+                                        type="checkbox"
+                                        label="Является ли статус закрывающим задачи ?" 
+                                        inline 
+                                        checked = { isClosed === 'Y' } 
+                                        onChange={ didSelectedIsClosedCheckbox } 
+                                    />
                                 </Form.Group>
                             </Col>
                         </Row>
