@@ -35,10 +35,20 @@ router.get('/:project_id/:task_id?', async (req, res, next) => {
             joins : [ 
                 { table : "ref_users ru_created", on : "common_note.user_id = ru_created.user_id" }
             ],
-            where : { task_id },
+            where : { task_id, note_type : CommonNote.CONSTANTS.TYPE_COMMENT },
             orderby : "note_id"
         });
         task.comments = comments;
+        // Достаем файлы
+        const files = await CommonNote.find(con,{
+            select : "common_note.*, ru_created.login",
+            joins : [ 
+                { table : "ref_users ru_created", on : "common_note.user_id = ru_created.user_id" }
+            ],
+            where : { task_id, note_type : CommonNote.CONSTANTS.TYPE_FILE },
+            orderby : "note_id"
+        });
+        task.files = files;
         res.send(task);
     } catch(error) {
         next(error);

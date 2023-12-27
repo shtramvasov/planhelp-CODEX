@@ -11,6 +11,8 @@ import { Link, useNavigate , useSearchParams} from "react-router-dom";
 import { useSelector, useDispatch } from 'react-redux';
 import { useParams } from 'react-router-dom';
 import LinkInput from '../helpers/LinkInput';
+import ToastMessage from "../helpers/ToastMessage";
+import DragDropFile from "../helpers/DragDropFile";
 
 import 'moment/locale/ru';
 moment.locale('ru');
@@ -68,7 +70,8 @@ function TaskForm(props) {
             {
                 project_id, 
                 task_id, 
-                note : value
+                note : value,
+                note_type : "COMMENT"
             }
             ,(err,resp) => {
                 if (!err) {
@@ -78,6 +81,29 @@ function TaskForm(props) {
                     alert("Ошибка: "+err);
                 }
             })
+    }
+
+    // Колбэк с модалки загрузки файла
+    const actionUploadFileCallBack = (file) => {
+        if (!file) {
+            return;
+        }
+
+        postTaskCommonNote(
+            {
+                project_id, 
+                task_id, 
+                note : file.name,
+                note_2 : file.url,
+                note_type : "FILE"
+            }
+            ,(err,resp) => {
+                if (!err) {
+                    fetchTask();
+                } else {
+                    alert("Ошибка: "+err);
+                }
+        })
     }
 
     // мапированный массив статусов
@@ -117,6 +143,51 @@ function TaskForm(props) {
             <hr/>
         </div>
     });
+    const fileItems = Project.task?.files.map((comment, index) => {
+        return <div key={index}>
+            <div>
+                <small>
+                    <a target="_blank" class="phLink" href={comment.note_2}>{comment.note}</a>
+                </small>
+                {/* <small>{comment.note}</small> */}
+            </div>
+            <div style={{textAlign: "right"}}>
+                <small style={{fontWeight: "300"}}>{comment.login} {moment(comment.created_on,'YYYY-MM-DDTHH:mm:ss.SSSZ').fromNow()}</small>
+            </div>
+            <hr/>
+        </div>
+    });
+
+    const FilesContainer = () => {
+        return(
+            <>
+                {/* Форма добавления коммента */}
+                <Row>
+                    <Col>
+                        {/* <form onSubmit={submitComment}> */}
+                        <Row>
+                            <Col>
+                            <Form.Group className="mb-3" controlId="taskCommonNote">
+                                <LinkInput
+                                    type="markDown"
+                                    height="200px"
+                                    placeholder="Ваш комментарий"
+                                    isEdit={true}
+                                    isCancel={false}
+                                    submitLabel="Комментировать"
+                                    callBack={(value) => {
+                                        submitComment(value);
+                                    }}
+                                />
+                            </Form.Group>
+                            </Col>
+                        </Row>
+                        {/* </form> */}
+                    </Col>
+                </Row>
+            </>
+        )
+    }
 
     return (
     
@@ -147,6 +218,15 @@ function TaskForm(props) {
                         </Form.Group>
                     </Col>
                 </Row>
+                {/* Файлы */}
+                <Row>
+                    <Col>
+                        <small><b>Файлы</b></small>&nbsp;
+                        <Badge bg="secondary">{fileItems.length}</Badge>
+                        <hr/>
+                        {fileItems}
+                    </Col>
+                </Row>
                 {/* Комменты */}
                 <Row>
                     <Col>
@@ -156,30 +236,7 @@ function TaskForm(props) {
                         {commentItems}
                     </Col>
                 </Row>
-                {/* Форма добавления коммента */}
-                <Row>
-                    <Col>
-                        {/* <form onSubmit={submitComment}> */}
-                        <Row>
-                            <Col>
-                            <Form.Group className="mb-3" controlId="taskCommonNote">
-                                <LinkInput
-                                    type="markDown"
-                                    height="200px"
-                                    placeholder="Ваш комментарий"
-                                    isEdit={true}
-                                    isCancel={false}
-                                    submitLabel="Комментировать"
-                                    callBack={(value) => {
-                                        submitComment(value);
-                                    }}
-                                />
-                            </Form.Group>
-                            </Col>
-                        </Row>
-                        {/* </form> */}
-                    </Col>
-                </Row>
+                <DragDropFile files = { <FilesContainer /> } callBack= {actionUploadFileCallBack}  />
             </Col>
             <Col>
                 <Row style={{marginTop: "8px"}}>
