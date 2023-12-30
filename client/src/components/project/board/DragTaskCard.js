@@ -33,11 +33,11 @@ function DragTaskCard(props) {
 				ref={drag} 
 				style={{textWrap: "balance", margin: "4px", cursor: "pointer"}}>
 				<Card.Body>
-					<div>
+					<div style={{fontSize: "0.9em", fontWeight: "500"}}>
 						{props.task_title}
 					</div>
 					<div>
-						<p className="mb-1">
+						<p className="mb-1" style={{fontSize: "0.8em"}}>
 							{props.ru_executor_id?<><i className="bi bi-person"></i> {props.ru_executor_login} &nbsp;</> :""}
 							{/* {props.ru_responsible_id?<><i className="bi bi-person-check"></i> {props.ru_responsible_login} &nbsp;</> :""}
 							{props.ru_reviewer_id?<><i className="bi bi-arrow-right"></i> {props.ru_reviewer_login} &nbsp;</> :""} */}

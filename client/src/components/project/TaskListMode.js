@@ -14,10 +14,10 @@ function TaskListMode(props) {
             onClick={(e) => {actionCallModaTaskEdit(e, {project_id : el.project_id, task_id : el.task_id})}} 
             variant={el.is_closed === "Y"? "secondary":""}>
                 <div className="d-flex w-100 justify-content-between">
-                    <h5 className="mb-1">{el.task_title}</h5>
+                    <h6 className="mb-1">{el.task_title}</h6>
                     <small>{moment(el.created_on,'YYYY-MM-DDTHH:mm:ss.SSSZ').fromNow()}</small>
                 </div>
-                <p className="mb-1">
+                <p className="mb-1" style={{fontSize: "0.8em"}}>
                     {el.executor_id?<><i className="bi bi-person"></i> {el.ru_executor_login} &nbsp;</> :""}
                     {el.ru_responsible_id?<><i className="bi bi-person-check"></i> {el.ru_responsible_login} &nbsp;</> :""}
                     {el.ru_reviewer_id?<><i className="bi bi-arrow-right"></i> {el.ru_reviewer_login} &nbsp;</> :""}
