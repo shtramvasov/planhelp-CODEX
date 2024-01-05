@@ -24,7 +24,8 @@ class ProjectTask extends Model {
         "responsible_id",
         "reviewer_id",
         "updated_by",
-        "updated_on"
+        "updated_on",
+        "tags_str"
     ]
 
     static table = "project_task";

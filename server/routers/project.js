@@ -5,59 +5,61 @@ var Project = require('../models/project');
 var RefUsers = require('../models/ref_users');
 var ProjectUser = require('../models/project_user');
 var ProjectStatus = require('../models/project_status');
+const ProjectTags = require('../models/project_tags');
+const withTransaction = require('./helper/withTransaction');
 
 // Список проектов или детали проекта
-router.get('/:project_id?', async (req, res, next) => {
+router.get('/:project_id?', withTransaction(async (req, res, next) => {
+    const con = res.locals.dbinstance;
     const { project_id } = req.params;
     const { user_id } = req.userModel;
-    let con;
-    try {
-        con = await mysql.getConnection();
 
-        // список разрешенных проектов или один
-        const projectList = await Project.find(con,{
-            select : "project.*, pu.user_role",
-            joins : [
-                { table: 'project_user pu', on : "project.project_id = pu.project_id" }
-            ], 
-            where : {
-                is_deleted : 'N',
-                "project.project_id" : project_id,
-                "pu.user_id" : user_id
-            },
-            order : "project.project_id desc"
-        });
+    // список разрешенных проектов или один
+    const projectList = await Project.find(con,{
+        select : "project.*, pu.user_role",
+        joins : [
+            { table: 'project_user pu', on : "project.project_id = pu.project_id" }
+        ], 
+        where : {
+            is_deleted : 'N',
+            "project.project_id" : project_id,
+            "pu.user_id" : user_id
+        },
+        order : "project.project_id desc"
+    });
 
-
-        if (!project_id) {
-            res.send(projectList);
-            return;
-        }
-        const projectOne = projectList[0];
-        // Если детали проекта - достаем доп свойства
-        projectOne.created_by_model = 
-            (await RefUsers.find(con,{ select : "login, user_id",where : {user_id : user_id} }))[0];
-        projectOne.project_user_list = await ProjectUser.find(con,{ 
-            select : "project_user.user_id, ref_users.login, project_user.user_role",
-            joins : [
-                { table : "ref_users", on : "project_user.user_id = ref_users.user_id" }
-            ],
-            where : {
-                project_id
-            }
-        });
-        projectOne.project_status_list = 
-            await ProjectStatus.find(con, {
-                where : { project_id , is_deleted : ProjectStatus.CONSTANTS.N},
-                order : "orderby"
-            });
-        res.send(projectOne);
-    } catch(error) {
-        next(error);
-    } finally {
-        con && await mysql.releaseConnection(con);
+    if (!project_id) {
+        res.send(projectList);
+        return;
     }
-});
+    const projectOne = projectList[0];
+    // Если детали проекта - достаем доп свойства
+    projectOne.created_by_model = 
+        (await RefUsers.find(con,{ select : "login, user_id",where : {user_id : user_id} }))[0];
+    // люди проекта
+    projectOne.project_user_list = await ProjectUser.find(con,{ 
+        select : "project_user.user_id, ref_users.login, project_user.user_role",
+        joins : [
+            { table : "ref_users", on : "project_user.user_id = ref_users.user_id" }
+        ],
+        where : {
+            project_id
+        }
+    });
+    // статусы проекта
+    projectOne.project_status_list = 
+        await ProjectStatus.find(con, {
+            where : { project_id , is_deleted : ProjectStatus.CONSTANTS.N},
+            order : "orderby"
+        });
+    // тэги проекта
+    projectOne.project_tag_list = 
+        await ProjectTags.find(con, {
+            where : { project_id },
+            order : "tag"
+        });
+    res.send(projectOne);
+}));
 
 // Создание проекта
 router.post('/', async (req, res, next) => {
@@ -261,5 +263,48 @@ router.post('/:project_id/users/revoke', async (req, res, next) => {
         con && await mysql.releaseConnection(con);
     }
 });
+
+// Добавление / Изменение тэгов задач в проекте
+router.post('/:project_id/tag/:tag_id?', withTransaction(async (req, res) => {
+    const con = res.locals.dbinstance;
+
+    const profile_user_id = req.userModel.user_id;
+    const { project_id, tag_id } = req.params;
+    const { tag } = req.body;
+        
+    const projectRole = (await ProjectUser.find(con,{where : {project_id, user_id : profile_user_id}}))[0];
+
+    if (projectRole.user_role !== ProjectUser.CONSTANTS.OWNER) 'Permission denied';
+
+    if (!tag_id) {
+        await ProjectTags.create(con,{values : { 
+            project_id, tag
+        }});
+    } else {
+        await ProjectTags.update(con,{
+            values : { tag },
+            where : { tag_id, project_id }
+        });
+    }
+
+    res.send({ok:true});
+}));
+
+router.delete('/:project_id/tag/:tag_id', withTransaction(async (req, res) => {
+    const con = res.locals.dbinstance;
+
+    const profile_user_id = req.userModel.user_id;
+    const { project_id, tag_id } = req.params;
+        
+    const projectRole = (await ProjectUser.find(con,{where : {project_id, user_id : profile_user_id}}))[0];
+    if (projectRole.user_role !== ProjectUser.CONSTANTS.OWNER) 'Permission denied';
+
+    await ProjectTags.delete(con, { where : {
+        project_id, tag_id
+    } });
+    // TODO удаление в связанных задачах?
+
+    res.send({ok:true});
+}));
 
 module.exports = router;

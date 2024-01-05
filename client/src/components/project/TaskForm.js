@@ -120,6 +120,7 @@ function TaskForm(props) {
     const responsibleSelectOptionsDefault = userSelectOptions.filter(user => user.value == Project.task.responsible_id)[0];
     const reviewerSelectOptionsDefault = userSelectOptions.filter(user => user.value == Project.task.reviewer_id)[0];
     
+    // список комментов
     const commentItems = Project.task?.comments.map((comment, index) => {
         return <div key={index}>
             <div>
@@ -143,6 +144,7 @@ function TaskForm(props) {
             <hr/>
         </div>
     });
+    // список файлов
     const fileItems = Project.task?.files.map((comment, index) => {
         return <div key={index}>
             <div>
@@ -157,7 +159,14 @@ function TaskForm(props) {
             <hr/>
         </div>
     });
-
+    // список тэгов
+    const tagList = Project.task.tags.map((el) =>
+        <div style={{display: "inline", paddingRight: "6px"}}>
+            <Badge bg="secondary"> 
+                {el.tag}
+            </Badge>
+        </div>
+    );
     const FilesContainer = () => {
         return(
             <>
@@ -304,6 +313,16 @@ function TaskForm(props) {
                                 options={statusSelectOptions}
                                 callBack={(value, label) => {saveTask({status_id : value})}}
                                 />
+                        </div>
+                    </Col>
+                </Row>
+                <Row style={{marginTop: "32px"}}>
+                    <Col>
+                        <div>
+                            <small>Тэги</small>
+                        </div>
+                        <div>
+                            {tagList}
                         </div>
                     </Col>
                 </Row>

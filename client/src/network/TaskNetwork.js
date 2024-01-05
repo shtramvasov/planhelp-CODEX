@@ -194,3 +194,40 @@ export async function postTaskStatus({ project_id, name, variant, is_closed, is_
     }
 
 }
+
+export async function postProjectTag({ project_id, tag_id, tag }, cb = () => {}) {
+    const response = await fetch(`/api/secure/project/${project_id}/tag/${tag_id ? tag_id : ""}`, {
+        method: 'post',
+        body: JSON.stringify({
+            tag : tag
+        }),
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${Cookies.get("secret")}`
+        }
+    });
+
+    if (response.ok) {
+        const data = await response.json();
+        cb(null,data);
+    } else {
+        cb(response.status + " " + response.statusText);
+    }
+}
+
+export async function deleteProjectTag({ project_id, tag_id }, cb = () => {}) {
+    const response = await fetch(`/api/secure/project/${project_id}/tag/${tag_id}`, {
+        method: 'delete',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${Cookies.get("secret")}`
+        }
+    });
+
+    if (response.ok) {
+        const data = await response.json();
+        cb(null,data);
+    } else {
+        cb(response.status + " " + response.statusText);
+    }
+}
