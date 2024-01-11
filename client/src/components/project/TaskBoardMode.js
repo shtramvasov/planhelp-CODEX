@@ -57,6 +57,7 @@ function TaskBoardMode(props) {
 					ru_executor_login={el.ru_executor_login}
 					ru_responsible_login={el.ru_responsible_login}
 					ru_reviewer_login={el.ru_reviewer_login}
+					tags_str={el.tags_str}
 					onDropTask={onChangeStatus}
 				/>
 			);

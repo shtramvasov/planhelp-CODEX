@@ -87,7 +87,7 @@ export async function delUserToProject({ project_id, selectedUserId, user_role }
 }
 
 export async function getProjectTaskList(
-    {limit, offset, executor_id, responsible_id, reviewer_id, status_id, status_ids, project_id }
+    {limit, offset, executor_id, responsible_id, reviewer_id, tag_id, status_id, status_ids, project_id }
     , cb = () => {}) {
     let url = `/api/secure/project/task/${project_id}/?`;
     limit && (url += `limit=${limit}&`)
@@ -97,6 +97,7 @@ export async function getProjectTaskList(
     reviewer_id && (url += `reviewer_id=${reviewer_id}&`)
     status_id && (url += `status_id=${status_id}&`)
     status_ids && (url += `status_ids=${status_ids}&`)
+    tag_id && (url += `tag_id=${tag_id}&`)
     const response = await fetch(url, {
         method: 'get',
         headers: {'Authorization': `Bearer ${Cookies.get("secret")}`}
@@ -162,6 +163,24 @@ export async function postTaskCommonNote({project_id, task_id, note_id, note, no
             'Authorization': `Bearer ${Cookies.get("secret")}`
         }
     });
+    if (response.ok) {
+        const data = await response.json();
+        cb(null,data);
+    } else {
+        cb(response.status + " " + response.statusText);
+    }
+}
+
+export async function postTaskTags({ project_id, task_id, tags }, cb = () => {}) {
+    const response = await fetch(`/api/secure/project/task/${project_id}/${task_id}/tags`, {
+        method: 'post',
+        body: JSON.stringify(tags),
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${Cookies.get("secret")}`
+        }
+    });
+
     if (response.ok) {
         const data = await response.json();
         cb(null,data);

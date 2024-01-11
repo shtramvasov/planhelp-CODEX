@@ -15,14 +15,14 @@ router.get('/:project_id/:task_id?', withTransaction(async (req, res, next) => {
     const con = res.locals.dbinstance;
     const profile_user_id = req.userModel.user_id;
     const { project_id, task_id } = req.params;
-    const { limit, offset, executor_id, responsible_id, reviewer_id, status_id} = req.query;
+    const { limit, offset, executor_id, responsible_id, reviewer_id, status_id, tag_id} = req.query;
     let { status_ids } = req.query;
         
     const projectRole = (await ProjectUser.find(con,{where : {project_id, user_id : profile_user_id}}))[0];
     if (!projectRole) throw 'Permission denied';
     // Получаем список задач
     const taskList = await ProjectTask.getList(con, 
-        {project_id, task_id, limit, offset, executor_id, responsible_id, reviewer_id, status_id, status_ids }
+        {project_id, task_id, limit, offset, executor_id, responsible_id, reviewer_id, status_id, status_ids, tag_id}
     );
 
     if (!task_id) {
@@ -124,6 +124,22 @@ router.post('/:project_id/:task_id/tags', withTransaction(async (req, res, next)
         await ProjectTaskTags.create(con, { values: { task_id, tag_id : tags[i].tag_id } });
     }
 
+    // денормализовано сохраняем теги в таску
+    // Достаем тэги
+    const taskTags = await ProjectTaskTags.find(con, {
+        joins : [ 
+            { table : "project_tags", on : "project_task_tags.tag_id = project_tags.tag_id" }
+        ],
+        where : {task_id}
+    });
+    let tags_str = '';
+    for (let i = 0; i < taskTags.length; i++) {
+        tags_str += taskTags[i].tag;
+        if (i !== taskTags.length-1) {
+            tags_str += ',';
+        }
+    }
+    await ProjectTask.update(con, { values : { tags_str }, where : {task_id} });
     res.send({ok:true});
 
 }));
