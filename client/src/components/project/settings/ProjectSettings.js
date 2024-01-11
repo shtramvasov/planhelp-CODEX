@@ -11,6 +11,7 @@ import { Navbar } from '../../navbar/Navbar';
 import ProjectAccess from './ProjectAccess';
 import ProjectUpdate from './ProjectUpdate';
 import ProjectStatus from './ProjectStatus';
+import ProjectTags from './ProjectTags';
 
 const noText = "Проект без названия";
 
@@ -43,17 +44,21 @@ function ProjectSettings(props) {
             <Nav variant='tabs' defaultActiveKey={ window.location.pathname }>
                 <Nav.Item>
                     <Nav.Link as={Link} to={`/project/${project_id}/settings`}
-                        active={location.pathname == (`/project/${project_id}/settings`)}> Настрока проекта </Nav.Link>
+                        active={location.pathname == (`/project/${project_id}/settings`)}>Основное</Nav.Link>
                 </Nav.Item>
 
                 <Nav.Item>
                     <Nav.Link as={Link} to={`/project/${project_id}/settings/access`}
-                        active={location.pathname == (`/project/${project_id}/settings/access`)}> Настрока доступа </Nav.Link>
+                        active={location.pathname == (`/project/${project_id}/settings/access`)}>Доступы</Nav.Link>
                 </Nav.Item>
 
                 <Nav.Item>
                     <Nav.Link as={Link} to={`/project/${project_id}/settings/status`} 
-                        active={location.pathname == (`/project/${project_id}/settings/status`)}> Настрока статусов </Nav.Link>
+                        active={location.pathname == (`/project/${project_id}/settings/status`)}>Статусы</Nav.Link>
+                </Nav.Item>
+                <Nav.Item>
+                    <Nav.Link as={Link} to={`/project/${project_id}/settings/tags`} 
+                        active={location.pathname == (`/project/${project_id}/settings/tags`)}>Тэги</Nav.Link>
                 </Nav.Item>
             </Nav>
             </>
@@ -93,6 +98,7 @@ function ProjectSettings(props) {
                         <Route path='/' element={ <ProjectUpdate /> } />
                         <Route path='/access' element={ <ProjectAccess /> } />
                         <Route path='/status' element={ <ProjectStatus /> } />
+                        <Route path='/tags' element={ <ProjectTags /> } />
                     </Routes>
                 </Col>
             </Row>

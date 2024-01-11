@@ -1,5 +1,6 @@
 import { useDrag } from 'react-dnd'
 import Card from 'react-bootstrap/Card';
+import {Badge} from 'react-bootstrap';
 import moment from 'moment-timezone';
 import 'moment/locale/ru';
 moment.locale('ru');
@@ -42,6 +43,15 @@ function DragTaskCard(props) {
 							{/* {props.ru_responsible_id?<><i className="bi bi-person-check"></i> {props.ru_responsible_login} &nbsp;</> :""}
 							{props.ru_reviewer_id?<><i className="bi bi-arrow-right"></i> {props.ru_reviewer_login} &nbsp;</> :""} */}
 						</p>
+					</div>
+					<div>
+						{props.tags_str?.split(',').map((el) =>
+							<div key={el} style={{display: "inline", paddingRight: "6px"}}>
+								<Badge bg="secondary"> 
+									{el}
+								</Badge>
+							</div>
+						)}
 					</div>
 					{/* <div>
 						{<small>{moment(props.created_on,'YYYY-MM-DDTHH:mm:ss.SSSZ').fromNow()}</small>}

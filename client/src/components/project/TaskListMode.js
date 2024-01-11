@@ -22,6 +22,15 @@ function TaskListMode(props) {
                     {el.ru_responsible_id?<><i className="bi bi-person-check"></i> {el.ru_responsible_login} &nbsp;</> :""}
                     {el.ru_reviewer_id?<><i className="bi bi-arrow-right"></i> {el.ru_reviewer_login} &nbsp;</> :""}
                 </p>
+                <div>
+                    {el.tags_str?.split(',').map((el) =>
+                        <div key={el} style={{display: "inline", paddingRight: "6px"}}>
+                            <Badge bg="secondary"> 
+                                {el}
+                            </Badge>
+                        </div>
+                    )}
+                </div>
                 <small><Badge bg={el.status_id?el.variant:"secondary"}>{el.status_id?el.status_name:"Без статуса"}</Badge></small>
         </ListGroup.Item>
     );

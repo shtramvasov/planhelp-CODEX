@@ -32,6 +32,7 @@ function TaskList(props) {
     const responsible_id = searchParams.get("responsible_id");
     const reviewer_id = searchParams.get("reviewer_id");
     const status_id = searchParams.get("status_id");
+    const tag_id = searchParams.get("tag_id");
 
     const dispatch = useDispatch();
     const navigate = useNavigate();
@@ -55,16 +56,17 @@ function TaskList(props) {
     useEffect(() => {
         // загрузка данных о задачах
         fetchProjectTaskList();
-    },[offset, executor_id, status_id, responsible_id, reviewer_id, mode])
+    },[offset, executor_id, status_id, responsible_id, reviewer_id, tag_id, mode])
 
-    const onChangeUrl = ({status_id, executor_id, responsible_id, reviewer_id, offset, limit}) => {
-
+    const onChangeUrl = ({status_id, executor_id, responsible_id, reviewer_id, tag_id, offset, limit}) => {
+        
         const currentUrlObj = queryString.parse(document.location.search.slice(1));
         
         if (status_id !== undefined) currentUrlObj.status_id = status_id;
         if (executor_id !== undefined) currentUrlObj.executor_id = executor_id;
         if (responsible_id !== undefined) currentUrlObj.responsible_id = responsible_id;
         if (reviewer_id !== undefined) currentUrlObj.reviewer_id = reviewer_id;
+        if (tag_id !== undefined) currentUrlObj.tag_id = tag_id;
         if (limit !== undefined) currentUrlObj.limit = limit;
         if (offset !== undefined) currentUrlObj.offset = offset;
 
@@ -137,7 +139,7 @@ function TaskList(props) {
     const fetchProjectTaskList = () => {
         getProjectTaskList({
             limit:limit?limit:"", offset:offset?offset:"",project_id,
-            status_id, executor_id, responsible_id, reviewer_id
+            status_id, executor_id, responsible_id, reviewer_id, tag_id
         },(err,resp) => {
             if (!err) {
                 dispatch(addTaskList(resp));
@@ -181,6 +183,10 @@ function TaskList(props) {
     const statusSelectOptions = Project.project.project_status_list.map(status => {
         return {value : status.status_id, label : status.status_name}
     });
+    // мапированный массив тегов проекта
+    const tagSelectOptions = Project.project.project_tag_list.map(tag => {
+        return {value : tag.tag_id, label : tag.tag}
+    });
     // дефолтное значение статуса
     const statusSelectOptionsDefault = statusSelectOptions.filter(status => status.value == status_id)[0];
     // мапированный массив пользователей
@@ -190,7 +196,8 @@ function TaskList(props) {
     const executorSelectOptionsDefault = userSelectOptions.filter(user => user.value == executor_id)[0];
     const responsibleSelectOptionsDefault = userSelectOptions.filter(user => user.value == responsible_id)[0];
     const reviewerSelectOptionsDefault = userSelectOptions.filter(user => user.value == reviewer_id)[0];
-    
+    const tagSelectOptionsDefault = tagSelectOptions.filter(tag => tag.value == tag_id)[0];
+
     return (
     <Container fluid>
 
@@ -307,6 +314,18 @@ function TaskList(props) {
                     onChangeUrl({reviewer_id : option?option.value:null})
                 }}
                 options={userSelectOptions}
+            />
+            &nbsp;
+            <Select 
+                // isMulti 
+                closeMenuOnSelect={true}
+                isClearable
+                placeholder="Тэг" 
+                value={tagSelectOptionsDefault}
+                onChange={(option) => {
+                    onChangeUrl({tag_id : option?option.value:null})
+                }}
+                options={tagSelectOptions}
             />
         </InputGroup>        
         </Col>

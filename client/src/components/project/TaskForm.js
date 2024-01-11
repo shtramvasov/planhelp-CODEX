@@ -5,7 +5,7 @@ import Modal from 'react-bootstrap/Modal';
 import ButtonGroup from 'react-bootstrap/ButtonGroup';
 import {Row, Col, Badge} from 'react-bootstrap';
 import moment from 'moment-timezone';
-import { getTask, postTask, getProject, postTaskCommonNote } from '../../network/TaskNetwork';
+import { getTask, postTask, getProject, postTaskCommonNote, postTaskTags } from '../../network/TaskNetwork';
 import { addTask } from '../../reducers/Project';
 import { Link, useNavigate , useSearchParams} from "react-router-dom";
 import { useSelector, useDispatch } from 'react-redux';
@@ -61,6 +61,17 @@ function TaskForm(props) {
         })    
     }
 
+    const submitTags = (tags) => {
+        postTaskTags({project_id : project_id, task_id : task_id, tags : tags}, (err,resp) => {
+            if (!err) {
+                fetchTask();
+            } else {
+                alert("Ошибка: "+err);
+            }
+        })
+
+    }
+
     const submitComment = (value) => {
         // e.preventDefault();
         if (!value.trim()) {
@@ -110,6 +121,10 @@ function TaskForm(props) {
     const statusSelectOptions = Project.project.project_status_list.map(status => {
         return {value : status.status_id, label : status.status_name}
     });
+    // мапированный массив тэгов проекта
+    const tagSelectOptions = Project.project.project_tag_list.map(tag => {
+        return {value : tag.tag_id, label : tag.tag}
+    });
     // дефолтное значение статуса
     const statusSelectOptionsDefault = statusSelectOptions.filter(status => status.value == Project.task.status_id)[0];
     // мапированный массив пользователей
@@ -120,6 +135,7 @@ function TaskForm(props) {
     const responsibleSelectOptionsDefault = userSelectOptions.filter(user => user.value == Project.task.responsible_id)[0];
     const reviewerSelectOptionsDefault = userSelectOptions.filter(user => user.value == Project.task.reviewer_id)[0];
     
+    // список комментов
     const commentItems = Project.task?.comments.map((comment, index) => {
         return <div key={index}>
             <div>
@@ -143,11 +159,12 @@ function TaskForm(props) {
             <hr/>
         </div>
     });
+    // список файлов
     const fileItems = Project.task?.files.map((comment, index) => {
         return <div key={index}>
             <div>
                 <small>
-                    <a target="_blank" class="phLink" href={comment.note_2}>{comment.note}</a>
+                    <a target="_blank" className="phLink" href={comment.note_2}>{comment.note}</a>
                 </small>
                 {/* <small>{comment.note}</small> */}
             </div>
@@ -157,7 +174,14 @@ function TaskForm(props) {
             <hr/>
         </div>
     });
-
+    // список тэгов
+    const tagList = Project.task.tags.map((el) =>
+        <div style={{display: "inline", paddingRight: "6px"}}>
+            <Badge bg="secondary"> 
+                {el.tag}
+            </Badge>
+        </div>
+    );
     const FilesContainer = () => {
         return(
             <>
@@ -304,6 +328,34 @@ function TaskForm(props) {
                                 options={statusSelectOptions}
                                 callBack={(value, label) => {saveTask({status_id : value})}}
                                 />
+                        </div>
+                    </Col>
+                </Row>
+                <Row style={{marginTop: "32px"}}>
+                    <Col>
+                        <div>
+                            <small>Тэги</small>
+                        </div>
+                        <div>
+                            <LinkInput
+                                type="tagList"
+                                placeholder="Тэг"
+                                // defaultValues={Project.task.tags}
+                                options={tagSelectOptions}
+                                value={Project.task.tags.map(tag => {
+                                    return {value : tag.tag_id, label : tag.tag}
+                                })}
+                                callBack={(options) => {
+                                    const tags = options.map((option) => {
+                                        return {
+                                            tag_id : option.value,
+                                            tag : option.label
+                                        }
+                                    })
+                                    submitTags(tags);
+                                }}
+                            />
+                            {/* {tagList} */}
                         </div>
                     </Col>
                 </Row>

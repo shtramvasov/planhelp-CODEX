@@ -1,6 +1,6 @@
 import Form from 'react-bootstrap/Form';
 import React, { useState , useEffect} from 'react';
-import {Row,Col} from 'react-bootstrap';
+import {Row,Col,Badge} from 'react-bootstrap';
 import Button from 'react-bootstrap/Button';
 import Select from 'react-select';
 import ReactMarkdown from 'react-markdown'
@@ -34,6 +34,9 @@ function LinkInput(props) {
 
     // for markDown
     //  height in px, "300px"
+
+    // for tagList
+    // defaultValues - array of [{ tag : "asd", tag_id : 123 }]
     const [isEdit, setIsEdit] = useState(props.isEdit !== undefined ?props.isEdit:false);
     const [value, setValue] = useState("");
     
@@ -76,6 +79,11 @@ function LinkInput(props) {
         props.callBack(value, label);
     }
 
+    const onChangeTags = (options) => {
+        setIsEdit(false);
+        props.callBack(options);
+    }
+
     const onChangeMarkdown = (({html, text}) => {
         setValue(text);
     });
@@ -97,6 +105,39 @@ function LinkInput(props) {
             rehypePlugins={[rehypeRaw]} 
         /> 
     }
+
+    const tagList = isEdit && isEditable?
+        <Select 
+                closeMenuOnSelect={false} 
+                // placeholder={props.placeholder}
+                options={props.options}
+                value={props.value}
+                defaultValues={props.value}
+                isMulti
+                isClearable={false}
+                // onChange={onChangeSelect}
+                onChange={(option) => {onChangeTags(option)}}
+            />
+        :
+        props.value?.length > 0 ?
+            <div onClick={handleEdit} style={{cursor:"pointer"}}>
+                {
+                props.value?.map((el) =>
+                        <div key={el.value} style={{display: "inline", paddingRight: "6px"}}>
+                            <Badge bg="secondary"> 
+                                {el.label}
+                            </Badge>
+                        </div>
+                    )
+                }
+            </div>
+            :
+            <a href="#"
+                onClick={handleEdit}
+                className="phLink">
+                Добавить
+            </a>
+
 
     const markDown = isEdit && isEditable?
         <div>
@@ -235,6 +276,7 @@ function LinkInput(props) {
         props.type === "selectList" ? selectList : 
         props.type === "markDown" ? markDown :
         props.type === "headerField" ? headerField :
+        props.type === "tagList" ? tagList :
         ""
     )
 }

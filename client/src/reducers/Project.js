@@ -33,6 +33,9 @@ export const projectSlice = createSlice({
                 //     "status_color": "RED",
                 //     "is_deleted": "N"
                 // }
+            ],
+            project_tag_list : [
+
             ]
         },
         task : {
@@ -55,7 +58,8 @@ export const projectSlice = createSlice({
             ru_reviewer_login : null,
             ru_reviewer_id : null,
             comments : [],
-            files : []
+            files : [],
+            tags : []
         },
         taskList : []
     },

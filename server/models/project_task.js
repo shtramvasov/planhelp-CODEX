@@ -24,7 +24,8 @@ class ProjectTask extends Model {
         "responsible_id",
         "reviewer_id",
         "updated_by",
-        "updated_on"
+        "updated_on",
+        "tags_str"
     ]
 
     static table = "project_task";
@@ -39,7 +40,8 @@ class ProjectTask extends Model {
             responsible_id, 
             reviewer_id, 
             status_id, 
-            status_ids 
+            status_ids,
+            tag_id
         } ) {
         
         const _custom = []
@@ -49,6 +51,14 @@ class ProjectTask extends Model {
                 sql : ` and (project_task.status_id in (${status_ids}) )`, 
                 no_value : true 
             } );
+        }
+        if (tag_id) {
+            _custom.push({
+                sql : ` and project_task.task_id in 
+                            (select ptt.task_id from project_task_tags ptt where ptt.tag_id = ${tag_id}) `,
+                no_value : true
+                // value: tag_id
+            });
         }
         const taskList = await ProjectTask.find(con, {
             select : `project_task.*,
