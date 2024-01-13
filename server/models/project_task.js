@@ -25,7 +25,8 @@ class ProjectTask extends Model {
         "reviewer_id",
         "updated_by",
         "updated_on",
-        "tags_str"
+        "tags_str",
+        "sprint_id"
     ]
 
     static table = "project_task";
@@ -41,7 +42,8 @@ class ProjectTask extends Model {
             reviewer_id, 
             status_id, 
             status_ids,
-            tag_id
+            tag_id,
+            sprint_id
         } ) {
         
         const _custom = []
@@ -90,7 +92,7 @@ class ProjectTask extends Model {
             where : {
                 "project_task.is_deleted" : ProjectTask.CONSTANTS.N, 
                 "project_task.project_id" : project_id, 
-                task_id, executor_id, responsible_id, reviewer_id, "project_task.status_id" : status_id,
+                task_id, executor_id, responsible_id, reviewer_id, "project_task.status_id" : status_id,sprint_id,
                 _custom : _custom
             },
             order : "task_id desc",

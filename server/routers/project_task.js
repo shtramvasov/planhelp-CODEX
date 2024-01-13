@@ -68,7 +68,7 @@ router.post('/:project_id/:task_id?', withTransaction(async (req, res, next) => 
     const { project_id } = req.params;
     let { task_id } = req.params;
     const { task_title,task_note,is_deleted,status_id,
-        executor_id,responsible_id,reviewer_id } = req.body;
+        executor_id,responsible_id,reviewer_id, sprint_id } = req.body;
        
     const projectUser = (await ProjectUser.find(con,{where : {project_id, user_id : profile_user_id}}))[0];
     if (![ProjectUser.CONSTANTS.WRITE,ProjectUser.CONSTANTS.OWNER]
@@ -94,6 +94,7 @@ router.post('/:project_id/:task_id?', withTransaction(async (req, res, next) => 
                 executor_id, 
                 responsible_id, 
                 reviewer_id,
+                sprint_id,
                 updated_by : profile_user_id,
                 updated_on : { expression : "now()" }
             },
