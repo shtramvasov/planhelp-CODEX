@@ -10,6 +10,9 @@ import { addProject } from '../../../reducers/Project';
 import { getUsers } from "../../../network/UserNetwork";
 import { addUserList } from "../../../reducers/User";
 import ModalAutoComplete from "../../helpers/ModalAutoComplete";
+import TabBar from './TabBar';
+import { Navbar } from '../../navbar/Navbar';
+import Breadcrumb from "../../helpers/Breadcrumb";
 moment.locale('ru');
 
 const noText = "Проект без названия";
@@ -171,6 +174,30 @@ function ProjectAccess(props) {
                 callBack={acctionCallBackModalAddRoleUser} 
                 fetcher={fetchUserRole}
                 data={userRoleListOptions}/>
+            <Container>
+            <Row>
+                <Col>
+                    <Navbar />
+                    <hr />
+                </Col>
+            </Row>
+            <Row>
+                <Col>
+                    <Breadcrumb 
+                        items={[
+                            {url:`/`, name: "Мои проекты"}, 
+                            {url:`/project/${project_id}/list`, name: Project.project_name},
+                            {url:``, name: 'Настройка проекта'}
+                        ]}
+                    />
+                </Col>
+            </Row>
+            <Row>
+                <Col>
+                    <TabBar />
+                    <br/>
+                </Col>
+            </Row>
             <Row>
                 <Col>
                     <div style={{float:"left", paddingRight:"4px"}}>
@@ -186,6 +213,7 @@ function ProjectAccess(props) {
                     { AccessTable() }
                 </Col>
             </Row>
+            </Container>
         </>
     )    
 }

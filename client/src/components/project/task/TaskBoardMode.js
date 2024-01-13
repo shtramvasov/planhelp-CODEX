@@ -3,8 +3,8 @@ import { useSelector, useDispatch } from 'react-redux'
 import React from 'react';
 import DropStatusLane from "./board/DropStatusLane";
 import DragTaskCard from "./board/DragTaskCard";
-import { addTask } from '../../reducers/Project';
-import { getTask, postTask, getProject, postTaskCommonNote } from '../../network/TaskNetwork';
+import { addTask } from '../../../reducers/Project';
+import { getTask, postTask, getProject, postTaskCommonNote } from '../../../network/TaskNetwork';
 
 function TaskBoardMode(props) {
 	const actionCallModaTaskEdit = props.actionCallModaTaskEdit;
