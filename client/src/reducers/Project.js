@@ -61,7 +61,21 @@ export const projectSlice = createSlice({
             files : [],
             tags : []
         },
-        taskList : []
+        taskList : [],
+        sprint : {
+            sprint_id: null,
+            project_id: null,
+            sprint_name: "",
+            date_start: "",
+            date_end: "",
+            created_on: "",
+            created_by: null,
+            updated_on: null,
+            updated_by: null,
+            is_deleted: "",
+            status: null
+        },
+        sprintList : []
     },
     reducers: {
         addProject: (state, action) => {
@@ -82,7 +96,13 @@ export const projectSlice = createSlice({
         },
         addTaskList: (state, action) => {
             state.taskList = (action.payload);
-        }
+        },
+        addSprint: (state, action) => {
+            state.sprint = (action.payload);
+        },
+        addSprintList: (state, action) => {
+            state.sprintList = (action.payload);
+        },
     }
 });
 
@@ -90,7 +110,9 @@ export const {
     addProject,
     addProjectList,
     addTask,
-    addTaskList
+    addTaskList,
+    addSprint,
+    addSprintList
 } = projectSlice.actions;
 
 export default projectSlice.reducer;

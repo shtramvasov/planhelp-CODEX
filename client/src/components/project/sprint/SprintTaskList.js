@@ -14,7 +14,7 @@ import 'moment/locale/ru';
 
 const noText = "Проект без названия";
 
-function Sprint(props) {
+function SprintTaskList(props) {
 
    const Project = useSelector((state) => state.project);
 
@@ -60,4 +60,4 @@ function Sprint(props) {
 }
 
 
-export default Sprint;
+export default SprintTaskList;

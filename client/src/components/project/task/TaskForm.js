@@ -6,7 +6,8 @@ import ButtonGroup from 'react-bootstrap/ButtonGroup';
 import {Row, Col, Badge} from 'react-bootstrap';
 import moment from 'moment-timezone';
 import { getTask, postTask, getProject, postTaskCommonNote, postTaskTags } from '../../../network/TaskNetwork';
-import { addTask } from '../../../reducers/Project';
+import { getSprintList } from '../../../network/SprintNetwork';
+import { addTask, addSprintList } from '../../../reducers/Project';
 import { Link, useNavigate , useSearchParams} from "react-router-dom";
 import { useSelector, useDispatch } from 'react-redux';
 import { useParams } from 'react-router-dom';
@@ -37,6 +38,7 @@ function TaskForm(props) {
     // Первичная загрузка данных
     useEffect(() => {
         fetchTask();
+        fetchSprintList();
     },[]);
 
     const fetchTask = () => {
@@ -48,6 +50,12 @@ function TaskForm(props) {
             }
         });
     };
+
+    const fetchSprintList = () => {
+        getSprintList({ project_id, status : 0 }, (err,resp) => {
+            dispatch(addSprintList(resp))
+        })
+    }
 
     const saveTask = ({task_title, task_note, status_id, executor_id, responsible_id, reviewer_id}) => {
         postTask({ project_id, task_id, 

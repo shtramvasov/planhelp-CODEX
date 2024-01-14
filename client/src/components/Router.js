@@ -13,8 +13,8 @@ import DiskActivityOld from "./disk/DiskActivityOld";
 import NotifyList from "./notify/NotifyList";
 
 import ProjectCreate from "./project/settings/ProjectCreate";
-import ProjectAccess from './project/settings/ProjectAccess';
 import ProjectUpdate from './project/settings/ProjectUpdate';
+import ProjectAccess from './project/settings/ProjectAccess';
 import ProjectStatus from './project/settings/ProjectStatus';
 import ProjectTags from './project/settings/ProjectTags';
 import ProjectList from "./project/ProjectList";
@@ -22,7 +22,11 @@ import ProjectList from "./project/ProjectList";
 import TaskList from "./project/task/TaskList";
 import TaskDetail from "./project/task/TaskDetail";
 
-import Sprint from "./project/sprint";
+import SprintList from "./project/sprint/SprintList";
+import SprintCreate from "./project/sprint/SprintCreate";
+import SprintUpdate from "./project/sprint/SprintUpdate";
+import SprintTaskList from "./project/sprint/SprintTaskList";
+
 import Story from "./project/story";
 
 import Hr from "./hr/Hr";
@@ -35,7 +39,8 @@ const router = createBrowserRouter([
     { path: "/disk/:entity_id/path/:mode", element: <DiskPath /> },
     { path: "/disk/:entity_id/activity", element: <DiskActivity /> },
     { path: "/disk/:entity_id/activity/:activity_id", element: <DiskActivityOld /> },
-    // Проекты и задачи
+    
+    // Проекты и настройки
     { path: "/project", element: <ProjectList /> },
     { path: "/project/add", element: <ProjectCreate /> },
     { path: "/project/:project_id/settings", element: <ProjectUpdate /> },
@@ -43,11 +48,18 @@ const router = createBrowserRouter([
     { path: "/project/:project_id/settings/status", element: <ProjectStatus /> },
     { path: "/project/:project_id/settings/tags", element: <ProjectTags /> },
     
-    { path: "/project/:project_id/sprint", element: <Sprint /> },
-    { path: "/project/:project_id/story", element: <Story /> },
+    // Задачи
     { path: "/project/:project_id", element: <TaskList /> },
     { path: "/project/:project_id/:mode", element: <TaskList /> },
     { path: "/project/:project_id/task/:task_id", element: <TaskDetail /> },
+
+    // Спринты
+    { path: "/project/:project_id/sprint/", element: <SprintList /> },
+    { path: "/project/:project_id/sprint/add", element: <SprintCreate /> }, 
+    { path: "/project/:project_id/sprint/:sprint_id/edit", element: <SprintUpdate /> },
+    { path: "/project/:project_id/sprint/:sprint_id/task", element: <SprintTaskList /> },
+
+    { path: "/project/:project_id/story", element: <Story /> },
 
     { path: "/hr", element: <Hr /> },
     { path: "/notify", element: <NotifyList /> },
