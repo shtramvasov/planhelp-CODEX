@@ -58,7 +58,7 @@ function SprintCreate(props) {
    }
 
    return (
-    <Container fluid>
+    <Container>
     <Row>
         <Col>
             <Navbar />
@@ -92,7 +92,7 @@ function SprintCreate(props) {
         <Row>
             <Col>
             <Form.Group className="mb-3">
-                <small>Дата начала</small>&nbsp;&nbsp;
+                <div><small>Дата начала</small></div>
                 <DatePicker 
                     wrapperClassName="datePicker" 
                     selected={dateStart} 
@@ -101,8 +101,8 @@ function SprintCreate(props) {
             </Form.Group>
             </Col>
             <Col>
-            <Form.Group className="mb-3 text-end">
-                <small>Дата окончания</small>&nbsp;&nbsp;
+            <Form.Group className="mb-3">
+                <div><small>Дата окончания</small></div>
                 <DatePicker 
                     wrapperClassName="datePicker" 
                     selected={dateEnd}

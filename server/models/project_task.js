@@ -72,7 +72,10 @@ class ProjectTask extends Model {
                         ru_reviewer.login  as "ru_reviewer_login",
                         ru_reviewer.user_id  as "ru_reviewer_id",
                         project_status.status_name,
-                        project_status.variant`,
+                        project_status.variant,
+                        ps.date_end,
+                        ps.date_start,
+                        ps.sprint_name`,
             joins : [
                 { table : "ref_users ru_created", 
                         on : "project_task.created_by = ru_created.user_id" },
@@ -88,11 +91,15 @@ class ProjectTask extends Model {
                 { table : "ref_users ru_reviewer", 
                     type : "left join",
                         on : "project_task.reviewer_id = ru_reviewer.user_id" },
+                { table : "project_sprints ps", 
+                    type : "left join",
+                        on : "project_task.sprint_id = ps.sprint_id" },
             ],
             where : {
                 "project_task.is_deleted" : ProjectTask.CONSTANTS.N, 
                 "project_task.project_id" : project_id, 
-                task_id, executor_id, responsible_id, reviewer_id, "project_task.status_id" : status_id,sprint_id,
+                task_id, executor_id, responsible_id, reviewer_id, "project_task.status_id" : status_id,
+                "project_task.sprint_id" : sprint_id,
                 _custom : _custom
             },
             order : "task_id desc",
@@ -112,6 +119,8 @@ class ProjectTask extends Model {
             task_id : where.task_id
         }}))[0];
         
+        const result = super.update(pginstance, {values,where,returning});
+
         const taskUrl = `https://planhelp.ru/project/${oldModel.project_id}/task/${oldModel.task_id}/`;
         let notifyText = "";
         const notifyUserSet = new Set();
@@ -172,7 +181,7 @@ class ProjectTask extends Model {
         
         // не надо оповещать если текст пустой
         if (!notifyText) {
-            return;
+            return result;
         }
         
         // уюираем юзера, который соверщил действие
@@ -197,8 +206,7 @@ class ProjectTask extends Model {
                 }});
             }
         });
-        
-        const result = super.update(pginstance, {values,where,returning});
+
         return result;
     }
 

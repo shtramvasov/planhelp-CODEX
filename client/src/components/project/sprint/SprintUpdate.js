@@ -77,8 +77,24 @@ function SprintUpdate(props) {
        );
    }
 
+   const handleDelete = (e) => {
+    e.preventDefault();
+       postSprint(
+           {   
+                project_id : project_id,
+                sprint_id : sprint_id,
+                is_deleted : "Y"
+           }, 
+           (err,resp) => {
+               if (!err) {
+                   navigate(`/project/${project_id}/sprint`)
+               }
+           }
+       );
+   }
+
    return (
-    <Container fluid>
+    <Container>
     <Row>
         <Col>
             <Navbar />
@@ -113,7 +129,7 @@ function SprintUpdate(props) {
         <Row>
             <Col>
             <Form.Group className="mb-3">
-                <small>Дата начала</small>&nbsp;&nbsp;
+                <div><small>Дата начала</small></div>
                 <DatePicker 
                     wrapperClassName="datePicker" 
                     selected={dateStart} 
@@ -122,8 +138,8 @@ function SprintUpdate(props) {
             </Form.Group>
             </Col>
             <Col>
-            <Form.Group className="mb-3 text-end">
-                <small>Дата окончания</small>&nbsp;&nbsp;
+            <Form.Group className="mb-3">
+                <div><small>Дата окончания</small></div>
                 <DatePicker 
                     wrapperClassName="datePicker" 
                     selected={dateEnd}
@@ -153,7 +169,8 @@ function SprintUpdate(props) {
         <Row>
             <Col>
                 <Form.Group className="mb-3">
-                    <Button type="submit" variant="outline-success" >Сохранить</Button>
+                    <Button type="submit" variant="outline-success" >Сохранить изменения</Button>
+                    <Button style={{marginLeft : "2px"}} type="button" variant="outline-danger" onClick={handleDelete}><i className="bi bi-trash"></i></Button>
                 </Form.Group>
             </Col>
         </Row>  

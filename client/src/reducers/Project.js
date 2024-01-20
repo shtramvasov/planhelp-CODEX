@@ -36,6 +36,9 @@ export const projectSlice = createSlice({
             ],
             project_tag_list : [
 
+            ],
+            project_open_sprints : [
+
             ]
         },
         task : {

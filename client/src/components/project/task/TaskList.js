@@ -34,6 +34,7 @@ function TaskList(props) {
     const reviewer_id = searchParams.get("reviewer_id");
     const status_id = searchParams.get("status_id");
     const tag_id = searchParams.get("tag_id");
+    const sprint_id = searchParams.get("sprint_id");
 
     const dispatch = useDispatch();
     const navigate = useNavigate();
@@ -57,7 +58,7 @@ function TaskList(props) {
     useEffect(() => {
         // загрузка данных о задачах
         fetchProjectTaskList();
-    },[offset, executor_id, status_id, responsible_id, reviewer_id, tag_id, mode])
+    },[offset, executor_id, status_id, responsible_id, reviewer_id, tag_id, sprint_id, mode])
 
     const onChangeUrl = ({status_id, executor_id, responsible_id, reviewer_id, tag_id, offset, limit}) => {
         
@@ -140,7 +141,7 @@ function TaskList(props) {
     const fetchProjectTaskList = () => {
         getProjectTaskList({
             limit:limit?limit:"", offset:offset?offset:"",project_id,
-            status_id, executor_id, responsible_id, reviewer_id, tag_id
+            status_id, executor_id, responsible_id, reviewer_id, tag_id, sprint_id
         },(err,resp) => {
             if (!err) {
                 dispatch(addTaskList(resp));

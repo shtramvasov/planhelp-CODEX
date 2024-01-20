@@ -42,7 +42,7 @@ function SprintList(props) {
     }
 
     const navigateToTaskList = (sprint_id) => {
-        navigate(`/project/${project_id}/sprint/${sprint_id}/task`);
+        navigate(`/project/${project_id}/list?sprint_id=${sprint_id}`);
     }
     
     const fetchProjectSprintList = () => {
@@ -63,6 +63,11 @@ function SprintList(props) {
                     <Button type="button" variant="" onClick={ () => {navigateToEdit(sprint.sprint_id)} } >
                         <i className="bi bi-pencil-square"></i>
                     </Button>
+                    <a href="#"
+                        onClick={(e) => {navigateToTaskList(sprint.sprint_id)}}
+                        className="phLink">
+                        Задачи
+                    </a>
                 </Col>
                 <Col>
                     {moment(sprint.date_start,'YYYY-MM-DDTHH:mm:ss.SSSZ').format('DD.MM.YYYY')} - {moment(sprint.date_end,'YYYY-MM-DDTHH:mm:ss.SSSZ').format('DD.MM.YYYY')}

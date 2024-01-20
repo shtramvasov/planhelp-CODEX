@@ -74,6 +74,12 @@ router.post('/:project_id/:sprint_id?', withTransaction(async (req, res, next) =
             },
             where : { project_id, sprint_id }
         });
+        if (is_deleted === 'Y') {
+            // удаление спринта
+            // убираем у всех тасков ссылку на этот спринт
+            await ProjectTask.update(con, { values : {sprint_id : { expression : "null" }}, where : { sprint_id }});
+
+        }
     }
 
     res.send({sprint_id});

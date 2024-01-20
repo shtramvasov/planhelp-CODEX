@@ -58,6 +58,8 @@ function TaskBoardMode(props) {
 					ru_responsible_login={el.ru_responsible_login}
 					ru_reviewer_login={el.ru_reviewer_login}
 					tags_str={el.tags_str}
+					date_start={el.date_start}
+					date_end={el.date_end}
 					onDropTask={onChangeStatus}
 				/>
 			);

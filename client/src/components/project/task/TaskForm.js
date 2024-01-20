@@ -38,7 +38,7 @@ function TaskForm(props) {
     // Первичная загрузка данных
     useEffect(() => {
         fetchTask();
-        fetchSprintList();
+        // fetchSprintList();
     },[]);
 
     const fetchTask = () => {
@@ -51,15 +51,15 @@ function TaskForm(props) {
         });
     };
 
-    const fetchSprintList = () => {
-        getSprintList({ project_id, status : 0 }, (err,resp) => {
-            dispatch(addSprintList(resp))
-        })
-    }
+    // const fetchSprintList = () => {
+    //     getSprintList({ project_id, status : 0 }, (err,resp) => {
+    //         dispatch(addSprintList(resp))
+    //     })
+    // }
 
-    const saveTask = ({task_title, task_note, status_id, executor_id, responsible_id, reviewer_id}) => {
+    const saveTask = ({task_title, task_note, status_id, executor_id, responsible_id, reviewer_id, sprint_id}) => {
         postTask({ project_id, task_id, 
-            task_title, task_note, status_id, executor_id, responsible_id, reviewer_id
+            task_title, task_note, status_id, executor_id, responsible_id, reviewer_id, sprint_id
         }, (err,resp) => {
             if (!err) {
                 fetchTask();
@@ -133,16 +133,23 @@ function TaskForm(props) {
     const tagSelectOptions = Project.project.project_tag_list.map(tag => {
         return {value : tag.tag_id, label : tag.tag}
     });
-    // дефолтное значение статуса
-    const statusSelectOptionsDefault = statusSelectOptions.filter(status => status.value == Project.task.status_id)[0];
+    // мапированный массив открытых спринтов
+    const sprintSelectOptions = Project.project.project_open_sprints.map(sprint => {
+        return {
+            value : sprint.sprint_id, 
+            label : `${moment(sprint.date_start,'YYYY-MM-DDTHH:mm:ss.SSSZ').format('DD.MM')} - ${moment(sprint.date_end,'YYYY-MM-DDTHH:mm:ss.SSSZ').format('DD.MM(YYYY)')}`}
+    });
     // мапированный массив пользователей
     const userSelectOptions = Project.project.project_user_list.map(user => {
         return {value : user.user_id, label : user.login}
     });
+    // дефолтное значение статуса
+    const statusSelectOptionsDefault = statusSelectOptions.filter(status => status.value == Project.task.status_id)[0];
     const executorSelectOptionsDefault = userSelectOptions.filter(user => user.value == Project.task.executor_id)[0];
     const responsibleSelectOptionsDefault = userSelectOptions.filter(user => user.value == Project.task.responsible_id)[0];
     const reviewerSelectOptionsDefault = userSelectOptions.filter(user => user.value == Project.task.reviewer_id)[0];
-    
+    const sprintSelectOptionsDefault = sprintSelectOptions.filter(sprint => sprint.value == Project.task.sprint_id)[0];
+
     // список комментов
     const commentItems = Project.task?.comments.map((comment, index) => {
         return <div key={index}>
@@ -318,6 +325,25 @@ function TaskForm(props) {
                                 defaultDisplay={Project.task.ru_reviewer_login?Project.task.ru_reviewer_login:"Не указан"}
                                 options={userSelectOptions}
                                 callBack={(value, label) => {saveTask({reviewer_id : value})}}
+                                />
+                        </div>
+                    </Col>
+                </Row>
+                <Row style={{marginTop: "8px"}}>
+                    <Col>
+                        <div>
+                            <small>Спринт</small>
+                        </div>
+                        <div>
+                        <LinkInput 
+                                type="selectList"
+                                placeholder="Спринт"
+                                value={sprintSelectOptionsDefault}
+                                defaultDisplay={Project.task.sprint_id?
+                                    `${moment(Project.task.date_start,'YYYY-MM-DDTHH:mm:ss.SSSZ').format('DD.MM')} - ${moment(Project.task.date_end,'YYYY-MM-DDTHH:mm:ss.SSSZ').format('DD.MM(YYYY)')}`
+                                    :"Не указан"}
+                                options={sprintSelectOptions}
+                                callBack={(value, label) => {saveTask({sprint_id : value})}}
                                 />
                         </div>
                     </Col>
