@@ -1,12 +1,13 @@
-import { Navbar }  from "../navbar/Navbar";
+import { Navbar }  from "../../navbar/Navbar";
 import { Container, Row, Col, Form, Button, ListGroup, Table, Badge, Dropdown, DropdownButton, InputGroup } from 'react-bootstrap';
 import { useNavigate , useSearchParams} from "react-router-dom";
 import { useParams } from 'react-router-dom';
 import React, { useState, useEffect, useRef } from 'react';
-import Breadcrumb from "../helpers/Breadcrumb";
+import Breadcrumb from "../../helpers/Breadcrumb";
 import { useSelector, useDispatch } from 'react-redux';
-import { getProject, getProjectTaskList, postTask } from "../../network/TaskNetwork";
-import { addProject, addTaskList } from '../../reducers/Project';
+import { getProject, getProjectTaskList, postTask } from "../../../network/TaskNetwork";
+import { addProject, addTaskList } from '../../../reducers/Project';
+import TabBar from "../TabBar";
 import Select from 'react-select';
 import TaskEditModal from "./TaskEditModal";
 import TaskCreateModal from "./TaskCreateModal";
@@ -33,6 +34,7 @@ function TaskList(props) {
     const reviewer_id = searchParams.get("reviewer_id");
     const status_id = searchParams.get("status_id");
     const tag_id = searchParams.get("tag_id");
+    const sprint_id = searchParams.get("sprint_id");
 
     const dispatch = useDispatch();
     const navigate = useNavigate();
@@ -47,16 +49,16 @@ function TaskList(props) {
 
     document.title = Project.project.project_name +" | planhelp";
     
-    // Первичная загрузка данных
-    useEffect(() => {
-        // загрузка данных о проекте
-        fetchProject();
-    },[]);
+    // // Первичная загрузка данных
+    // useEffect(() => {
+    //     // загрузка данных о проекте
+    //     fetchProject();
+    // },[]);
 
     useEffect(() => {
         // загрузка данных о задачах
         fetchProjectTaskList();
-    },[offset, executor_id, status_id, responsible_id, reviewer_id, tag_id, mode])
+    },[offset, executor_id, status_id, responsible_id, reviewer_id, tag_id, sprint_id, mode])
 
     const onChangeUrl = ({status_id, executor_id, responsible_id, reviewer_id, tag_id, offset, limit}) => {
         
@@ -124,22 +126,22 @@ function TaskList(props) {
         }
     }
 
-    // достаем проект с апи
-    const fetchProject = () => {
-        getProject({project_id},(err,resp) => {
-            if (!err) {
-                dispatch(addProject(resp));
-            } else {
-                alert("Ошибка: "+err);
-            }
-        });
-    };
+    // // достаем проект с апи
+    // const fetchProject = () => {
+    //     getProject({project_id},(err,resp) => {
+    //         if (!err) {
+    //             dispatch(addProject(resp));
+    //         } else {
+    //             alert("Ошибка: "+err);
+    //         }
+    //     });
+    // };
 
     // достаем задачи с апи
     const fetchProjectTaskList = () => {
         getProjectTaskList({
             limit:limit?limit:"", offset:offset?offset:"",project_id,
-            status_id, executor_id, responsible_id, reviewer_id, tag_id
+            status_id, executor_id, responsible_id, reviewer_id, tag_id, sprint_id
         },(err,resp) => {
             if (!err) {
                 dispatch(addTaskList(resp));
@@ -159,25 +161,6 @@ function TaskList(props) {
     const navigateToEditProject = () => {
         navigate(`/project/${project_id}/settings`)
     }
-
-    // // Список задачи
-    // const listItems = Project.taskList.map((el,index) => 
-    //     <ListGroup.Item key={index} 
-    //         action active={false} href={`/project/${el.project_id}/task/${el.task_id}/`} 
-    //         onClick={(e) => {actionCallModaTaskEdit(e, {project_id : el.project_id, task_id : el.task_id})}} 
-    //         variant={el.is_closed === "Y"? "secondary":""}>
-    //             <div className="d-flex w-100 justify-content-between">
-    //                 <h5 className="mb-1">{el.task_title}</h5>
-    //                 <small>{moment(el.created_on,'YYYY-MM-DDTHH:mm:ss.SSSZ').fromNow()}</small>
-    //             </div>
-    //             <p className="mb-1">
-    //                 {el.executor_id?<><i className="bi bi-person"></i> {el.ru_executor_login} &nbsp;</> :""}
-    //                 {el.ru_responsible_id?<><i className="bi bi-person-check"></i> {el.ru_responsible_login} &nbsp;</> :""}
-    //                 {el.ru_reviewer_id?<><i className="bi bi-arrow-right"></i> {el.ru_reviewer_login} &nbsp;</> :""}
-    //             </p>
-    //             <small><Badge bg={el.status_id?el.variant:"secondary"}>{el.status_id?el.status_name:"Без статуса"}</Badge></small>
-    //     </ListGroup.Item>
-    // );
 
     // мапированный массив статусов
     const statusSelectOptions = Project.project.project_status_list.map(status => {
@@ -233,41 +216,22 @@ function TaskList(props) {
     </Row>
     <Row>
         <Col>
-            <div style={{float:"left", paddingRight:"4px"}}>
-                <h2 style={{ cursor: "pointer" }}  onClick={navigateToEditProject}>
-                    { Project.project?.project_name.trim()?Project.project.project_name:noText }
-                </h2>
-            </div>
-            <div>
+            <TabBar />
+            {/* <div>
             <Form.Group className="mb-3">
                 <Button type="button" variant="" onClick={actionCallModaTaskCreate} >
                     <i className="bi bi-plus-circle"></i>
                 </Button>
-
-                {mode === "list"?
-                    <Button type="button" variant="light" onClick={actionGoToBoard} >
-                        Канбан
-                    </Button>
-                    :
-                    <Button type="button" variant="light" onClick={actionGoToList} >
-                        Список
-                    </Button>
-                }
-                {/* &nbsp;
-                <Button type="button" variant="light" onClick={actionGoToBoard} >
-                    Спринты
-                </Button>
-                &nbsp;
-                <Button type="button" variant="light" onClick={actionGoToBoard} >
-                    Вехи
-                </Button> */}
             </Form.Group>
-            </div>
+            </div> */}
         </Col>
     </Row>
-    <Row>
+    <Row style={{marginTop : "14px"}}>
         <Col>
         <InputGroup>
+            <Button type="button" variant="" onClick={actionCallModaTaskCreate} >
+                    <i className="bi bi-plus-circle"></i>
+            </Button>
             <Select 
                 // isMulti 
                 closeMenuOnSelect={true} 
@@ -332,10 +296,10 @@ function TaskList(props) {
     </Row>
     <Row style={{marginTop: "16px"}}>
         <Col lg={12}>
-            {mode === "list"? 
-                <TaskListMode actionCallModaTaskEdit={actionCallModaTaskEdit}/> 
-                :
+            {mode === "board"? 
                 <TaskBoardMode actionCallModaTaskEdit={actionCallModaTaskEdit}/> 
+                :
+                <TaskListMode actionCallModaTaskEdit={actionCallModaTaskEdit}/> 
             }
         </Col>
     </Row>

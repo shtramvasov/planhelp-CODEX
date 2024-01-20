@@ -6,12 +6,12 @@ import ButtonGroup from 'react-bootstrap/ButtonGroup';
 import Row from 'react-bootstrap/Row';
 import Col from 'react-bootstrap/Col';
 import moment from 'moment-timezone';
-import { getTask } from '../../network/TaskNetwork';
-import { addTask } from '../../reducers/Project';
+import { getTask } from '../../../network/TaskNetwork';
+import { addTask } from '../../../reducers/Project';
 import { Link, useNavigate , useSearchParams} from "react-router-dom";
 import { useSelector, useDispatch } from 'react-redux';
 import { useParams } from 'react-router-dom';
-import LinkInput from '../helpers/LinkInput';
+import LinkInput from '../../helpers/LinkInput';
 import Select from 'react-select';
 
 // Обработчик markdown 

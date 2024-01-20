@@ -28,6 +28,8 @@ function DragTaskCard(props) {
     	},
     }))
 
+	console.log()
+
 	return (
 		<a href={`/project/${props.project_id}/task/${props.task_id}/`} style={{textDecoration: "none", color: "inherit"}}>
 			<Card onClick={props.onClick}
@@ -42,6 +44,14 @@ function DragTaskCard(props) {
 							{props.ru_executor_id?<><i className="bi bi-person"></i> {props.ru_executor_login} &nbsp;</> :""}
 							{/* {props.ru_responsible_id?<><i className="bi bi-person-check"></i> {props.ru_responsible_login} &nbsp;</> :""}
 							{props.ru_reviewer_id?<><i className="bi bi-arrow-right"></i> {props.ru_reviewer_login} &nbsp;</> :""} */}
+							{
+							props.date_start ? 
+								<i class="bi bi-circle-fill" style={{fontSize: "0.8em", color : 
+									moment(props.date_end,'YYYY-MM-DDTHH:mm:ss.SSSZ').diff(moment(),'days') < 0 ? "red" : 
+									moment(props.date_end,'YYYY-MM-DDTHH:mm:ss.SSSZ').diff(moment(),'days') < 2 ? "yellow" : "green"
+								}}></i>
+							: ""
+							}
 						</p>
 					</div>
 					<div>

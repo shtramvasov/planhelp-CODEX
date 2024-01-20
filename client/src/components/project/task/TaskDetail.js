@@ -1,12 +1,12 @@
-import { Navbar }  from "../navbar/Navbar";
+import { Navbar }  from "../../navbar/Navbar";
 import { Container, Row, Col, Form, Button, ListGroup, Table, Badge, Dropdown, DropdownButton, InputGroup } from 'react-bootstrap';
 import { useNavigate , useSearchParams} from "react-router-dom";
 import { useParams } from 'react-router-dom';
 import React, { useState, useEffect, useRef } from 'react';
-import Breadcrumb from "../helpers/Breadcrumb";
+import Breadcrumb from "../../helpers/Breadcrumb";
 import { useSelector, useDispatch } from 'react-redux';
-import { getProject, getProjectTaskList } from "../../network/TaskNetwork";
-import { addProject, addTaskList } from '../../reducers/Project';
+import { getProject, getProjectTaskList } from "../../../network/TaskNetwork";
+import { addProject, addTaskList } from '../../../reducers/Project';
 import Select from 'react-select';
 import TaskForm from "./TaskForm";
 import moment from 'moment-timezone';

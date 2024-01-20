@@ -10,6 +10,9 @@ import { addProject } from '../../../reducers/Project';
 import { getUsers } from "../../../network/UserNetwork";
 import { addUserList } from "../../../reducers/User";
 import ModalAutoComplete from "../../helpers/ModalAutoComplete";
+import TabBar from './TabBar';
+import { Navbar } from '../../navbar/Navbar';
+import Breadcrumb from "../../helpers/Breadcrumb";
 moment.locale('ru');
 
 function ProjectStatus(props) {
@@ -169,6 +172,30 @@ function ProjectStatus(props) {
                 status = { placeholerNewStatus }
                 callBack = { actionCallBackModalCreateStatus }
             />
+            <Container>
+            <Row>
+                <Col>
+                    <Navbar />
+                    <hr />
+                </Col>
+            </Row>
+            <Row>
+                <Col>
+                    <Breadcrumb 
+                        items={[
+                            {url:`/`, name: "Мои проекты"}, 
+                            {url:`/project/${project_id}/list`, name: Project.project_name},
+                            {url:``, name: 'Настройка проекта'}
+                        ]}
+                    />
+                </Col>
+            </Row>
+            <Row>
+                <Col>
+                    <TabBar />
+                    <br/>
+                </Col>
+            </Row>
             <Row>
                 <Col>
                     <div style={{float:"left", paddingRight:"4px"}}>
@@ -188,6 +215,7 @@ function ProjectStatus(props) {
                     <AccessTable />
                 </Col>
             </Row>
+            </Container>
         </>
     )
 

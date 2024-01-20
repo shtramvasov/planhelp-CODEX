@@ -1,12 +1,13 @@
 import React, { useState, useEffect, useRef } from 'react';
 import Breadcrumb from "../../helpers/Breadcrumb";
-import { Container, Row, Col, Button, Form, Nav } from 'react-bootstrap';
+import { Container, Row, Col, Button, Form, Nav, Tab } from 'react-bootstrap';
 import { useNavigate , useSearchParams} from "react-router-dom";
 import { useParams } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { getProject, postProject } from '../../../network/TaskNetwork';
 import { addProject } from '../../../reducers/Project';
 import { Navbar } from '../../navbar/Navbar';
+import TabBar from './TabBar';
 
 const noText = "Проект без названия";
 
@@ -87,6 +88,29 @@ function ProjectUpdate(props) {
 
     return (
         <Container>
+            <Row>
+                <Col>
+                    <Navbar />
+                    <hr />
+                </Col>
+            </Row>
+            <Row>
+                <Col>
+                    <Breadcrumb 
+                        items={[
+                            {url:`/`, name: "Мои проекты"}, 
+                            {url:`/project/${project_id}/list`, name: Project.project_name},
+                            {url:``, name: 'Настройка проекта'}
+                        ]}
+                    />
+                </Col>
+            </Row>
+            <Row>
+                <Col>
+                    <TabBar />
+                    <br/>
+                </Col>
+            </Row>
             <Row>
                 <Col>
                     { Header() }

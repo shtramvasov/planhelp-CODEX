@@ -1,12 +1,12 @@
-import { Navbar }  from "../navbar/Navbar";
+import { Navbar }  from "../../navbar/Navbar";
 import { Container, Row, Col, Button, Form } from 'react-bootstrap';
 import { useNavigate , useSearchParams} from "react-router-dom";
 import { useParams } from 'react-router-dom';
 import React, { useState, useEffect, useRef } from 'react';
-import Breadcrumb from "../helpers/Breadcrumb";
-import { postProject } from "../../network/TaskNetwork";
+import Breadcrumb from "../../helpers/Breadcrumb";
+import { postProject } from "../../../network/TaskNetwork";
 
-function ProjectForm(props) {
+function ProjectCreate(props) {
 
     const navigate = useNavigate();
     const { project_id } = useParams();
@@ -89,4 +89,4 @@ function ProjectForm(props) {
 }
 
 
-export default ProjectForm;
+export default ProjectCreate;

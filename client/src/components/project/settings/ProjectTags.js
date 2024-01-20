@@ -9,6 +9,9 @@ import { getProject, postProjectTag, deleteProjectTag } from '../../../network/T
 import { addProject } from '../../../reducers/Project';
 import { getUsers } from "../../../network/UserNetwork";
 import { addUserList } from "../../../reducers/User";
+import TabBar from './TabBar';
+import { Navbar } from '../../navbar/Navbar';
+import Breadcrumb from "../../helpers/Breadcrumb";
 import ModalOneInputText from "../../helpers/ModalOneInputText";
 moment.locale('ru');
 
@@ -74,7 +77,7 @@ function ProjectTags(props) {
     }
 
     const tagList = Project.project_tag_list.map((el) =>
-        <div style={{display: "inline", paddingRight: "6px"}}>
+        <div key={el.tag_id} style={{display: "inline", paddingRight: "6px"}}>
             <Badge bg="secondary"> 
                 {el.tag}
             </Badge>
@@ -89,6 +92,30 @@ function ProjectTags(props) {
     return(
         <>
             <ModalOneInputText title={"Новый тэг"} show={showModalCreateTag} callBack={actionCallBackModalCreateTag} />
+            <Container>
+            <Row>
+                <Col>
+                    <Navbar />
+                    <hr />
+                </Col>
+            </Row>
+            <Row>
+                <Col>
+                    <Breadcrumb 
+                        items={[
+                            {url:`/`, name: "Мои проекты"}, 
+                            {url:`/project/${project_id}/list`, name: Project.project_name},
+                            {url:``, name: 'Настройка проекта'}
+                        ]}
+                    />
+                </Col>
+            </Row>
+            <Row>
+                <Col>
+                    <TabBar />
+                    <br/>
+                </Col>
+            </Row>
             <Row>
                 <Col>
                     <div style={{float:"left", paddingRight:"4px"}}>
@@ -108,6 +135,7 @@ function ProjectTags(props) {
                     {tagList}
                 </Col>
             </Row>
+            </Container>
         </>
     )
 

@@ -18,6 +18,7 @@ const commonNote = require('./routers/common_note');
 const projectRouter = require('./routers/project');
 const projectTaskRouter = require('./routers/project_task');
 const projectTaskNoteRouter = require('./routers/project_task_note');
+const projectSprintsRouter = require('./routers/project_sprints');
 const auth = require('./auth');
 
 const app = express();
@@ -41,6 +42,7 @@ app.use('/api/secure/notify', notifyRouter);
 app.use('/api/secure/note', commonNote);
 app.use('/api/secure/file',fileRouter);
 app.use('/api/secure/project/task/note',projectTaskNoteRouter);
+app.use('/api/secure/project/sprints',projectSprintsRouter);
 app.use('/api/secure/project/task',projectTaskRouter);
 app.use('/api/secure/project',projectRouter);
 

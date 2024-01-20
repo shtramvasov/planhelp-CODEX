@@ -1,6 +1,7 @@
 var express = require('express');
 var router = express.Router();
 var mysql = require('../mysqlhelper');
+const withTransaction = require('./helper/withTransaction');
 var Project = require('../models/project');
 var RefUsers = require('../models/ref_users');
 var ProjectUser = require('../models/project_user');
@@ -8,21 +9,21 @@ var ProjectTask = require('../models/project_task');
 var CommonNote = require('../models/common_note');
 const ProjectTags = require('../models/project_tags');
 const ProjectTaskTags = require('../models/project_task_tags');
-const withTransaction = require('./helper/withTransaction');
+const ProjectSprints = require('../models/project_sprints');
 
 // Список тасков или детали таски
 router.get('/:project_id/:task_id?', withTransaction(async (req, res, next) => {
     const con = res.locals.dbinstance;
     const profile_user_id = req.userModel.user_id;
     const { project_id, task_id } = req.params;
-    const { limit, offset, executor_id, responsible_id, reviewer_id, status_id, tag_id} = req.query;
+    const { limit, offset, executor_id, responsible_id, reviewer_id, status_id, tag_id, sprint_id} = req.query;
     let { status_ids } = req.query;
         
     const projectRole = (await ProjectUser.find(con,{where : {project_id, user_id : profile_user_id}}))[0];
     if (!projectRole) throw 'Permission denied';
     // Получаем список задач
     const taskList = await ProjectTask.getList(con, 
-        {project_id, task_id, limit, offset, executor_id, responsible_id, reviewer_id, status_id, status_ids, tag_id}
+        {project_id, task_id, limit, offset, executor_id, responsible_id, reviewer_id, status_id, status_ids, tag_id, sprint_id}
     );
 
     if (!task_id) {
@@ -68,7 +69,7 @@ router.post('/:project_id/:task_id?', withTransaction(async (req, res, next) => 
     const { project_id } = req.params;
     let { task_id } = req.params;
     const { task_title,task_note,is_deleted,status_id,
-        executor_id,responsible_id,reviewer_id } = req.body;
+        executor_id,responsible_id,reviewer_id, sprint_id } = req.body;
        
     const projectUser = (await ProjectUser.find(con,{where : {project_id, user_id : profile_user_id}}))[0];
     if (![ProjectUser.CONSTANTS.WRITE,ProjectUser.CONSTANTS.OWNER]
@@ -94,6 +95,7 @@ router.post('/:project_id/:task_id?', withTransaction(async (req, res, next) => 
                 executor_id, 
                 responsible_id, 
                 reviewer_id,
+                sprint_id,
                 updated_by : profile_user_id,
                 updated_on : { expression : "now()" }
             },
