@@ -26,7 +26,8 @@ class ProjectTask extends Model {
         "updated_by",
         "updated_on",
         "tags_str",
-        "sprint_id"
+        "sprint_id",
+        "orderby_time"
     ]
 
     static table = "project_task";
@@ -43,9 +44,10 @@ class ProjectTask extends Model {
             status_id, 
             status_ids,
             tag_id,
-            sprint_id
+            sprint_id,
+            sort
         } ) {
-        
+
         const _custom = []
         if (status_ids) {
             status_ids = status_ids.replace(/:/g,",");
@@ -102,7 +104,7 @@ class ProjectTask extends Model {
                 "project_task.sprint_id" : sprint_id,
                 _custom : _custom
             },
-            order : "task_id desc",
+            order : (sort ? sort : "task_id") + " desc",
             limit : +limit || 50,
             offset : +offset || 0
         });

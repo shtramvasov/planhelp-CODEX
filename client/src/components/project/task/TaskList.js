@@ -141,7 +141,8 @@ function TaskList(props) {
     const fetchProjectTaskList = () => {
         getProjectTaskList({
             limit:limit?limit:"", offset:offset?offset:"",project_id,
-            status_id, executor_id, responsible_id, reviewer_id, tag_id, sprint_id
+            status_id, executor_id, responsible_id, reviewer_id, tag_id, sprint_id,
+            sort : mode === "board" ? "orderby_time" : "task_id"
         },(err,resp) => {
             if (!err) {
                 dispatch(addTaskList(resp));

@@ -23,7 +23,7 @@ function TaskListMode(props) {
                     {el.ru_reviewer_id?<><i className="bi bi-arrow-right"></i> {el.ru_reviewer_login} &nbsp;</> :""}
                     {
 							el.date_start ? 
-								<i class="bi bi-circle-fill" style={{fontSize: "0.8em", color : 
+								<i className="bi bi-circle-fill" style={{fontSize: "0.8em", color : 
 									moment(el.date_end,'YYYY-MM-DDTHH:mm:ss.SSSZ').diff(moment(),'days') < 0 ? "red" : 
 									moment(el.date_end,'YYYY-MM-DDTHH:mm:ss.SSSZ').diff(moment(),'days') < 2 ? "yellow" : "green"
 								}}></i>

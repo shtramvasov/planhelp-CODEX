@@ -12,7 +12,9 @@ function DropStatusLane(props) {
 		}),
 	}));
 
-	return (
+    return (
+        <>
+        {props.taskList.length === 0 ?
         <Card 
         	key={props.status_id}
 			style={{
@@ -29,6 +31,27 @@ function DropStatusLane(props) {
 				{props.taskList}
 			</div>
         </Card>
+        : 
+        <Card 
+        	key={props.status_id}
+			style={{
+                display: "inline-block",
+                width: "300px",
+                marginRight: "2px",
+                marginLeft: "2px",
+				verticalAlign: "top",
+                minHeight : "400px",
+            }}
+			// ref={drop} 
+            // no drop if exists tasks in lane
+            >
+			<Card.Header><Badge style={{fontWeight:"400"}} bg={props.variant}>{props.status_name}</Badge></Card.Header>
+			<div>
+				{props.taskList}
+			</div>
+        </Card>
+        }
+        </>
     )
 }
 

@@ -16,14 +16,14 @@ router.get('/:project_id/:task_id?', withTransaction(async (req, res, next) => {
     const con = res.locals.dbinstance;
     const profile_user_id = req.userModel.user_id;
     const { project_id, task_id } = req.params;
-    const { limit, offset, executor_id, responsible_id, reviewer_id, status_id, tag_id, sprint_id} = req.query;
+    const { limit, offset, executor_id, responsible_id, reviewer_id, status_id, tag_id, sprint_id, sort} = req.query;
     let { status_ids } = req.query;
         
     const projectRole = (await ProjectUser.find(con,{where : {project_id, user_id : profile_user_id}}))[0];
     if (!projectRole) throw 'Permission denied';
     // Получаем список задач
     const taskList = await ProjectTask.getList(con, 
-        {project_id, task_id, limit, offset, executor_id, responsible_id, reviewer_id, status_id, status_ids, tag_id, sprint_id}
+        {project_id, task_id, limit, offset, executor_id, responsible_id, reviewer_id, status_id, status_ids, tag_id, sprint_id, sort}
     );
 
     if (!task_id) {
@@ -69,7 +69,8 @@ router.post('/:project_id/:task_id?', withTransaction(async (req, res, next) => 
     const { project_id } = req.params;
     let { task_id } = req.params;
     const { task_title,task_note,is_deleted,status_id,
-        executor_id,responsible_id,reviewer_id, sprint_id } = req.body;
+        executor_id,responsible_id,reviewer_id, sprint_id,
+        prev_task_id } = req.body;
        
     const projectUser = (await ProjectUser.find(con,{where : {project_id, user_id : profile_user_id}}))[0];
     if (![ProjectUser.CONSTANTS.WRITE,ProjectUser.CONSTANTS.OWNER]
@@ -82,10 +83,30 @@ router.post('/:project_id/:task_id?', withTransaction(async (req, res, next) => 
                 task_title,task_note,is_deleted : is_deleted || 'N',status_id,
                 executor_id,responsible_id,reviewer_id,
                 created_on : { expression : "now()" },
-                created_by : profile_user_id
+                created_by : profile_user_id,
+                orderby_time : { expression : "UNIX_TIMESTAMP(now())" }
             }
         });
     } else {
+        let prevTask = null;
+        if (prev_task_id) {
+            // значит меняют с канбана, надо получить сорировку другого элемента
+            prevTask = (await ProjectTask.find(con, { where : {task_id : prev_task_id} }))[0];
+            // +2 секунды ко всем в текущей колонке в этом проекте
+            await ProjectTask.update(con, {
+                values : { orderby_time : parseInt(prevTask.orderby_time) +2},
+                where : { 
+                    project_id, 
+                    status_id,
+                    _custom : [
+                        { 
+                            sql : ` and orderby_time > ${prevTask.orderby_time}`, 
+                            no_value : true 
+                        }
+                    ]
+                }
+            });
+        }
         await ProjectTask.updateWithTrigger(con, {
             values : {
                 task_title,
@@ -97,7 +118,8 @@ router.post('/:project_id/:task_id?', withTransaction(async (req, res, next) => 
                 reviewer_id,
                 sprint_id,
                 updated_by : profile_user_id,
-                updated_on : { expression : "now()" }
+                updated_on : { expression : "now()" },
+                orderby_time : prevTask ? parseInt(prevTask.orderby_time) +1 : undefined
             },
             where : { project_id, task_id }
         },
