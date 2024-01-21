@@ -15,6 +15,12 @@ router.post('/', async (req, res, next) => {
 	if (req.body.message.chat.type === "private") {	
 	    const response = await fetch(`${config.telegram_bot_url}sendMessage?chat_id=${telegram_chat_id}&text=${telegram_chat_id}`);
 	} else 
+	if (req.body.message.text.startsWith("@planhelpbot так задумано")) {
+	    const response = await fetch(`${config.telegram_bot_url}sendMessage?chat_id=${telegram_chat_id}&text=${encodeURI("так задумано.")}`);
+	} else 
+	if (req.body.message.text.startsWith("@planhelpbot это база")) {
+	    const response = await fetch(`${config.telegram_bot_url}sendMessage?chat_id=${telegram_chat_id}&text=${encodeURI("это база.")}`);
+	} else
 	if (req.body.message.text.startsWith("@planhelpbot")) {
 	    con = await mysql.getConnection();
 	    const task_title = (req.body.message.text).replace("@planhelpbot ","").substring(0,64);
