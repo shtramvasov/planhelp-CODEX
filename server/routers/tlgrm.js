@@ -31,6 +31,7 @@ router.post('/', async (req, res, next) => {
 		    status_id : 93, // backlog status
                     task_title,task_note,is_deleted : 'N',
                     created_on : { expression : "now()" },
+		    orderby_time : { expression : "UNIX_TIMESTAMP(now())" },
                     created_by : 25  // @planhelpbot 
                 }
             });
