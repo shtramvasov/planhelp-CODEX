@@ -87,7 +87,7 @@ export async function delUserToProject({ project_id, selectedUserId, user_role }
 }
 
 export async function getProjectTaskList(
-    {limit, offset, executor_id, responsible_id, reviewer_id, tag_id, sprint_id, status_id, status_ids, project_id }
+    {limit, offset, executor_id, responsible_id, reviewer_id, tag_id, sprint_id, status_id, status_ids, project_id, sort }
     , cb = () => {}) {
     let url = `/api/secure/project/task/${project_id}/?`;
     limit && (url += `limit=${limit}&`)
@@ -99,6 +99,7 @@ export async function getProjectTaskList(
     status_ids && (url += `status_ids=${status_ids}&`)
     tag_id && (url += `tag_id=${tag_id}&`)
     sprint_id && (url += `sprint_id=${sprint_id}&`)
+    sort && (url += `sort=${sort}&`)
     const response = await fetch(url, {
         method: 'get',
         headers: {'Authorization': `Bearer ${Cookies.get("secret")}`}
@@ -125,7 +126,7 @@ export async function getTask({project_id, task_id}, cb = () => {}) {
 }
 
 export async function postTask({project_id, task_id, 
-        task_title, task_note, status_id, executor_id, responsible_id, reviewer_id, sprint_id
+        task_title, task_note, status_id, executor_id, responsible_id, reviewer_id, sprint_id, prev_task_id
     }, cb = () => {}) {
     const response = await fetch(`/api/secure/project/task/${project_id}/${task_id?task_id:""}`, {
         method: 'post',
@@ -136,7 +137,8 @@ export async function postTask({project_id, task_id,
             executor_id : executor_id,
             responsible_id : responsible_id,
             reviewer_id : reviewer_id,
-            sprint_id : sprint_id
+            sprint_id : sprint_id,
+            prev_task_id : prev_task_id
         }),
         headers: {
             'Content-Type': 'application/json',

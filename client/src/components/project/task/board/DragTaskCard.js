@@ -1,4 +1,5 @@
-import { useDrag } from 'react-dnd'
+import { useRef } from "react";
+import { useDrag, useDrop } from 'react-dnd'
 import Card from 'react-bootstrap/Card';
 import {Badge} from 'react-bootstrap';
 import moment from 'moment-timezone';
@@ -6,6 +7,8 @@ import 'moment/locale/ru';
 moment.locale('ru');
 
 function DragTaskCard(props) {
+	const ref = useRef(null);
+
     const [{ isDragging }, drag] = useDrag(() => ({
       	type: 'CARD',
         item: { 
@@ -13,7 +16,7 @@ function DragTaskCard(props) {
 			project_id : props.project_id, 
 			task_id : props.task_id 
 		},
-      	collect: (monitor) => ({
+		collect: (monitor) => ({
         	isDragging: monitor.isDragging()
     	}),
     	end: (item, monitor) => {
@@ -22,18 +25,40 @@ function DragTaskCard(props) {
 				props.onDropTask({
 					project_id : item.project_id,
 					status_id : dropResult.status_id,
-					task_id : item.task_id
+					task_id : item.task_id,
+					prev_task_id : dropResult.task_id
 				});
 			}
     	},
     }))
 
-	console.log()
+	const [{ canDrop, isOver }, drop] = useDrop(() => ({
+        accept: "CARD",
+        drop: (item, monitor) => { 
+            return { 
+                name: props.status_name, 
+                status_id : props.status_id,
+				task_id : props.task_id
+            } 
+        },
+		hover: (item, monitor) => {
+            monitor.isOver({ shallow: true })
+        },
+        collect: (monitor) => ({
+			isOver: monitor.isOver(),
+			canDrop: monitor.canDrop(),
+			isOverCurrent: monitor.isOver({ shallow: false }),
+		}),
+	}));
+
+	
+	drop(drag(ref));
 
 	return (
 		<a href={`/project/${props.project_id}/task/${props.task_id}/`} style={{textDecoration: "none", color: "inherit"}}>
 			<Card onClick={props.onClick}
-				ref={drag} 
+				ref={ref}
+				key={props.task_id}
 				style={{textWrap: "balance", margin: "4px", cursor: "pointer"}}>
 				<Card.Body>
 					<div style={{fontSize: "0.9em", fontWeight: "500"}}>
@@ -46,7 +71,7 @@ function DragTaskCard(props) {
 							{props.ru_reviewer_id?<><i className="bi bi-arrow-right"></i> {props.ru_reviewer_login} &nbsp;</> :""} */}
 							{
 							props.date_start ? 
-								<i class="bi bi-circle-fill" style={{fontSize: "0.8em", color : 
+								<i className="bi bi-circle-fill" style={{fontSize: "0.8em", color : 
 									moment(props.date_end,'YYYY-MM-DDTHH:mm:ss.SSSZ').diff(moment(),'days') < 0 ? "red" : 
 									moment(props.date_end,'YYYY-MM-DDTHH:mm:ss.SSSZ').diff(moment(),'days') < 2 ? "yellow" : "green"
 								}}></i>
