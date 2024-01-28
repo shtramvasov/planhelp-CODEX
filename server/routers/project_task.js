@@ -92,20 +92,28 @@ router.post('/:project_id/:task_id?', withTransaction(async (req, res, next) => 
         if (prev_task_id) {
             // значит меняют с канбана, надо получить сорировку другого элемента
             prevTask = (await ProjectTask.find(con, { where : {task_id : prev_task_id} }))[0];
+            currTask = (await ProjectTask.find(con, { where : {task_id : task_id} }))[0];
+            let sym = ">";
+            if (currTask.status_id === prevTask.status_id) {
+                // значит в одном столбце, надо определить куда смещение
+                if (parseInt(currTask.orderby_time) > parseInt(prevTask.orderby_time)) {
+                    sym = ">="
+                } 
+            } else {
+                // чего делать когда из разных колонок тащат?
+                // всегда считать что перенесли вверх
+            }
             // +2 секунды ко всем в текущей колонке в этом проекте
-            await ProjectTask.update(con, {
-                values : { orderby_time : parseInt(prevTask.orderby_time) +2},
-                where : { 
-                    project_id, 
-                    status_id,
-                    _custom : [
-                        { 
-                            sql : ` and orderby_time > ${prevTask.orderby_time}`, 
-                            no_value : true 
-                        }
-                    ]
-                }
-            });
+            const sql = `update project_task
+                            set orderby_time = orderby_time + 2
+                          where status_id = ?
+                            and project_id = ?
+                            and orderby_time ${sym} ? `; 
+            // > если сместили вверх, >= если сместили вниз
+            console.log(sql, [  status_id, project_id, prevTask.orderby_time ]);
+            await mysql.query(con,
+                sql, 
+                [ status_id, project_id, prevTask.orderby_time ]);
         }
         await ProjectTask.updateWithTrigger(con, {
             values : {

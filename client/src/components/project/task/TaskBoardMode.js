@@ -3,31 +3,24 @@ import { useSelector, useDispatch } from 'react-redux'
 import React from 'react';
 import DropStatusLane from "./board/DropStatusLane";
 import DragTaskCard from "./board/DragTaskCard";
-import { addTask } from '../../../reducers/Project';
+import { addTask, dndTask } from '../../../reducers/Project';
 import { getTask, postTask, getProject, postTaskCommonNote } from '../../../network/TaskNetwork';
-
-function compareTask( a, b ) {
-	if ( parseInt(a.orderby_time) < parseInt(b.orderby_time) ){
-	  return 1;
-	}
-	if ( parseInt(a.orderby_time) > parseInt(b.orderby_time) ){
-	  return -1;
-	}
-	return 0;
-  }
-  
 
 function TaskBoardMode(props) {
 	const actionCallModaTaskEdit = props.actionCallModaTaskEdit;
 	const Project = useSelector((state) => state.project);
 	const dispatch = useDispatch();
 	
-	const onChangeStatus = ({project_id, task_id, status_id, prev_task_id}) => {
+	const onDropTask = ({project_id, task_id, status_id, prev_task_id}) => {
 		postTask({ project_id, task_id, status_id, prev_task_id}, (err,resp) => {
 			if (!err) {
 				getTask({project_id, task_id},(err,resp) => {
 					if (!err) {
 						dispatch(addTask(resp));
+						// Если сместили таску на позицию другой таски
+						if (prev_task_id) {
+							dispatch(dndTask({from : task_id, to: prev_task_id}));
+						}
 					} else {
 						alert("Ошибка: "+err);
 					}
@@ -52,8 +45,8 @@ function TaskBoardMode(props) {
 			/>
 		)
 	});
-	const taskList = [...Project.taskList];
-	taskList.sort(compareTask).map((el) => {
+	console.log("taskBoardMode",Project.taskList)
+	Project.taskList.map((el) => {
 		if (projectStatus[el.status_id]) {
 			projectStatus[el.status_id].push(
 				<DragTaskCard
@@ -73,7 +66,7 @@ function TaskBoardMode(props) {
 					date_start={el.date_start}
 					date_end={el.date_end}
 					status_id={el.status_id}
-					onDropTask={onChangeStatus}
+					onDropTask={onDropTask}
 				/>
 			);
 		}
