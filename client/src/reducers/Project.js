@@ -97,6 +97,28 @@ export const projectSlice = createSlice({
                 return task;
             });
         },
+        dndTask: (state, action) => {
+            let indexFrom=0;
+            for(const task of state.taskList) {
+                if (task.task_id === action.payload.from) {
+                    break;
+                }
+                indexFrom++;
+            }
+            let indexTo=0;
+            for(const task of state.taskList) {
+                if (task.task_id === action.payload.to) {
+                    break;
+                }
+                indexTo++;
+            }
+            // создаем клон объекта таски
+            const task = JSON.parse(JSON.stringify(state.taskList[indexFrom]));
+            // удаляем элемент из массива
+            state.taskList.splice(indexFrom,1);
+            // создаем клон объект
+            state.taskList.splice(indexTo,0,task);
+        },
         addTaskList: (state, action) => {
             state.taskList = (action.payload);
         },
@@ -113,9 +135,10 @@ export const {
     addProject,
     addProjectList,
     addTask,
+    dndTask,
     addTaskList,
     addSprint,
-    addSprintList
+    addSprintList    
 } = projectSlice.actions;
 
 export default projectSlice.reducer;
