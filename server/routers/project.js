@@ -151,7 +151,7 @@ router.post('/:project_id', async (req, res, next) => {
         }
         const projectRole = (await ProjectUser.find(con,{where : {project_id, user_id}}))[0];
 
-        if (projectRole.user_role !== ProjectUser.CONSTANTS.OWNER) 'Permission denied';
+        if (projectRole.user_role !== ProjectUser.CONSTANTS.OWNER) throw 'Permission denied';
 
         await Project.update(con,{
             values : {
@@ -196,10 +196,34 @@ router.post('/:project_id/users', async (req, res, next) => {
             .includes(user_role)) throw "Not valid user_role in body params, only WRITE or OWNER or READ";
         const projectRole = (await ProjectUser.find(con,{where : {project_id, user_id : profile_user_id}}))[0];
 
-        if (projectRole.user_role !== ProjectUser.CONSTANTS.OWNER) 'Permission denied';
+        if (projectRole.user_role !== ProjectUser.CONSTANTS.OWNER) throw 'Permission denied';
 
         await ProjectUser.create(con,{values : { project_id, user_id, user_role }});
 
+        res.send({ok:true});
+    } catch(error) {
+        next(error);
+    } finally {
+        con && await mysql.releaseConnection(con);
+    }
+});
+
+// массовое изменение порядка статусов
+router.post('/:project_id/status/orderby', async (req, res, next) => {
+    const profile_user_id = req.userModel.user_id;
+    const { project_id } = req.params;
+    let con;
+    try {
+        con = await mysql.getConnection();
+        const projectRole = (await ProjectUser.find(con,{where : {project_id, user_id : profile_user_id}}))[0];
+        if (projectRole.user_role !== ProjectUser.CONSTANTS.OWNER) throw 'Permission denied';
+
+        for (const status of req.body) {
+            await ProjectStatus.update(con,{
+                values : { orderby : status.orderby },
+                where : { status_id : status.status_id, project_id }
+            });
+        }
         res.send({ok:true});
     } catch(error) {
         next(error);
@@ -226,7 +250,7 @@ router.post('/:project_id/status/:status_id?', async (req, res, next) => {
         }
         const projectRole = (await ProjectUser.find(con,{where : {project_id, user_id : profile_user_id}}))[0];
 
-        if (projectRole.user_role !== ProjectUser.CONSTANTS.OWNER) 'Permission denied';
+        if (projectRole.user_role !== ProjectUser.CONSTANTS.OWNER) throw 'Permission denied';
 
         if (!status_id) {
             await ProjectStatus.create(con,{values : { 
@@ -261,7 +285,7 @@ router.post('/:project_id/users/revoke', async (req, res, next) => {
         con = await mysql.getConnection();
         const projectRole = (await ProjectUser.find(con,{where : {project_id, user_id : profile_user_id}}))[0];
 
-        if (projectRole.user_role !== ProjectUser.CONSTANTS.OWNER) 'Permission denied';
+        if (projectRole.user_role !== ProjectUser.CONSTANTS.OWNER) throw 'Permission denied';
 
         await ProjectUser.delete(con,{where : { project_id, user_id }});
 
@@ -283,7 +307,7 @@ router.post('/:project_id/tag/:tag_id?', withTransaction(async (req, res) => {
         
     const projectRole = (await ProjectUser.find(con,{where : {project_id, user_id : profile_user_id}}))[0];
 
-    if (projectRole.user_role !== ProjectUser.CONSTANTS.OWNER) 'Permission denied';
+    if (projectRole.user_role !== ProjectUser.CONSTANTS.OWNER) throw 'Permission denied';
 
     if (!tag_id) {
         await ProjectTags.create(con,{values : { 
@@ -306,7 +330,7 @@ router.delete('/:project_id/tag/:tag_id', withTransaction(async (req, res) => {
     const { project_id, tag_id } = req.params;
         
     const projectRole = (await ProjectUser.find(con,{where : {project_id, user_id : profile_user_id}}))[0];
-    if (projectRole.user_role !== ProjectUser.CONSTANTS.OWNER) 'Permission denied';
+    if (projectRole.user_role !== ProjectUser.CONSTANTS.OWNER) throw 'Permission denied';
 
     await ProjectTags.delete(con, { where : {
         project_id, tag_id
