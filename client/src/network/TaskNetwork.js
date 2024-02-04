@@ -90,8 +90,8 @@ export async function getProjectTaskList(
     {limit, offset, executor_id, responsible_id, reviewer_id, tag_id, sprint_id, status_id, status_ids, project_id, sort }
     , cb = () => {}) {
     let url = `/api/secure/project/task/${project_id}/?`;
-    limit && (url += `limit=${limit}&`)
-    offset && (url += `offset=${offset}&`)
+    limit !== undefined && (url += `limit=${limit}&`)
+    offset !== undefined && (url += `offset=${offset}&`)
     executor_id && (url += `executor_id=${executor_id}&`)
     responsible_id && (url += `responsible_id=${responsible_id}&`)
     reviewer_id && (url += `reviewer_id=${reviewer_id}&`)

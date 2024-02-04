@@ -1,16 +1,89 @@
 import { Container, Row, Col, Form, Button, ListGroup, Table, Badge, Dropdown, DropdownButton, InputGroup } from 'react-bootstrap';
 import { useSelector, useDispatch } from 'react-redux'
-import React from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import DropStatusLane from "./board/DropStatusLane";
 import DragTaskCard from "./board/DragTaskCard";
-import { addTask, dndTask } from '../../../reducers/Project';
-import { getTask, postTask, getProject, postTaskCommonNote } from '../../../network/TaskNetwork';
+import { useNavigate , useSearchParams, useParams} from "react-router-dom";
+import { addTask, dndTask, addTaskList, appendTaskList } from '../../../reducers/Project';
+import { getTask, postTask, getProjectTaskList, getProject, postTaskCommonNote } from '../../../network/TaskNetwork';
 
 function TaskBoardMode(props) {
+
+	const [ searchParams ] = useSearchParams();
+	const dispatch = useDispatch();
+    const { project_id } = useParams();
+
 	const actionCallModaTaskEdit = props.actionCallModaTaskEdit;
 	const Project = useSelector((state) => state.project);
-	const dispatch = useDispatch();
 	
+	const limit = searchParams.get("limit");
+    const offset = searchParams.get("offset")?searchParams.get("offset"):undefined;
+    const executor_id = searchParams.get("executor_id");
+    const responsible_id = searchParams.get("responsible_id");
+    const reviewer_id = searchParams.get("reviewer_id");
+    const status_id = searchParams.get("status_id");
+    const tag_id = searchParams.get("tag_id");
+    const sprint_id = searchParams.get("sprint_id");
+
+    useEffect(() => {
+		if (Project.project.project_id) {
+			fetchProjectTaskList();
+		}
+    },[executor_id, status_id, responsible_id, reviewer_id, tag_id, sprint_id, Project.project.project_id]);
+
+	// достаем задачи с апи
+	const fetchProjectTaskList = () => {
+		const open_status_ids = Project.project.project_status_list.filter((status) => {
+			return status.is_closed !== 'Y'
+		});
+		const closed_status_ids = Project.project.project_status_list.filter((status) => {
+			return status.is_closed === 'Y'
+		});
+		getProjectTaskList({
+			limit:limit?limit:"", offset:offset?offset:"",project_id,
+			status_ids : open_status_ids.map((status) => status.status_id).join(','),
+			executor_id, responsible_id, reviewer_id, tag_id, sprint_id,
+			sort : "orderby_time"
+		},(err,resp_open) => {
+			if (!err) {
+				getProjectTaskList({
+					limit:limit?limit:"", offset:offset?offset:"",project_id,
+					status_ids : closed_status_ids[0].status_id, 
+					executor_id, responsible_id, reviewer_id, tag_id, sprint_id,
+					sort : "orderby_time"
+				},(err,resp_closed) => {
+					if (!err) {
+						dispatch(addTaskList(resp_open.concat(resp_closed)));
+					} else {
+						alert("Ошибка: "+err);
+					}
+				});
+			} else {
+				alert("Ошибка: "+err);
+			}
+		});
+	};
+
+	// const fetchClosedProjectTaskList = () => {
+	// 	const closed_status_ids = Project.project.project_status_list.filter((status) => {
+	// 		return status.is_closed === 'Y'
+	// 	});
+	// 	if (closed_status_ids.length > 0) {
+	// 		getProjectTaskList({
+	// 			limit:limit?limit:"", offset:offset?offset:"",project_id,
+	// 			status_ids : closed_status_ids[0].status_id, 
+	// 			executor_id, responsible_id, reviewer_id, tag_id, sprint_id,
+	// 			sort : "orderby_time"
+	// 		},(err,resp) => {
+	// 			if (!err) {
+	// 				dispatch(addTaskList(resp));
+	// 			} else {
+	// 				alert("Ошибка: "+err);
+	// 			}
+	// 		});
+	// 	}
+	// };
+
 	const onDropTask = ({project_id, task_id, status_id, prev_task_id}) => {
 		postTask({ project_id, task_id, status_id, prev_task_id}, (err,resp) => {
 			if (!err) {
@@ -45,7 +118,7 @@ function TaskBoardMode(props) {
 			/>
 		)
 	});
-	console.log("taskBoardMode",Project.taskList)
+	
 	Project.taskList.map((el) => {
 		if (projectStatus[el.status_id]) {
 			projectStatus[el.status_id].push(
@@ -77,7 +150,6 @@ function TaskBoardMode(props) {
 			<div style={{overflow: "auto", whiteSpace: "nowrap", minHeight: "600px"}}>
 				{statusLaneList}
 			</div>
-			{/* {taskCardList} */}
         </div>
 	) 
     

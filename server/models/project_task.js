@@ -47,7 +47,10 @@ class ProjectTask extends Model {
             sprint_id,
             sort
         } ) {
-
+            console.log("limit, offset",limit, offset);
+        limit = (limit === undefined || limit === null || limit === "") ? undefined : +limit;
+        offset = (offset === undefined || offset === null || offset === "") ? undefined : +offset;
+        
         const _custom = []
         if (status_ids) {
             status_ids = status_ids.replace(/:/g,",");
@@ -105,8 +108,8 @@ class ProjectTask extends Model {
                 _custom : _custom
             },
             order : (sort ? sort : "task_id") + " desc",
-            limit : +limit || 50,
-            offset : +offset || 0
+            limit : limit,
+            offset : offset
         });
 
         return taskList;
