@@ -25,40 +25,25 @@ const noText = "Проект без названия";
 function TaskList(props) {
 
     const [ searchParams ] = useSearchParams();
+    const dispatch = useDispatch();
+    const navigate = useNavigate();
+    const { project_id, mode } = useParams();
+    const [showModalTaskEdit, setShowModalTaskEdit] = useState(false);
+    const [showModalTaskCreate, setShowModalTaskCreate] = useState(false);
+    const [modalProjectTaskData, setModalProjectTaskData] = useState({project_id: undefined, task_id : undefined});
+    
     const limit = searchParams.get("limit");
     const offset = searchParams.get("offset")?searchParams.get("offset"):0;
-
-    
     const executor_id = searchParams.get("executor_id");
     const responsible_id = searchParams.get("responsible_id");
     const reviewer_id = searchParams.get("reviewer_id");
     const status_id = searchParams.get("status_id");
     const tag_id = searchParams.get("tag_id");
-    const sprint_id = searchParams.get("sprint_id");
-
-    const dispatch = useDispatch();
-    const navigate = useNavigate();
-    const { project_id, mode } = useParams();
-    
-    const [showModalTaskDetail, setShowModalTaskDetail] = useState(false);
-    const [showModalTaskEdit, setShowModalTaskEdit] = useState(false);
-    const [showModalTaskCreate, setShowModalTaskCreate] = useState(false);
-    const [modalProjectTaskData, setModalProjectTaskData] = useState({project_id: undefined, task_id : undefined});
+    const sprint_id = searchParams.get("sprint_id"); 
 
     const Project = useSelector((state) => state.project);
 
     document.title = Project.project.project_name +" | planhelp";
-    
-    // // Первичная загрузка данных
-    // useEffect(() => {
-    //     // загрузка данных о проекте
-    //     fetchProject();
-    // },[]);
-
-    useEffect(() => {
-        // загрузка данных о задачах
-        fetchProjectTaskList();
-    },[offset, executor_id, status_id, responsible_id, reviewer_id, tag_id, sprint_id, mode])
 
     const onChangeUrl = ({status_id, executor_id, responsible_id, reviewer_id, tag_id, offset, limit}) => {
         
@@ -91,15 +76,6 @@ function TaskList(props) {
         setShowModalTaskCreate(true);
     }
 
-    // переход на доску
-    const actionGoToBoard = () => {
-        navigate(`/project/${project_id}/board/?${document.location.search.slice(1)}`);
-    }
-    // переход на список задач
-    const actionGoToList = () => {
-        navigate(`/project/${project_id}/list/?${document.location.search.slice(1)}`);
-    }
-
     // колбэк после редактирования задачи
     const actionCallModaTaskEditCallback = (commonNote) => {
         //moment(commonNote.remind_on,'YYYY-MM-DD HH:mm:ss').tz('UTC').format('YYYY-MM-DD HH:mm:ss')
@@ -126,17 +102,6 @@ function TaskList(props) {
         }
     }
 
-    // // достаем проект с апи
-    // const fetchProject = () => {
-    //     getProject({project_id},(err,resp) => {
-    //         if (!err) {
-    //             dispatch(addProject(resp));
-    //         } else {
-    //             alert("Ошибка: "+err);
-    //         }
-    //     });
-    // };
-
     // достаем задачи с апи
     const fetchProjectTaskList = () => {
         getProjectTaskList({
@@ -151,17 +116,6 @@ function TaskList(props) {
             }
         });
     };
-
-    const paginateForward = () => {
-        onChangeUrl({limit : 50, offset: parseInt(offset?offset:0)+50});
-    }
-    const paginateBackward = () => {
-        onChangeUrl({limit : 50, offset: parseInt(offset)-50});
-    }
-
-    const navigateToEditProject = () => {
-        navigate(`/project/${project_id}/settings`)
-    }
 
     // мапированный массив статусов
     const statusSelectOptions = Project.project.project_status_list.map(status => {
@@ -218,13 +172,6 @@ function TaskList(props) {
     <Row>
         <Col>
             <TabBar />
-            {/* <div>
-            <Form.Group className="mb-3">
-                <Button type="button" variant="" onClick={actionCallModaTaskCreate} >
-                    <i className="bi bi-plus-circle"></i>
-                </Button>
-            </Form.Group>
-            </div> */}
         </Col>
     </Row>
     <Row style={{marginTop : "14px"}}>
@@ -302,20 +249,6 @@ function TaskList(props) {
                 :
                 <TaskListMode actionCallModaTaskEdit={actionCallModaTaskEdit}/> 
             }
-        </Col>
-    </Row>
-    <Row style={{marginBottom: "32px"}}>
-        <Col>
-        <br/><br/>
-            {offset!=0?
-            <a href="#" onClick={paginateBackward} style={{fontSize:"1.6em"}}>
-                <i className="bi bi-arrow-left-circle"></i>
-            </a>:""
-            }
-            &nbsp;
-            <a href="#" onClick={paginateForward} style={{fontSize:"1.6em"}}>
-                <i className="bi bi-arrow-right-circle"></i>
-            </a>
         </Col>
     </Row>
     </Container>

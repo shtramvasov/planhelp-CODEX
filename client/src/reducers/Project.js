@@ -122,6 +122,9 @@ export const projectSlice = createSlice({
         addTaskList: (state, action) => {
             state.taskList = (action.payload);
         },
+        appendTaskList: (state, action) => {
+            state.taskList.push([...action.payload]);
+        },
         addSprint: (state, action) => {
             state.sprint = (action.payload);
         },
@@ -137,8 +140,9 @@ export const {
     addTask,
     dndTask,
     addTaskList,
+    appendTaskList,
     addSprint,
-    addSprintList    
+    addSprintList
 } = projectSlice.actions;
 
 export default projectSlice.reducer;

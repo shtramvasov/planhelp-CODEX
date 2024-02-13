@@ -1,11 +1,73 @@
 import { useSelector, useDispatch } from 'react-redux';
 import { Container, Row, Col, Form, Button, ListGroup, Table, Badge, Dropdown, DropdownButton, InputGroup } from 'react-bootstrap';
+import React, { useState, useEffect, useRef } from 'react';
+import { useNavigate , useSearchParams, useParams} from "react-router-dom";
+import { getProject, getProjectTaskList, postTask } from "../../../network/TaskNetwork";
+import { addProject, addTaskList } from '../../../reducers/Project';
+import queryString from "query-string";
 import moment from 'moment-timezone';
 import 'moment/locale/ru';
 moment.locale('ru');
 
 function TaskListMode(props) {
+    const dispatch = useDispatch();
+    const navigate = useNavigate();
+    const [ searchParams ] = useSearchParams();
+    const { project_id } = useParams();
+
     const Project = useSelector((state) => state.project);
+    const limit = searchParams.get("limit") || 50;
+    const offset = searchParams.get("offset")?searchParams.get("offset"):0;
+    const executor_id = searchParams.get("executor_id");
+    const responsible_id = searchParams.get("responsible_id");
+    const reviewer_id = searchParams.get("reviewer_id");
+    const status_id = searchParams.get("status_id");
+    const tag_id = searchParams.get("tag_id");
+    const sprint_id = searchParams.get("sprint_id");
+    
+    useEffect(() => {
+        // загрузка данных о задачах
+        fetchProjectTaskList();
+    },[offset, executor_id, status_id, responsible_id, reviewer_id, tag_id, sprint_id])
+
+    // достаем задачи с апи
+    const fetchProjectTaskList = () => {
+        getProjectTaskList({
+            limit, offset, project_id,
+            status_id, executor_id, responsible_id, reviewer_id, tag_id, sprint_id,
+            sort : "task_id"
+        },(err,resp) => {
+            if (!err) {
+                dispatch(addTaskList(resp));
+            } else {
+                alert("Ошибка: "+err);
+            }
+        });
+    };
+
+    const onChangeUrl = ({status_id, executor_id, responsible_id, reviewer_id, tag_id, offset, limit}) => {
+        
+        const currentUrlObj = queryString.parse(document.location.search.slice(1));
+        
+        if (status_id !== undefined) currentUrlObj.status_id = status_id;
+        if (executor_id !== undefined) currentUrlObj.executor_id = executor_id;
+        if (responsible_id !== undefined) currentUrlObj.responsible_id = responsible_id;
+        if (reviewer_id !== undefined) currentUrlObj.reviewer_id = reviewer_id;
+        if (tag_id !== undefined) currentUrlObj.tag_id = tag_id;
+        if (limit !== undefined) currentUrlObj.limit = limit;
+        if (offset !== undefined) currentUrlObj.offset = offset;
+
+        navigate(`/project/${project_id}/list?${queryString.stringify(currentUrlObj)}`);
+        
+    }
+
+    const paginateForward = () => {
+        onChangeUrl({limit : 50, offset: parseInt(offset?offset:0)+50});
+    }
+    const paginateBackward = () => {
+        onChangeUrl({limit : 50, offset: parseInt(offset)-50});
+    }
+
     const actionCallModaTaskEdit = props.actionCallModaTaskEdit;
     // Список задачи
     const listItems = Project.taskList.map((el,index) => 
@@ -44,13 +106,29 @@ function TaskListMode(props) {
     );
 
     return (
-    <Row>
-        <Col>
-            <ListGroup>
-                {listItems}
-            </ListGroup>
-        </Col>
-    </Row>
+    <>
+        <Row>
+            <Col>
+                <ListGroup>
+                    {listItems}
+                </ListGroup>
+            </Col>
+        </Row>
+        <Row style={{marginBottom: "32px"}}>
+            <Col>
+            <br/><br/>
+                {offset!=0?
+                <a href="#" onClick={paginateBackward} style={{fontSize:"1.6em"}}>
+                    <i className="bi bi-arrow-left-circle"></i>
+                </a>:""
+                }
+                &nbsp;
+                <a href="#" onClick={paginateForward} style={{fontSize:"1.6em"}}>
+                    <i className="bi bi-arrow-right-circle"></i>
+                </a>
+            </Col>
+        </Row>
+    </>
     );
 }
 
