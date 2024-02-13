@@ -13,6 +13,7 @@
     "express-fileupload": "^1.4.0",
     "mysql": "^2.18.1",
     "node-fetch": "^2.6.1",
+    "response-time": "^2.3.2",
     "swagger-jsdoc": "^6.2.8",
     "swagger-ui-express": "^5.0.0"
   }
