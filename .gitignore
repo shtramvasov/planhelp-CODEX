@@ -22,6 +22,9 @@
 # production
 /client/build
 
+#logs
+/server/logs
+
 # misc
 /client/.DS_Store
 /client/.env.local

@@ -8,7 +8,7 @@ const responseTime = require('response-time')
 const fs = require('fs')
 const appState = require('./appState');
 const config = require('./config');
-var accessLogStream = fs.createWriteStream(__dirname + '/access.log', {flags: 'a'});
+var accessLogStream = fs.createWriteStream(__dirname + '/logs/access.log', {flags: 'a'});
 
 const diskRouter = require('./routers/disk');
 const userRouter = require('./routers/user');
@@ -36,12 +36,12 @@ app.use(responseTime( (req, res, time) => {
     const logString = req.method 
         + '|' + req.baseUrl + req.route?.path
         + '|' + req.userModel?.user_id 
-        + '|' + req.headers?.authorization
+        // + '|' + req.headers?.authorization
         + '|' + req.originalUrl 
         + '|' + res.statusCode 
         + '|' + time;
     const statsKey = req.baseUrl + req.route?.path;
-    if (res.statusCode == 200) {
+    if (+res.statusCode >= 200 && +res.statusCode <= 399) {
         if (!appState.stats.ok[statsKey]) {
             appState.stats.ok[statsKey] = { 
                 totalCountCall : 0,
@@ -108,8 +108,13 @@ app.use(responseTime( (req, res, time) => {
     appState.stats.totalCountCall++;
     appState.stats.avgRespTime = (appState.stats.avgRespTime * (appState.stats.totalCountCall - 1) + time) / appState.stats.totalCountCall;
     
+<<<<<<< HEAD
     // console.log(JSON.stringify(appState.stats));
     // accessLogStream.write(logString +'\n');
+=======
+    console.log(JSON.stringify(appState.stats));
+    accessLogStream.write(logString +'\n');
+>>>>>>> PAU_board_modify
 }));
 
 app.use(fileUpload({
