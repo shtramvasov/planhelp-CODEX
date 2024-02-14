@@ -34,13 +34,13 @@ app.use(responseTime( (req, res, time) => {
     // appState.stats
     
     const logString = req.method 
-        + '|' + req.baseUrl + req.route.path
+        + '|' + req.baseUrl + req.route?.path
         + '|' + req.userModel?.user_id 
         + '|' + req.headers?.authorization
         + '|' + req.originalUrl 
         + '|' + res.statusCode 
         + '|' + time;
-    const statsKey = req.baseUrl + req.route.path;
+    const statsKey = req.baseUrl + req.route?.path;
     if (res.statusCode == 200) {
         if (!appState.stats.ok[statsKey]) {
             appState.stats.ok[statsKey] = { 
@@ -108,7 +108,7 @@ app.use(responseTime( (req, res, time) => {
     appState.stats.totalCountCall++;
     appState.stats.avgRespTime = (appState.stats.avgRespTime * (appState.stats.totalCountCall - 1) + time) / appState.stats.totalCountCall;
     
-    console.log(JSON.stringify(appState.stats));
+    // console.log(JSON.stringify(appState.stats));
     // accessLogStream.write(logString +'\n');
 }));
 
