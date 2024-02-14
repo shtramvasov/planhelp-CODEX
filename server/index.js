@@ -108,13 +108,7 @@ app.use(responseTime( (req, res, time) => {
     appState.stats.totalCountCall++;
     appState.stats.avgRespTime = (appState.stats.avgRespTime * (appState.stats.totalCountCall - 1) + time) / appState.stats.totalCountCall;
     
-<<<<<<< HEAD
-    // console.log(JSON.stringify(appState.stats));
-    // accessLogStream.write(logString +'\n');
-=======
-    console.log(JSON.stringify(appState.stats));
     accessLogStream.write(logString +'\n');
->>>>>>> PAU_board_modify
 }));
 
 app.use(fileUpload({
