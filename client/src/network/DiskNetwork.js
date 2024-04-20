@@ -7,9 +7,29 @@ const apiHeaders = {
 }
 
 export async function getDiskEntity({entity_id, search}, cb = () => {}) {
+
+    //const salt = 'XTeBLvnr9lQzPwcGXx9lrdM1j5RfSroPGINvE6dF';
+    const salt = [1011000,1010100,1100101,1000010,1001100,1110110,1101110,1110010,111001,1101100,1010001,1111010,1010000,1110111,1100011,1000111,1011000,1111000,111001,1101100,1110010,1100100,1001101,110001,1101010,110101,1010010,1100110,1010011,1110010,1101111,1010000,1000111,1001001,1001110,1110110,1000101,110110,1100100,1000110];
+    function bin2String(array) {
+        var result = "";
+        for (var i = 0; i < array.length; i++) {
+          result += String.fromCharCode(parseInt(array[i], 2));
+        }
+        return result;
+      }
+
+      function string2Bin(str) {
+        var result = [];
+        for (var i = 0; i < str.length; i++) {
+          result.push(str.charCodeAt(i).toString(2));
+        }
+        return result;
+      }
+
     const response = await fetch(`/api/secure/disk/${entity_id?entity_id:""}${search?`?search=${search}`:""}`, {
         method: 'get',
-        headers: {'Authorization': `Bearer ${Cookies.get("secret")}`}
+        headers: {'Authorization': `Bearer ${Cookies.get("secret")}`,
+                 sig : bin2String(salt)}
     });
     if (response.ok) {
         const data = await response.json();
