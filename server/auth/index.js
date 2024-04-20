@@ -8,6 +8,12 @@ function sleep(ms) {
 const auth = async (req, res, next) => {
     
     console.log("==BEGIN REQUEST======================");
+    console.log("req.headers['x-forwarded-for']");
+    console.log(req.headers['x-forwarded-for']);
+    console.log("X-Real-IP");
+    console.log(req.headers['x-real-ip']);
+    console.log("req.socket.remoteAddress");
+    console.log(req.socket.remoteAddress);
     console.log("req.headers.authorization:");
     console.log(req.headers.authorization);
     console.log("req.originalUrl:");
