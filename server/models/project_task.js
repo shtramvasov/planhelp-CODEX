@@ -126,7 +126,7 @@ class ProjectTask extends Model {
         
         const result = super.update(pginstance, {values,where,returning});
 
-        const taskUrl = `https://planhelp.ru/project/${oldModel.project_id}/task/${oldModel.task_id}/`;
+        const taskUrl = `<a href="https://planhelp.ru/project/${oldModel.project_id}/task/${oldModel.task_id}/">#${oldModel.task_id} ${oldModel.task_title}</a>`;
         let notifyText = "";
         const notifyUserSet = new Set();
         if (oldModel.executor_id) notifyUserSet.add(oldModel.executor_id);
