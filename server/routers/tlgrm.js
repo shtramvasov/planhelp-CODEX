@@ -36,7 +36,9 @@ router.post('/', async (req, res, next) => {
             	    reviewer_id : 25
 		}
             });
-	    const response = await fetch(`${config.telegram_bot_url}sendMessage?chat_id=${telegram_chat_id}&text=${encodeURI("Ваша заявка зафиксирована в planhelp.ru")}`);
+		const taskUrl = `<a href="https://planhelp.ru/project/33/task/${task_id}/">№${task_id} ${task_title}</a>`;
+		const text = encodeURI(`Задача ${taskUrl} зафиксирована в planhelp.ru`);
+	    const response = await fetch(`${config.telegram_bot_url}sendMessage?chat_id=${telegram_chat_id}&text=${text}&parse_mode=HTML`);
 	}
 	res.send({ok:true});
     } catch(err) {
