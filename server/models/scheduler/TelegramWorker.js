@@ -18,7 +18,7 @@ class TelegramWorker extends JobScheduler {
                   limit 50`,[]);
             telegramNotifyList.length && console.log(`Found ${telegramNotifyList.length} for send`);
             for (const telegramNotify of telegramNotifyList) {
-                const response = await fetch(`${config.telegram_bot_url}sendMessage?chat_id=${telegramNotify.telegram_chat_id}&text=${encodeURI(telegramNotify.notify_note)}`);
+                const response = await fetch(`${config.telegram_bot_url}sendMessage?parse_mode=HTML&chat_id=${telegramNotify.telegram_chat_id}&text=${encodeURI(telegramNotify.notify_note)}`);
                 console.log(response.status);
                 await mysql.query(con, 
                         `update notify_tlgrm set status = 1 where notify_id = ?`, [ telegramNotify.notify_id ])
