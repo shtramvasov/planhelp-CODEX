@@ -142,7 +142,7 @@ class ProjectTask extends Model {
             const statusModel = (await ProjectStatus.find(pginstance,{where:{ 
                 status_id : values.status_id 
             }}))[0];
-            notifyText += `${userModel.login} изменил статус задачи -> ${statusModel.status_name} \n ${taskUrl} \n`;
+            notifyText += `${userModel.login} изменил статус задачи -> ${statusModel.status_name} \n${taskUrl} \n`;
         }
         // Изменение исполнителя
         if (values.executor_id !== undefined && oldModel.executor_id != values.executor_id) {
@@ -151,7 +151,7 @@ class ProjectTask extends Model {
             }}))[0];
             const login = executorModel ? executorModel.login : "не указан";
             if (executorModel) notifyUserSet.add(values.executor_id);
-            notifyText += `${userModel.login} изменил исполнителя -> ${login} \n ${taskUrl} \n`;
+            notifyText += `${userModel.login} изменил исполнителя -> ${login} \n${taskUrl} \n`;
         }
         // Изменение ответственного
         if (values.responsible_id !== undefined && oldModel.responsible_id != values.responsible_id) {
@@ -160,7 +160,7 @@ class ProjectTask extends Model {
             }}))[0];
             const login = responsibleModel ? responsibleModel.login : "не указан";
             if (responsibleModel) notifyUserSet.add(values.responsible_id);
-            notifyText += `${userModel.login} изменил ответственного -> ${login} \n ${taskUrl} \n`;
+            notifyText += `${userModel.login} изменил ответственного -> ${login} \n${taskUrl} \n`;
         }
         // Изменение ревьювера
         if (values.reviewer_id !== undefined && oldModel.reviewer_id != values.reviewer_id) {
@@ -169,19 +169,19 @@ class ProjectTask extends Model {
             }}))[0];
             const login = reviewerModel ? reviewerModel.login : "не указан";
             if (reviewerModel) notifyUserSet.add(values.reviewer_id);
-            notifyText += `${userModel.login} изменил ревьювера -> ${login} \n ${taskUrl} \n `;
+            notifyText += `${userModel.login} изменил ревьювера -> ${login} \n${taskUrl} \n `;
         }
         // Изменение заголовка
         if (values.task_title !== undefined && oldModel.task_title != values.task_title) {
-            notifyText += `${userModel.login} изменил заголовок задачи -> ${values.task_title} \n ${taskUrl} \n`;
+            notifyText += `${userModel.login} изменил заголовок задачи -> ${values.task_title} \n${taskUrl} \n`;
         }
         // Изменение описания
         if (values.task_note !== undefined && oldModel.task_note != values.task_note) {
-            notifyText += `${userModel.login} изменил описание задачи "${oldModel.task_title}" \n ${taskUrl} \n`;
+            notifyText += `${userModel.login} изменил описание задачи "${oldModel.task_title}" \n${taskUrl} \n`;
         }
         // удаление
         if (values.is_deleted !== undefined && oldModel.is_deleted != values.is_deleted) {
-            notifyText += `${userModel.login} удалил задачу "${oldModel.title}" \n ${taskUrl} \n`;
+            notifyText += `${userModel.login} удалил задачу "${oldModel.title}" \n${taskUrl} \n`;
         }
         
         // не надо оповещать если текст пустой
