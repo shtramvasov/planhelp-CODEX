@@ -32,8 +32,9 @@ router.post('/', async (req, res, next) => {
                     task_title,task_note,is_deleted : 'N',
                     created_on : { expression : "now()" },
 		    orderby_time : { expression : "UNIX_TIMESTAMP(now())" },
-                    created_by : 25  // @planhelpbot 
-                }
+                    created_by : 25,  // @planhelpbot 
+            	    reviewer_id : 25
+		}
             });
 	    const response = await fetch(`${config.telegram_bot_url}sendMessage?chat_id=${telegram_chat_id}&text=${encodeURI("Ваша заявка зафиксирована в planhelp.ru")}`);
 	}
