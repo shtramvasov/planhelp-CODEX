@@ -143,7 +143,7 @@ static async getRemindNoteList({user_id, entity_tree, limit, offset}, con) {
             user_id : values.user_id
         }}))[0];
         const userActionStr = values.note_type === this.CONSTANTS.TYPE_COMMENT ? "написал комментарий" : "добавил файл";
-        notifyText = `${userModel.login} ${userActionStr} -> ${values.note} \n ${taskUrl} \n`;
+        notifyText = `${userModel.login} ${userActionStr} -> ${values.note} \n${taskUrl} \n`;
         // уюираем юзера, который соверщил действие
         notifyUserSet.delete(values.user_id);
 
