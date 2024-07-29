@@ -56,6 +56,14 @@ function TaskDetail(props) {
         </Row>
         <Row>
             <Col>
+                
+                    <h5>Задача #{task_id}&nbsp;
+                    <span style={{fontWeight: "200", fontSize: "0.8em"}}>
+                        создана {moment(Project.task.created_on,'YYYY-MM-DDTHH:mm:ss.SSSZ').format('LLL')} ({Project.task.ru_created_login})
+                        {Project.task.closed_on?", закрыта " + moment(Project.task.closed_on,'YYYY-MM-DDTHH:mm:ss.SSSZ').format('LLL') : ""}
+                    </span>
+                    </h5>
+                    <hr/>
                 <TaskForm project_id={project_id} task_id={task_id} />
             </Col>
         </Row>
