@@ -10,6 +10,7 @@ var CommonNote = require('../models/common_note');
 const ProjectTags = require('../models/project_tags');
 const ProjectTaskTags = require('../models/project_task_tags');
 const ProjectSprints = require('../models/project_sprints');
+const ProjectStatus = require('../models/project_status');
 
 // Список тасков или детали таски
 router.get('/:project_id/:task_id?', withTransaction(async (req, res, next) => {
@@ -76,6 +77,29 @@ router.post('/:project_id/:task_id?', withTransaction(async (req, res, next) => 
     if (![ProjectUser.CONSTANTS.WRITE,ProjectUser.CONSTANTS.OWNER]
         .includes(projectUser.user_role)) throw "Permission denied";
 
+    let oldModel = {};
+    if (task_id) {
+        oldModel = (await ProjectTask.find(con, {where:{ 
+            task_id : task_id,
+            project_id : project_id
+        }}))[0];
+    }
+
+    let closed_on = null;
+
+    // ищем закрывающий статус проекта
+    const projectClosedStatus = (await ProjectStatus.find(con,{where : {
+        project_id : project_id,
+        is_closed : ProjectStatus.CONSTANTS.Y
+    }}))[0];
+    if (projectClosedStatus && status_id == projectClosedStatus.status_id && oldModel.status_id != status_id) {
+        // если закрывающий статус есть 
+        // и он совпадает с вновь прибывшим
+        // и статус отличен от предыдущего
+        // - то ставим дату закрытия заявки
+        closed_on = { expression : "now()" }    
+    }
+
     if (!task_id) {
         task_id = await ProjectTask.create(con, {
             values : {
@@ -84,7 +108,8 @@ router.post('/:project_id/:task_id?', withTransaction(async (req, res, next) => 
                 executor_id,responsible_id,reviewer_id,
                 created_on : { expression : "now()" },
                 created_by : profile_user_id,
-                orderby_time : { expression : "UNIX_TIMESTAMP(now())" }
+                orderby_time : { expression : "UNIX_TIMESTAMP(now())" },
+                closed_on : closed_on
             }
         });
     } else {
@@ -127,6 +152,7 @@ router.post('/:project_id/:task_id?', withTransaction(async (req, res, next) => 
                 sprint_id,
                 updated_by : profile_user_id,
                 updated_on : { expression : "now()" },
+                closed_on : closed_on,
                 orderby_time : prevTask ? parseInt(prevTask.orderby_time) +1 : undefined
             },
             where : { project_id, task_id }

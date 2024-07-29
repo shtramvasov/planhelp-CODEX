@@ -47,6 +47,7 @@ export const projectSlice = createSlice({
             task_title : "",
             task_note : "",
             created_on : "",
+            closed_on : "",
             created_by : null,
             is_deleted : "",
             status_id : null,

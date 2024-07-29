@@ -7,6 +7,7 @@ import Row from 'react-bootstrap/Row';
 import Col from 'react-bootstrap/Col';
 import TaskForm from './TaskForm';
 import moment from 'moment-timezone';
+import { useSelector, useDispatch } from 'react-redux';
 import 'moment/locale/ru';
 moment.locale('ru');
 
@@ -18,6 +19,7 @@ moment.locale('ru');
 function TaskEditModal(props) {
 
     const {project_id, task_id} = props;
+    const Project = useSelector((state) => state.project);
 
     const closeMe = () => {
         props.callBack();
@@ -28,7 +30,15 @@ function TaskEditModal(props) {
         <Modal show={props.show} onHide={closeMe} dialogClassName="modal-90w">
             {/* <form onSubmit={() => {alert("submit")}}> */}
                 <Modal.Header closeButton={true}>
-                    <Modal.Title>Задача #{task_id}</Modal.Title>
+                    <Modal.Title>
+                    <span style={{fontSize: "0.8em"}}>
+                        Задача #{task_id}&nbsp;
+                        <span style={{fontWeight: "200", fontSize: "0.8em"}}>
+                            создана {moment(Project.task.created_on,'YYYY-MM-DDTHH:mm:ss.SSSZ').format('LLL')} ({Project.task.ru_created_login})
+                            {Project.task.closed_on?", закрыта " + moment(Project.task.closed_on,'YYYY-MM-DDTHH:mm:ss.SSSZ').format('LLL') : ""}
+                        </span>
+                    </span>
+                    </Modal.Title>
                 </Modal.Header>
                 <Modal.Body>
                 <TaskForm project_id={project_id} task_id={task_id}/>
