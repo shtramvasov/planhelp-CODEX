@@ -39,6 +39,8 @@ function LinkInput(props) {
     // defaultValues - array of [{ tag : "asd", tag_id : 123 }]
     const [isEdit, setIsEdit] = useState(props.isEdit !== undefined ?props.isEdit:false);
     const [value, setValue] = useState("");
+
+    const [isMouseSelecting, setMouseSelecting] = useState(false);
     
     const isCancel = props.isCancel !== undefined ? props.isCancel : true;
     const isSubmit = props.isSubmit !== undefined ? props.isSubmit : true;
@@ -165,10 +167,15 @@ function LinkInput(props) {
             </Row>
         </div>
         : 
-        <div style={{cursor:"pointer", minHeight:props.height}} onClick={handleEdit}>
+        <div style={{cursor:"pointer", minHeight:props.height}} onDoubleClick={handleEdit} >
             <MarkdownObject 
                 value = {props.defaultValue?.trim()?props.defaultValue?.replace(/\n/gi, '  \n'):noText} 
             />
+            {
+                isEditable ? 
+                <a className="phLink" style={{fontSize:"0.8em"}} href="#" onClick={handleEdit}>изменить</a> 
+                : ""
+            }
         </div>
 
     const selectList = isEdit && isEditable?
