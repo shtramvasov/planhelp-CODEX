@@ -218,6 +218,26 @@ export async function postTaskStatus({ project_id, name, variant, is_closed, is_
 
 }
 
+export async function postProjectStatusList({ project_id, project_status_list = [] }, cb = () => {}) {
+    
+    const response = await fetch(`/api/secure/project/${project_id}/status/orderby`, {
+        method: 'post',
+        body: JSON.stringify(project_status_list),
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${Cookies.get("secret")}`
+        }
+    });
+
+    if (response.ok) {
+        const data = await response.json();
+        cb(null,data);
+    } else {
+        cb(response.status + " " + response.statusText);
+    }
+
+}
+
 export async function postProjectTag({ project_id, tag_id, tag }, cb = () => {}) {
     const response = await fetch(`/api/secure/project/${project_id}/tag/${tag_id ? tag_id : ""}`, {
         method: 'post',
