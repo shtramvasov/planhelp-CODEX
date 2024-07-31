@@ -6,7 +6,7 @@ import moment from 'moment-timezone';
 import 'moment/locale/ru';
 import { Badge, Button, Col, Container, Form, ListGroup, Modal, Row, Stack, Table } from 'react-bootstrap';
 import { addUserToProject, delUserToProject, getProject, postTaskStatus, postProjectStatusList } from '../../../network/TaskNetwork';
-import { addProject, dndProjectStatusList } from '../../../reducers/Project';
+import { addProject } from '../../../reducers/Project';
 import { getUsers } from "../../../network/UserNetwork";
 import { addUserList } from "../../../reducers/User";
 import ModalAutoComplete from "../../helpers/ModalAutoComplete";
