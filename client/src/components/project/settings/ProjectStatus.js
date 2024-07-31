@@ -5,7 +5,7 @@ import { useParams } from 'react-router-dom';
 import moment from 'moment-timezone';
 import 'moment/locale/ru';
 import { Badge, Button, Col, Container, Form, ListGroup, Modal, Row, Stack, Table } from 'react-bootstrap';
-import { addUserToProject, delUserToProject, getProject, postTaskStatus } from '../../../network/TaskNetwork';
+import { addUserToProject, delUserToProject, getProject, postTaskStatus, postProjectStatusList } from '../../../network/TaskNetwork';
 import { addProject } from '../../../reducers/Project';
 import { getUsers } from "../../../network/UserNetwork";
 import { addUserList } from "../../../reducers/User";
@@ -13,6 +13,7 @@ import ModalAutoComplete from "../../helpers/ModalAutoComplete";
 import TabBar from './TabBar';
 import { Navbar } from '../../navbar/Navbar';
 import Breadcrumb from "../../helpers/Breadcrumb";
+import { useDrag, useDrop } from 'react-dnd';
 moment.locale('ru');
 
 function ProjectStatus(props) {
@@ -120,43 +121,27 @@ function ProjectStatus(props) {
         fetchStatusCreate(newStatus);
     }
 
-    const listStatus = Project.project_status_list.map((el) =>
-        <tr key = {el.status_id}>
-            <td>
-                <Badge bg={el.variant}> 
-                    {el.status_name}
-                </Badge>
-                <br />
-                {  el.is_closed === 'Y' ? <span style={{ fontSize: 'small' }} > Закрывающий статус </span> : "" }
-            </td>
-            <td style={{ textAlign: 'right'}} >
-                <Button type="button" variant="outline-secondary" style={{ marginRight: '10px' }} onClick={ e => actionCallModalUpdateStatus(e, el) }>
-                    <i className="bi bi-pencil-fill"></i> 
-                </Button>
-                <Button type="button" variant="outline-danger" onClick={ e => fetchStatusDelete(el.status_id) }> 
-                    <i className="bi bi-trash3"></i> 
-                </Button>
-            </td>
-        </tr>
-    );
-
-    const AccessTable = () => {
-        return (
-            <>
-            <Table>
-                <thead>
-                    <tr>
-                        <th></th>
-                        <th></th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {listStatus}
-                </tbody>
-            </Table>
-            </>
+    // после того как перетащили статус на место другого статуса
+    const onDragDrop = (dragStatus, dropStatus) => {
+        const ordered_project_status_list = [];
+        ordered_project_status_list.push(dragStatus);
+        ordered_project_status_list.push(dropStatus); 
+    
+        postProjectStatusList({project_id : project_id, project_status_list : ordered_project_status_list},
+            (err) => {
+                fetchProject();
+            }
         )
-    };
+    }
+
+    const listStatus = Project.project_status_list.map((el) =>
+        <DragStatusCard 
+            key={el.status_id} 
+            status={el} 
+            onEdit={actionCallModalUpdateStatus} 
+            onDelete={fetchStatusDelete}
+            onDragDrop={onDragDrop}/>
+    );
 
     return(
         <>
@@ -212,13 +197,84 @@ function ProjectStatus(props) {
             </Row>
             <Row>
                 <Col>
-                    <AccessTable />
+                    <Table>
+                    <tbody>
+                        {listStatus}
+                    </tbody>
+                    </Table>
                 </Col>
             </Row>
             </Container>
         </>
     )
 
+}
+
+function DragStatusCard(props) {
+    // props.status
+    // props.onEdit
+    // props.onDelete
+    // props.onDragDrop
+
+    const el = props.status;
+    const ref = useRef(null);
+
+    const [{ isDragging }, drag] = useDrag(() => ({
+      	type: 'STATUSTR',
+        item: el,
+		collect: (monitor) => ({
+        	isDragging: monitor.isDragging()
+    	}),
+    	end: (item, monitor) => {
+            
+      		const dropResult = monitor.getDropResult()
+			if (item && dropResult) {
+                props.onDragDrop(item, dropResult);
+			}
+    	},
+    }))
+
+	const [{ canDrop, isOver }, drop] = useDrop(() => ({
+        accept: "STATUSTR",
+        drop: (item, monitor) => { 
+            return el;
+        },
+		hover: (item, monitor) => {
+            monitor.isOver({ shallow: true })
+        },
+        collect: (monitor) => ({
+			isOver: monitor.isOver(),
+			canDrop: monitor.canDrop(),
+			isOverCurrent: monitor.isOver({ shallow: false }),
+		}),
+	}));
+
+	
+	drop(drag(ref));
+
+    return (
+    <tr key = {el.status_id} ref={ref} style={{cursor: "pointer"}}>
+        <td>
+            <div style={{display:"inline-block", verticalAlign:"top"}}>
+            <Button type="button" variant="outline-secondary" style={{ marginRight: '10px' }} onClick={ e => props.onEdit(e, el) }>
+                <i className="bi bi-pencil-fill"></i> 
+            </Button>
+            </div>
+            <div style={{display:"inline-block"}}>
+            <Badge bg={el.variant}> 
+                {el.status_name}
+            </Badge>
+            <br />
+            {  el.is_closed === 'Y' ? <span style={{ fontSize: 'small' }} > Закрывающий статус </span> : "" }
+            </div>
+        </td>
+        <td style={{ textAlign: 'right'}} >
+            <Button type="button" variant="outline-danger" onClick={ e => props.onDelete(el.status_id) }> 
+                <i className="bi bi-trash3"></i> 
+            </Button>
+        </td>
+    </tr>
+    )
 }
 
 // Модалка для создания/редактирования стутаусов
@@ -298,7 +354,7 @@ function ModalStatus(props) {
                                     <Form.Label>Цвет</Form.Label>
                                     <Stack direction='horizontal' gap={ 2 }>
                                         { options.map((option) => (
-                                            <Badge bg={option}>
+                                            <Badge key={option} bg={option}>
                                                 <Form.Check checked = { option === selectedOption } onChange={ () => didSelectedOptionCheckbox(option) } />
                                             </Badge>
                                         ))}

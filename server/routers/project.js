@@ -218,9 +218,37 @@ router.post('/:project_id/status/orderby', async (req, res, next) => {
         const projectRole = (await ProjectUser.find(con,{where : {project_id, user_id : profile_user_id}}))[0];
         if (projectRole.user_role !== ProjectUser.CONSTANTS.OWNER) throw 'Permission denied';
 
-        for (const status of req.body) {
+        const statusList = await ProjectStatus.find(con, {
+            where : { project_id , is_deleted : ProjectStatus.CONSTANTS.N},
+            order : "orderby"
+        });
+        let indexFrom=0;
+        for(const status of statusList) {
+            if (status.status_id === req.body[0].status_id) {
+                break;
+            }
+            indexFrom++;
+        }
+        let indexTo=0;
+        for(const status of statusList) {
+            if (status.status_id === req.body[1].status_id) {
+                break;
+            }
+            indexTo++;
+        }
+        // создаем клон объекта таски
+        const status = JSON.parse(JSON.stringify(statusList[indexFrom]));
+        // удаляем элемент из массива
+        statusList.splice(indexFrom,1);
+        // // создаем клон объект
+        statusList.splice(indexTo,0,status);
+
+        let i=0;
+        for (const status of statusList) {
+            const orderby = i++;
+
             await ProjectStatus.update(con,{
-                values : { orderby : status.orderby },
+                values : { orderby : orderby },
                 where : { status_id : status.status_id, project_id }
             });
         }
