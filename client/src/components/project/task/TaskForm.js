@@ -245,7 +245,7 @@ function TaskForm(props) {
                     </Col>
                 </Row>
                 <Row>
-                    <Col>
+                    <Col style={{wordWrap: "break-word"}}>
                         <Form.Group className="mb-3" controlId="modalText">
                             <LinkInput
                                 type="markDown"
