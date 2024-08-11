@@ -1,6 +1,23 @@
 const mysql = require('../mysqlhelper');
+const Model = require('./Model');
 
-const CONSTANTS = {
+class DiskEntity extends Model {
+
+    static fields = [
+        "entity_id",
+        "entity_name",
+        "entity_note",
+        "entity_type",
+        "parent_entity_id",
+        "created_by",
+        "created_on",
+        "is_deleted",
+        "entity_tree"
+    ]
+
+    static table = "disk_entity";
+
+static CONSTANTS = {
     // роль только читать
     READ : "READ",
     // роль писать но не управлять (нельзя добавлять новых юзеров в правах / нельзя удалять все комменты у entity)
@@ -20,11 +37,11 @@ const CONSTANTS = {
 //  entity_id - entity детали
 //  user_id - юзер, для которого надо проверить доступ до этого entity
 //  forUpdate - для блокирования записи
-const getEntity = async ({entity_id, user_id}, con, forUpdate = false) => {
+static getEntity = async ({entity_id, user_id}, con, forUpdate = false) => {
     if (!entity_id) {
         return {
             "entity_name" : "..",
-            "entity_type" : CONSTANTS.ROOT,
+            "entity_type" : this.CONSTANTS.ROOT,
             "entity_tree" : ""
         };
     }
@@ -64,7 +81,7 @@ const getEntity = async ({entity_id, user_id}, con, forUpdate = false) => {
 // Список потомков на уровень ниже от переданного entity_id
 //  entity_id - entity детали
 //  user_id - юзер, для которого надо проверить доступ до этого entity
-const getEntityChild = async ({entity_id, user_id}, con) => {
+static getEntityChild = async ({entity_id, user_id}, con) => {
     let sql =
         `select 
             -- поле необходимо для определения начинается ли название на цифры
@@ -114,11 +131,11 @@ const getEntityChild = async ({entity_id, user_id}, con) => {
 // Возвращает список всех родителей от последнего по дереву
 //  entity_tree - дерево ID parent_1/child_1/child_2/...etc
 //  user_id - для проверки прав, чтобы не показывать родителей до которых нет доступа
-const getEntityBreadcrumb = async({entity_tree, user_id}, con) => {
+static getEntityBreadcrumb = async({entity_tree, user_id}, con) => {
     if (!entity_tree) return [];
     // заменяем "/" символом ","
     const entityStrArr = entity_tree.replace(/\//g,",").slice(0,-1);
-    sql = `select de.entity_name, de.entity_id
+    const sql = `select de.entity_name, de.entity_id
             from disk_entity de 
         where de.entity_id in (${entityStrArr})
             and de.entity_id in (select deu.entity_id from disk_entity_users deu where deu.user_id = ?)
@@ -127,7 +144,7 @@ const getEntityBreadcrumb = async({entity_tree, user_id}, con) => {
 }
 
 // Контекстный поиск
-const getEntitySearch = async ({search, user_id}, con) => {
+static getEntitySearch = async ({search, user_id}, con) => {
     return await mysql.query(con, 
         `select de.entity_id,
                 de.entity_name, 
@@ -154,7 +171,7 @@ const getEntitySearch = async ({search, user_id}, con) => {
 
 // возвращается все элементы по дереву ниже(включая текущий)
 // TODO перенести в getEntityChild
-const getEntityList = async ({entity_tree}, con, forUpdate = false) => {
+static getEntityList = async ({entity_tree}, con, forUpdate = false) => {
     const sqlParams = [];
     let sql = 
         ` select * 
@@ -173,7 +190,7 @@ const getEntityList = async ({entity_tree}, con, forUpdate = false) => {
 }
 
 // Получение списка всех версий изменения
-const getEntityActivity = async ({entity_id, user_id}, con) => {
+static getEntityActivity = async ({entity_id, user_id}, con) => {
     return await mysql.query(con, 
         `select dea.*,
                 u.login
@@ -185,7 +202,7 @@ const getEntityActivity = async ({entity_id, user_id}, con) => {
 }
 
 // Получение версии entity
-const getEntityOldVersion = async ({entity_id, activity_id, user_id}, con) => {
+static getEntityOldVersion = async ({entity_id, activity_id, user_id}, con) => {
     return (await mysql.query(con, 
         `select * 
            from disk_entity_activity dea
@@ -196,7 +213,7 @@ const getEntityOldVersion = async ({entity_id, activity_id, user_id}, con) => {
 }
 
 // Получение всех юзеров причастных к указанному entity
-const getEntityUsers = async ({entity_id, parent_entity_id, user_id}, con) => {
+static getEntityUsers = async ({entity_id, parent_entity_id, user_id}, con) => {
     const entityUsers = await mysql.query(con,
         `select deu.user_id, deu.user_role, u.login, u.is_notify, u.telegram_chat_id
            from disk_entity_users deu inner join ref_users u on deu.user_id = u.user_id
@@ -209,10 +226,10 @@ const getEntityUsers = async ({entity_id, parent_entity_id, user_id}, con) => {
     }
     if (parent_entity_id) {
         const parentEntity = 
-                await getEntity({entity_id : parent_entity_id,user_id},con);
+                await this.getEntity({entity_id : parent_entity_id,user_id},con);
         if (parentEntity) {
             const parentEntityUsers = 
-                await getEntityUsers({entity_id:parent_entity_id,user_id},con);
+                await this.getEntityUsers({entity_id:parent_entity_id,user_id},con);
                 for (const curEntity of entityUsers) {
                     for (const parentEntity of parentEntityUsers) {
                         if (curEntity.user_id === parentEntity.user_id) {
@@ -229,12 +246,12 @@ const getEntityUsers = async ({entity_id, parent_entity_id, user_id}, con) => {
 }
 
 // Удаление
-const deleteEntity = async ({entity_id, user_id, entity_name, entity_type}, con) => {
+static deleteEntity = async ({entity_id, user_id, entity_name, entity_type}, con) => {
     // Не уверен что это здесь должно быть
     // формируем нотификации
     const login = (await mysql.query(con,"select login from ref_users where user_id = ?",[user_id]))[0].login;
-    const notify = `${login} удалил ${entity_type===CONSTANTS.PATH?"папку":"файл"} ${entity_name}`;
-    const entityUsers = await getEntityUsers({entity_id, user_id}, con);
+    const notify = `${login} удалил ${entity_type===this.CONSTANTS.PATH?"папку":"файл"} ${entity_name}`;
+    const entityUsers = await this.getEntityUsers({entity_id, user_id}, con);
     for (const userRole of entityUsers) {
         // формируем нотификации
         if (user_id != userRole.user_id) {
@@ -268,7 +285,7 @@ const deleteEntity = async ({entity_id, user_id, entity_name, entity_type}, con)
     );
 }
 
-const updateEntity = async (
+static updateEntity = async (
     { entity_id, user_id, entity_name, entity_note, entity_type, entity_tree, parent_entity_id },
     oldEntity, 
     con) => {
@@ -310,8 +327,8 @@ const updateEntity = async (
     // Не уверен что это здесь должно быть
     // формируем нотификации
     const login = (await mysql.query(con,"select login from ref_users where user_id = ?",[user_id]))[0].login;
-    const notify = `${login} изменил ${entity_type===CONSTANTS.PATH?"папку":"файл"} ${entity_name}`;
-    const entityUsers = await getEntityUsers({entity_id, user_id}, con);
+    const notify = `${login} изменил ${entity_type===this.CONSTANTS.PATH?"папку":"файл"} ${entity_name}`;
+    const entityUsers = await this.getEntityUsers({entity_id, user_id}, con);
     for (const userRole of entityUsers) {
         // формируем нотификации
         if (user_id != userRole.user_id) {
@@ -340,7 +357,7 @@ const updateEntity = async (
         [ entity_id, oldEntity.entity_note, oldEntity.entity_name, user_id ]);
 }
 
-const createEntityUser = async ({head_entity_id, entity_tree, user_id, user_role}, con) => {
+static createEntityUser = async ({head_entity_id, entity_tree, user_id, user_role}, con) => {
     await mysql.query(con,
         `insert into disk_entity_users(entity_id, user_id, user_role, head_entity_id)
           select de.entity_id, p_user_id, p_user_role, 
@@ -355,7 +372,7 @@ const createEntityUser = async ({head_entity_id, entity_tree, user_id, user_role
     );
 }
 
-const revokeEntityUser = async ({entity_tree, user_id}, con) => {
+static revokeEntityUser = async ({entity_tree, user_id}, con) => {
     let sql = `delete from disk_entity_users where 1=1`;
     const sqlParams = [];
     if (user_id) {
@@ -369,20 +386,20 @@ const revokeEntityUser = async ({entity_tree, user_id}, con) => {
     await mysql.query(con,sql,sqlParams);
 }
 
-const createEntity = async ({entity_name, entity_type, entity_note, parent_entity_id, user_id}, parentEntity, con) => {
+static createEntity = async ({entity_name, entity_type, entity_note, parent_entity_id, user_id}, parentEntity, con) => {
     // Не уверен что это здесь должно быть
     // формируем нотификации
     let notify;
     if (parentEntity) {
         const login = (await mysql.query(con,"select login from ref_users where user_id = ?",[user_id]))[0].login;
-        notify = `${login} создал ${entity_type===CONSTANTS.PATH?"папку":"файл"} ${entity_name} в ${parentEntity.entity_name}`;
+        notify = `${login} создал ${entity_type===this.CONSTANTS.PATH?"папку":"файл"} ${entity_name} в ${parentEntity.entity_name}`;
     }
     // 
 
     let parentEntityUsers;
 
     if (parentEntity) {
-        parentEntityUsers = await getEntityUsers({entity_id : parent_entity_id, user_id}, con);
+        parentEntityUsers = await this.getEntityUsers({entity_id : parent_entity_id, user_id}, con);
     } else {
         parentEntityUsers = [{user_id : user_id, user_role : "OWNER"}];
     }
@@ -431,23 +448,6 @@ const createEntity = async ({entity_name, entity_type, entity_note, parent_entit
     }
     return entity_id;
 }
+}
 
-module.exports = {
-    getEntityChild,
-    getEntity,
-    getEntityList,
-    getEntityBreadcrumb,
-    getEntitySearch,
-    getEntityActivity,
-    getEntityOldVersion,
-    getEntityUsers,
-
-    deleteEntity,
-    updateEntity,
-    createEntity,
-
-    createEntityUser,
-    revokeEntityUser,
-
-    CONSTANTS
-};
+module.exports = DiskEntity;
