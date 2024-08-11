@@ -230,7 +230,10 @@ router.post('/:entity_id/users', async (req, res, next) => {
         // только OWNERам можно раздавать права
         if (entity.user_role !== OWNER) throw 'Permission denied, you are not OWNER of this entity';
 
-        await entityModel.createEntityUser({entity_tree : entity.entity_tree, user_id, user_role}, con);
+        await entityModel.createEntityUser({
+                head_entity_id : entity_id, entity_tree : entity.entity_tree, user_id, user_role
+            }, con
+        );
 
         res.send({entity_id : entity_id});
     } catch(err) {

@@ -340,14 +340,18 @@ const updateEntity = async (
         [ entity_id, oldEntity.entity_note, oldEntity.entity_name, user_id ]);
 }
 
-const createEntityUser = async ({entity_tree, user_id, user_role}, con) => {
+const createEntityUser = async ({head_entity_id, entity_tree, user_id, user_role}, con) => {
     await mysql.query(con,
-        `insert into disk_entity_users(entity_id, user_id, user_role)
-          select de.entity_id, p_user_id, p_user_role
-            from (select ? p_entity_tree, ? p_user_id, ? p_user_role) params 
+        `insert into disk_entity_users(entity_id, user_id, user_role, head_entity_id)
+          select de.entity_id, p_user_id, p_user_role, 
+                 case 
+                    when de.entity_id = params.head_entity_id then params.head_entity_id
+                   else null 
+                end
+            from (select ? p_entity_tree, ? p_user_id, ? p_user_role, ? head_entity_id) params 
                  cross join disk_entity de
            where de.entity_tree like p_entity_tree`,
-        [entity_tree + '%', user_id, user_role]
+        [entity_tree + '%', user_id, user_role, head_entity_id]
     );
 }
 
