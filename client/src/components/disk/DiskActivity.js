@@ -171,6 +171,10 @@ function DiskActivity(props) {
     const listUsers = Disk.entityUsers.map((el) =>
     <tr key={el.user_id}>
         <td>{el.login}</td>
+        <td>{el.entity_id == entity_id ? "Этот документ" :
+            <NavLink to={`/disk/${el.entity_id}`}>
+                {el.entity_name}
+            </NavLink>}</td>
         <td><Badge bg="primary">{el.user_role}</Badge></td>
         <td>{el.is_editable?
             <Button type="button" variant="outline-danger" onClick={() => handleRevokeUser(el.user_id)}>
@@ -246,6 +250,7 @@ function DiskActivity(props) {
                     <thead>
                         <tr>
                             <th>Пользователь</th>
+                            <th>Документ</th>
                             <th>Роль</th>
                             <th></th>
                         </tr>
