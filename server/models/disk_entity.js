@@ -266,7 +266,7 @@ static getEntityUsers = async ({entity_id, parent_entity_id, user_id, entity_tre
             let is_already_exists = false;
             for (const curEntity of entityUsers) {
             
-                if (curEntity.user_id === entityUserDeep.user_id) {
+                if (curEntity.user_id === entityUserDeep.user_id && curEntity.entity_id === entityUserDeep.entity_id ) {
                     is_already_exists = true;
                     continue;
                 }
