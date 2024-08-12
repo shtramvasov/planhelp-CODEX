@@ -169,7 +169,7 @@ function DiskActivity(props) {
     );
 
     const listUsers = Disk.entityUsers.map((el) =>
-    <tr key={el.user_id}>
+    <tr key={el.user_id + "_" + el.entity_id}>
         <td>{el.login}</td>
         <td>{el.entity_id == entity_id ? "Этот документ" :
             <NavLink to={`/disk/${el.entity_id}`}>
