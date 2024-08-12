@@ -193,7 +193,7 @@ router.get('/:entity_id/users', async (req,res,next) => {
         if (entity.user_role === READ) throw 'Permission denied, read only role';
 
         const entityUsers = await entityModel.getEntityUsers(
-            {entity_id,parent_entity_id : entity.parent_entity_id, user_id},
+            {entity_id,parent_entity_id : entity.parent_entity_id, user_id, entity_tree : entity.entity_tree},
             con
         );
 

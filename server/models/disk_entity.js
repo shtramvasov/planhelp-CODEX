@@ -213,11 +213,12 @@ static getEntityOldVersion = async ({entity_id, activity_id, user_id}, con) => {
 }
 
 // Получение всех юзеров причастных к указанному entity
-static getEntityUsers = async ({entity_id, parent_entity_id, user_id}, con) => {
-    const entityUsers = await mysql.query(con,
-        `select deu.user_id, deu.user_role, u.login, u.is_notify, u.telegram_chat_id
+static getEntityUsers = async ({entity_id, parent_entity_id, user_id, entity_tree}, con) => {
+    let entityUsers = await mysql.query(con,
+        `select deu.user_id, deu.user_role, u.login, u.is_notify, u.telegram_chat_id, de.entity_name, deu.entity_id
            from disk_entity_users deu inner join ref_users u on deu.user_id = u.user_id
-          where entity_id = ?`,
+                                      inner join disk_entity de on de.entity_id = deu.entity_id
+          where deu.entity_id = ?`,
         [ entity_id ]
     );
     for (const curEntity of entityUsers) {
@@ -241,6 +242,40 @@ static getEntityUsers = async ({entity_id, parent_entity_id, user_id}, con) => {
                     }
                 }
         }
+    }
+    if (entity_tree) {
+        // посмотрим глубже в дерево entity и найдем все уникальные записи + пользователи
+        // те у кого заполнен head_entity_id
+        // то есть тут будут только те, которых нет выше по коду
+        const entityUsersDeep = await mysql.query(con, 
+            `SELECT deu.user_id, deu.user_role, u.login, u.is_notify, u.telegram_chat_id, de.entity_name, deu.head_entity_id entity_id
+            FROM (
+                 SELECT deu.user_id, deu.head_entity_id, deu.user_role
+                   FROM disk_entity de inner join disk_entity_users deu on de.entity_id = deu.entity_id
+                  WHERE de.entity_tree like ?
+                  GROUP BY deu.user_id, deu.head_entity_id, deu.user_role
+             ) deu INNER JOIN ref_users u ON deu.user_id = u.user_id
+                   INNER JOIN disk_entity de on deu.head_entity_id = de.entity_id`,
+            [entity_tree + '%']
+        );
+
+        // ДУБЛИ ДУБЛИ!
+        for (const entityUserDeep of entityUsersDeep) {
+            // редачить таких нельзя
+            entityUserDeep.is_editable = false;
+            let is_already_exists = false;
+            for (const curEntity of entityUsers) {
+            
+                if (curEntity.user_id === entityUserDeep.user_id) {
+                    is_already_exists = true;
+                    continue;
+                }
+            }
+            if (!is_already_exists) {
+                entityUsers.push(entityUserDeep);
+            }
+        }
+        // entityUsers = entityUsers.concat(entityUsersDeep);
     }
     return entityUsers;
 }
