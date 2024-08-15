@@ -92,7 +92,7 @@ function ProjectTags(props) {
     return(
         <>
             <ModalOneInputText title={"Новый тэг"} show={showModalCreateTag} callBack={actionCallBackModalCreateTag} />
-            <Container>
+            <Container fluid>
             <Row>
                 <Col>
                     <Navbar />

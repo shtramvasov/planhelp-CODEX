@@ -144,7 +144,7 @@ function Profile(props) {
     }
 
     return (
-    <Container>
+    <Container fluid>
     <ModalOneInputText 
         title={"Новый пароль"} 
         type="password"

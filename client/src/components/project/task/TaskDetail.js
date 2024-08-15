@@ -36,7 +36,7 @@ function TaskDetail(props) {
     };
 
     return (
-    <Container>
+    <Container fluid>
         <Row>
             <Col>
                 <Navbar />

@@ -186,7 +186,7 @@ function DiskActivity(props) {
     );
 
     return (
-    <Container>
+    <Container fluid>
     <ModalAutoComplete 
         title={"Предоставить доступ пользователю"} 
         placeholder="Начните вводить для поиска"
