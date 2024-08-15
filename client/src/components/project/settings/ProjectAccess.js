@@ -174,7 +174,7 @@ function ProjectAccess(props) {
                 callBack={acctionCallBackModalAddRoleUser} 
                 fetcher={fetchUserRole}
                 data={userRoleListOptions}/>
-            <Container>
+            <Container fluid>
             <Row>
                 <Col>
                     <Navbar />

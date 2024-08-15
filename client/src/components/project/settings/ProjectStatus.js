@@ -157,7 +157,7 @@ function ProjectStatus(props) {
                 status = { placeholerNewStatus }
                 callBack = { actionCallBackModalCreateStatus }
             />
-            <Container>
+            <Container fluid>
             <Row>
                 <Col>
                     <Navbar />

@@ -79,7 +79,7 @@ function DiskActivityOld(props) {
     }
 
     return (
-        <Container>
+        <Container fluid>
     <Row>
         <Col>
             <Navbar />

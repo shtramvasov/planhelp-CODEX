@@ -58,7 +58,7 @@ function SprintCreate(props) {
    }
 
    return (
-    <Container>
+    <Container fluid>
     <Row>
         <Col>
             <Navbar />

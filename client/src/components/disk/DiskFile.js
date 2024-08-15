@@ -301,7 +301,7 @@ function DiskFile(props) {
     }
 
     return (
-    <Container>
+    <Container fluid>
         <ModalNote 
             type="textarea" 
             title={"Заметка"} 

@@ -94,7 +94,7 @@ function SprintUpdate(props) {
    }
 
    return (
-    <Container>
+    <Container fluid>
     <Row>
         <Col>
             <Navbar />

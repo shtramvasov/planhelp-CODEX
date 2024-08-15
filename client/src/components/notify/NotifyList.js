@@ -78,7 +78,7 @@ function NotifyList(props) {
     );
 
     return (
-    <Container>
+    <Container fluid>
     <Row>
         <Col>
             <Navbar />

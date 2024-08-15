@@ -72,7 +72,7 @@ function DiskPath(props) {
     }
 
     return (
-    <Container>
+    <Container fluid>
     <Row>
         <Col>
             <Navbar />

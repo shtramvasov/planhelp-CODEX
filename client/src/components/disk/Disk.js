@@ -346,7 +346,7 @@ function Disk(props) {
 
     return (
         
-    <Container>
+    <Container fluid>
         <ModalOneInputText title={"Новая папка"} show={showModalCreatePath} callBack={actionNewPathCallBack} />
         <ModalOneInputText title={"Новый файл"} show={showModalCreateFile} callBack={actionNewFileCallBack} />
         <ModalInputFile title={"Загрузить файл"} show={showModalUploadFile} callBack= {actionUploadFileCallBack}  />
