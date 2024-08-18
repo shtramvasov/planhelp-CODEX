@@ -330,9 +330,9 @@ function Disk(props) {
                     <Button style={{marginLeft : "2px"}} variant="outline-primary" onClick={actionCallModalNewFile}>
                     <i className="bi bi-file-earmark-plus"></i>
                     </Button>
-                    <Button style={{marginLeft : "2px"}} variant="outline-primary" onClick={actionCallModalNewSpreadsheet}>
+                    {/* <Button style={{marginLeft : "2px"}} variant="outline-primary" onClick={actionCallModalNewSpreadsheet}>
                     <i class="bi bi-table"></i>
-                    </Button>
+                    </Button> */}
                     {/* Загрузить файл */}
                     <Button style={{marginLeft : "2px"}} variant="outline-primary" onClick={actionCallModalUploadFile}>
                     <i className="bi bi-cloud-arrow-up"></i> 
