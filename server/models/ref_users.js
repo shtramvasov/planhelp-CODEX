@@ -31,11 +31,11 @@ static async updateProfile({secret,email,telegram_chat_id,is_notify, timezone, u
         `update ref_users 
             set secret = coalesce(upper(md5(?)), secret),
                 email = coalesce(?, email),
-                telegram_chat_id = coalesce(?, telegram_chat_id),
+                telegram_chat_id = telegram_chat_id,
                 is_notify = coalesce(?, is_notify),
                 timezone = coalesce(?, timezone)
           where user_id = ?`,
-        [ secret, email, telegram_chat_id, is_notify, timezone, user_id ]);
+        [ secret, email, is_notify, timezone, user_id ]);
 }
 
 static async login({login, password}, con) {
