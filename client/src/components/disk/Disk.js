@@ -218,7 +218,6 @@ function Disk(props) {
             return
         }
         e.preventDefault();
-        console.log(getEntityUri({entity_type,entity_id}))
         navigate(getEntityUri({entity_type,entity_id}))
     }
      
