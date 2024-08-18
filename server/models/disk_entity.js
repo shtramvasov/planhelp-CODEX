@@ -384,13 +384,15 @@ static updateEntity = async (
             }
         }
     }
-    // 
-    await mysql.query(con, 
-        `insert into disk_entity_activity
-            (entity_id, entity_note_old, entity_name_old, created_by, created_on)
-        values
-            (?,?,?,?,now())`,
-        [ entity_id, oldEntity.entity_note, oldEntity.entity_name, user_id ]);
+    // таблицы пока не сохраняем
+    if (entity_type !== "GRID") {
+        await mysql.query(con, 
+            `insert into disk_entity_activity
+                (entity_id, entity_note_old, entity_name_old, created_by, created_on)
+            values
+                (?,?,?,?,now())`,
+            [ entity_id, oldEntity.entity_note, oldEntity.entity_name, user_id ]);
+    }
 }
 
 static createEntityUser = async ({head_entity_id, entity_tree, user_id, user_role}, con) => {

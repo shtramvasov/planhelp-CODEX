@@ -322,7 +322,9 @@ function DiskFile(props) {
                         <Button style={{marginLeft : "2px"}} variant="outline-primary" onClick={actionCallModalUploadFile}><i className="bi bi-cloud-arrow-up"></i> </Button>
                         <Button style={{marginLeft : "2px"}} type="button" variant="outline-danger" onClick={handleDeleteClick}><i className="bi bi-trash"></i></Button>
                         </> : "" }
+                        <div style={{display: "inline", marginLeft: "10px"}}>Это экспериментальная версия таблиц, глючная / незаконченная. Нажимайте сохранить дважды</div>
                     </Form.Group>
+                    
                 </Col>
             </Row>
         )
