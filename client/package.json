@@ -1,7 +1,7 @@
 {
   "name": "front",
   "version": "0.1.0",
-  "proxy": "https://planhelp.ru",
+  "proxy": "http://localhost:3001/",
   "private": true,
   "dependencies": {
     "@reduxjs/toolkit": "^1.9.1",
@@ -17,6 +17,8 @@
     "query-string": "^8.0.3",
     "react": "^18.2.0",
     "react-bootstrap": "^2.7.0",
+    "react-datasheet": "^1.4.12",
+    "react-datasheet-grid": "^4.11.4",
     "react-datepicker": "^4.25.0",
     "react-dnd": "^16.0.1",
     "react-dnd-html5-backend": "^16.0.1",
@@ -31,6 +33,9 @@
     "rehype-raw": "^6.1.1",
     "remark-gfm": "^3.0.1",
     "web-vitals": "^2.1.4"
+  },
+  "overrides": {
+    "@tanstack/react-virtual": "3.0.4"
   },
   "scripts": {
     "start": "react-scripts start",

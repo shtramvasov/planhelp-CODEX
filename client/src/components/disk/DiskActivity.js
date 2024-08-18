@@ -113,8 +113,10 @@ function DiskActivity(props) {
     const handleCancelEntity = () => {
         if (Disk.entity.entity_type === 'PATH') {
             navigate(`/disk/${Disk.entity.entity_id}`);
-        } else {
+        } else if (Disk.entity.entity_type === 'FILE') {
             navigate(`/disk/${Disk.entity.entity_id}/file/read`);
+        } else {
+            navigate(`/disk/${Disk.entity.entity_id}/spreadsheet`);
         }
     }
 
@@ -158,7 +160,7 @@ function DiskActivity(props) {
         <tr key={el.activity_id}>
             <td>{el.login}</td>
             <td>{el.entity_name_old}</td>
-            {Disk.entity.entity_type === 'FILE'?
+            {Disk.entity.entity_type === 'FILE' ?
             <td>
             <NavLink to={`/disk/${entity_id}/activity/${el.activity_id}`}>
                 Контент

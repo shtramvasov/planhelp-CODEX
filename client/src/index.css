@@ -49,3 +49,34 @@ img {
 .modal-90w {
   min-width:90%;
 }
+
+.data-grid-container .data-grid .cell > input {
+  border: 0px!important;
+  width: calc(100%)!important;
+  height: unset!important;
+  padding: 0px!important;
+}
+
+.sequence-cell > span {
+  color : silver;
+  font-size: 0.8em;
+}
+
+.cell > span {
+  min-width: 60px;
+  min-height: 24px;
+}
+
+.test-cell > span {
+  /* width: 400px; */
+  /* background-color: silver; */
+}
+
+.data-grid-container .data-grid .cell.selected {
+  border: 0px double rgb(33, 133, 208);
+  transition: none;
+  box-shadow: unset!important;
+}
+.cell {
+  cursor:unset!important;
+}
