@@ -31,6 +31,7 @@ static CONSTANTS = {
     PATH : "PATH",
     // ROOT элемент
     ROOT : "ROOT",
+    GRID : "GRID"
 }
 
 // Детализация disk_entity

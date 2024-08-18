@@ -2,7 +2,7 @@ var express = require('express');
 var router = express.Router();
 var mysql = require('../mysqlhelper');
 var entityModel = require('../models/disk_entity');
-const { READ, WRITE, OWNER, FILE, PATH, ROOT } = require('../models/disk_entity').CONSTANTS;
+const { READ, WRITE, OWNER, FILE, PATH, ROOT, GRID } = require('../models/disk_entity').CONSTANTS;
 var commonNote = require('../models/common_note');
 
 // Возвращает указанный эелемент и его потомков
@@ -117,7 +117,7 @@ router.post('/', async (req, res, next) => {
         // Проверки
         if (!entity_name) throw "Missing entity_name in body params";
         if (!entity_type) throw "Missing entity_type in body params";
-        if (![PATH,FILE].includes(entity_type)) throw "Not valid entity_type in body params, only PATH or FILE";
+        if (![PATH,FILE,GRID].includes(entity_type)) throw "Not valid entity_type in body params, only PATH or FILE or TABLE";
 
         con = await mysql.getConnection();
         await mysql.begin(con);

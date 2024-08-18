@@ -8,6 +8,7 @@ import Profile from "./profile/Profile";
 import Disk from "./disk/Disk";
 import DiskFile from "./disk/DiskFile";
 import DiskPath from "./disk/DiskPath";
+import DiskSpreadsheet from './disk/DiskSpreadsheet';
 import DiskActivity from "./disk/DiskActivity";
 import DiskActivityOld from "./disk/DiskActivityOld";
 import NotifyList from "./notify/NotifyList";
@@ -37,6 +38,7 @@ const router = createBrowserRouter([
     { path: "/disk/:entity_id", element: <Disk /> },
     { path: "/disk/:entity_id/file/:mode", element: <DiskFile /> },
     { path: "/disk/:entity_id/path/:mode", element: <DiskPath /> },
+    { path: "/disk/:entity_id/spreadsheet", element: <DiskSpreadsheet /> },
     { path: "/disk/:entity_id/activity", element: <DiskActivity /> },
     { path: "/disk/:entity_id/activity/:activity_id", element: <DiskActivityOld /> },
     
