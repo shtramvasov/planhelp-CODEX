@@ -23,9 +23,7 @@ import rehypeRaw from "rehype-raw";
 import MdEditor, { Plugins } from 'react-markdown-editor-lite';
 import 'react-markdown-editor-lite/lib/index.css';
 
-import ReactDataSheet from 'react-datasheet';
-// Be sure to include styles at some point, probably during your bootstrapping
-import 'react-datasheet/lib/react-datasheet.css';
+import { DataGrid } from '@mui/x-data-grid';
 
 // Отключаем плагины редактирвоания, которые не работают
 // - Подчеркивание (не работает)
@@ -38,8 +36,14 @@ MdEditor.unuse(Plugins.FullScreen)
 
 
 moment.locale('ru');
+const alphabet = "abcdefghijklmnopqrstuvwxyz";
 
-function DiskFile(props) {
+const _cols = alphabet.split("").map((el) => {
+    return {field: el.toUpperCase(),editable: true} //,width: 450
+});
+
+function DiskSpreadsheet(props) {
+
     const { entity_id } = useParams();
     const dispatch = useDispatch()
     const Disk = useSelector((state) => state.disk);
@@ -47,24 +51,15 @@ function DiskFile(props) {
     const navigate = useNavigate();
 
     ///
-    const alphabet = "abcdefghijklmnopqrstuvwxyz"; // rstuvwxyz
-    const headers = alphabet.split("").map((el) => {
-      return { value: el.toUpperCase(), readOnly: true}
-    });
+    
 
-    const emptyRow = alphabet.split("").map((el) => {
-      // overflow: "nowrap"
-      // className:"test-cell"
-      return {}
-    });
-
-    const defaultData = [];
-    defaultData.push(headers);
-    for (let i = 1; i <= 100; i++) {
-      defaultData.push(emptyRow);
+    const rows_ = []
+    for (let i=1;i<=100;i++) {
+        rows_.push({id:i});
     }
 
-    const [ data, setData ] = useState(defaultData);
+    const [rows, setRows] = useState(rows_);
+    const [cols, setCols] = useState(_cols);
     ///
 
     document.title = Disk.entity.entity_name+" | planhelp";
@@ -75,12 +70,20 @@ function DiskFile(props) {
     const [showToastSuccessUploadFile, setToastSuccessUploadFile] = useState(false);
     const didCloseToast = () => setToastSuccessUploadFile(false);
 
+    // Первичная загрузка данных,
+    // Последующие загрзки при измененеии entity_id
+    useEffect(() => {
+        fetchEntity();
+        fetchEntityNoteList();
+    },[entity_id]);
+
     const fetchEntity = () => {
         getDiskEntity({entity_id : entity_id},(err,resp) => {
             if (!err) {
                 dispatch(addEntity(resp));
                 if (resp.entity_note) {
-                    setData(JSON.parse(resp.entity_note));
+                    setRows((JSON.parse(resp.entity_note)).rows);
+                    setCols((JSON.parse(resp.entity_note)).cols)
                 }
             } else {
                 alert("Ошибка: "+err);
@@ -106,16 +109,34 @@ function DiskFile(props) {
         })
     }
 
-    const handleEditClick = () => {
-        // 1. Прокидываем содержимое entity в форму с изменением
-        setEntityNote(Disk.entity.entity_note?Disk.entity.entity_note:"")
-        // 2. Переход в роут Изменение файла
-        navigate(`/disk/${entity_id}/file/edit`);
-    }
+    const handleProcessRowUpdate = (updatedRow, originalRow) => {
+        const newRows = [...rows];
+        const idx = newRows.findIndex((x) => x.id === originalRow.id);
+        
+        // фича чтобы обмануть высоту  кщц
+        Object.entries(updatedRow).map((el)=>{
+            if (!el[1]) {
+               delete updatedRow[el[0]];
+            }
+        });
 
-    const handleCancelClick = () => {
-        navigate(`/disk/${entity_id}/file/read`);
-    }
+        newRows[idx] = updatedRow;
+        Object.entries(updatedRow);
+        setRows(newRows);
+        
+        return updatedRow;
+    };
+
+    const handleColumnResize = (c,ev,detail) => {
+        console.log(c.colDef.field, c.colDef.width);
+        const newCols = [...cols];
+        const idx = newCols.findIndex((x) => x.field === c.colDef.field);
+    
+        newCols[idx].width = c.colDef.width;
+        setCols(newCols);
+    } 
+        
+    
 
     const handleDeleteClick = () => {
         deleteEntity();
@@ -130,14 +151,17 @@ function DiskFile(props) {
     }
 
     const handleSave = (e) => {
-        console.log("asdasdasd")
         e.preventDefault();
 
+        const spreadsheet = {
+            rows : rows,
+            cols : cols
+        }
         postDiskEntity(
             {   
                 entity_id : entity_id,
                 // entity_name : e.target.formEntityName.value,
-                entity_note : JSON.stringify(data),
+                entity_note : JSON.stringify(spreadsheet),
                 // parent_entity_id : Disk.entity.entity_id,
                 entity_type : "FILE"
             }, 
@@ -149,13 +173,6 @@ function DiskFile(props) {
             }
         );
     }
-
-    // Первичная загрузка данных,
-    // Последующие загрзки при измененеии entity_id
-    useEffect(() => {
-        fetchEntity();
-        fetchEntityNoteList();
-    },[entity_id]);
 
     // Вызов модалки создания файла
     const actionCallModalNote = (e) => {
@@ -322,9 +339,7 @@ function DiskFile(props) {
                         <Button style={{marginLeft : "2px"}} variant="outline-primary" onClick={actionCallModalUploadFile}><i className="bi bi-cloud-arrow-up"></i> </Button>
                         <Button style={{marginLeft : "2px"}} type="button" variant="outline-danger" onClick={handleDeleteClick}><i className="bi bi-trash"></i></Button>
                         </> : "" }
-                        <div style={{display: "inline", marginLeft: "10px"}}>Это экспериментальная версия таблиц, глючная / незаконченная. Нажимайте сохранить дважды</div>
                     </Form.Group>
-                    
                 </Col>
             </Row>
         )
@@ -359,8 +374,22 @@ function DiskFile(props) {
     </Row>
     
     <div>    
-    <ActionBar user_role = { Disk.entity.user_role } />
-    
+    <Row>
+        <Col>
+            <Form.Group className="mb-3">
+                <Button style={{marginLeft : "2px"}} type="button" onClick={handleBackClick} variant="outline-secondary" ><i className="bi bi-chevron-left"></i></Button>   
+                {/* Скрываем действия с файлами если права пользователя только чтение  */}
+                { Disk.entity.user_role != "READ" ? 
+                <>
+                <Button style={{marginLeft : "2px"}} type="button" variant="outline-success" onClick={handleSave} >Сохранить изменения</Button>
+                <Button style={{marginLeft : "2px"}} type="button" variant="outline-secondary" onClick={handleInfoEntity}><i className="bi bi-info-circle"></i></Button>
+                <Button style={{marginLeft : "2px"}} type="button" variant="outline-primary" onClick={actionCallModalNote}><i className="bi bi-calendar2-plus"></i></Button>
+                <Button style={{marginLeft : "2px"}} variant="outline-primary" onClick={actionCallModalUploadFile}><i className="bi bi-cloud-arrow-up"></i> </Button>
+                <Button style={{marginLeft : "2px"}} type="button" variant="outline-danger" onClick={handleDeleteClick}><i className="bi bi-trash"></i></Button>
+                </> : "" }
+            </Form.Group>
+        </Col>
+    </Row>
     <Row>
         <Col>
             <h2>{Disk.entity.entity_name}</h2>
@@ -369,29 +398,28 @@ function DiskFile(props) {
     <Row>
         <Col>
             {/* className="shadow p-3 bg-white rounded" */}
-            <div style={{overflow: "scroll"}}>  
-            <ReactDataSheet
-                data={data}
-                onContextMenu = {(row,a,b,c) => {console.log(a,b,c)}}
-                // overflow="nowrap"
-                valueRenderer = {cell => cell.value}
-                rowRenderer= {props => (
-                  <tr>
-                      <td className="sequence-cell">
-                          <span>{props.row?props.row:""}</span>
-                      </td>
-                      {props.children}
-                  </tr>
-                )}
-                onCellsChanged = {changes => {
-                  const grid = data.map(row => [...row]);
-                  changes.forEach(({ cell, row, col, value }) => {
-                      grid[row][col] = { ...grid[row][col], value };
-                  });
-                  setData(grid);
-                }}
-            />
-            </div>
+            {/* <div style={{overflow: "scroll"}}>   */}
+            
+            {/* <Button style={{marginLeft : "2px"}} type="button" variant="outline-success" onClick={handleSave} >Сохранить изменения</Button> */}
+            <DataGrid
+                        rows={rows}
+                        columns={cols}
+                        getRowHeight={(cell) => {return Object.entries(cell.model).length < 2 ? 21: 'auto'}} // ??? TODO работает не корректно
+                        columnHeaderHeight = {21}
+                        autoHeight
+                        disableRowSelectionOnClick
+                        showCellVerticalBorder={true}
+                        cellSelection
+                        processRowUpdate={handleProcessRowUpdate}
+                        // editMode={"row"}
+                        onColumnResize={handleColumnResize}
+                        // onCellEditStop={(a) => {console.log(a)}}
+                        // onRowEditStop={(a) => {console.log(a)}}
+                        // onCellModesModelChange={(a) => {console.log(a)}}
+                        // disableSelectionOnClick
+                        // experimentalFeatures={{ newEditingApi: true }}
+                        />
+            {/* </div> */}
         </Col>
     </Row>
     <Row className="mt-2">
@@ -413,4 +441,4 @@ function DiskFile(props) {
 }
 
 
-export default DiskFile;
+export default DiskSpreadsheet;
