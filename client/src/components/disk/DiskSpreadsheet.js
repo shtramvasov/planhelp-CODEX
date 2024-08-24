@@ -2,76 +2,60 @@ import { Navbar }  from "../navbar/Navbar";
 import { Container, Button, Row, Col, Form, Table } from "react-bootstrap";
 import ModalNote from "../helpers/ModalNote";
 import ModalInputFile from "../helpers/ModalInputFile";
-import React, { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useSelector, useDispatch } from 'react-redux'
 import { addEntity, addEntityNotes, addEntityNote, addLastUploadFile } from '../../reducers/Disk';
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { getDiskEntity, postDiskEntity, deleteDiskEntity } from '../../network/DiskNetwork';
 import { getEntityNoteList, postEntityNote } from '../../network/NoteNetwork';
-import { useParams } from 'react-router-dom';
+
 import ToastMessage from "../helpers/ToastMessage";
 import Card from 'react-bootstrap/Card';
 import Breadcrumb from "../helpers/Breadcrumb";
 import moment from 'moment-timezone';
 import 'moment/locale/ru';
 
-// Обработчик markdown 
-import ReactMarkdown from 'react-markdown'
-import remarkGfm from 'remark-gfm'
-import rehypeRaw from "rehype-raw";
-// Редактор markdown
-import MdEditor, { Plugins } from 'react-markdown-editor-lite';
-import 'react-markdown-editor-lite/lib/index.css';
-
-import { DataGrid } from '@mui/x-data-grid';
-
-// Отключаем плагины редактирвоания, которые не работают
-// - Подчеркивание (не работает)
-MdEditor.unuse(Plugins.FontUnderline)
-// - Блок цитата (не работает)
-MdEditor.unuse(Plugins.BlockQuote)
-// - Фулл скрин (не нужен)
-MdEditor.unuse(Plugins.FullScreen)
-
-
-
+import { DataGrid, GridColumnMenu } from '@mui/x-data-grid';
+import { Menu, MenuItem, ListItemText } from '@mui/material';
+import { legacy_createStore } from "@reduxjs/toolkit";
 moment.locale('ru');
-const alphabet = "abcdefghijklmnopqrstuvwxyz";
 
-const _cols = alphabet.split("").map((el) => {
-    return {field: el.toUpperCase(),editable: true} //,width: 450
-});
+// формируем столбцы
+const alphabetArr = "abcdefghijklmnopqrstuvwxyz".split("");
+// maybe later add more columns
+// const alphabetArrAdd = alphabet.split("").map((el) => el+el);
+
+const _cols = [];
+// default cols end at "n"
+for (let i=0;i<=13;i++) {
+    _cols.push({field: alphabetArr[i].toUpperCase(),editable: true});
+}
 
 function DiskSpreadsheet(props) {
 
     const { entity_id } = useParams();
     const dispatch = useDispatch()
     const Disk = useSelector((state) => state.disk);
-    const User = useSelector((state) => state.user);
     const navigate = useNavigate();
-
-    ///
     
-
-    const rows_ = []
-    for (let i=1;i<=100;i++) {
-        rows_.push({id:i});
-    }
-
-    const [rows, setRows] = useState(rows_);
-    const [cols, setCols] = useState(_cols);
-    ///
-
     document.title = Disk.entity.entity_name+" | planhelp";
 
+    // формируем строки
+    let _rows = []
+    for (let i=1;i<=50;i++) {
+        _rows.push({id:i});
+    }
+
+    const [rows, setRows] = useState(_rows);
+    const [cols, setCols] = useState(_cols);
+    const [selectedRow, setSelectedRow] = useState();
+    const [contextMenu, setContextMenu] = useState(null);
     const [showModalNote, setShowModalNote] = useState(false);
     const [showModalUploadFile, setShowModalUploadFile] = useState(false);
-    const [entityNote, setEntityNote]  = useState("");
     const [showToastSuccessUploadFile, setToastSuccessUploadFile] = useState(false);
     const didCloseToast = () => setToastSuccessUploadFile(false);
 
-    // Первичная загрузка данных,
-    // Последующие загрзки при измененеии entity_id
+    // Первичная загрузка данных
     useEffect(() => {
         fetchEntity();
         fetchEntityNoteList();
@@ -83,7 +67,7 @@ function DiskSpreadsheet(props) {
                 dispatch(addEntity(resp));
                 if (resp.entity_note) {
                     setRows((JSON.parse(resp.entity_note)).rows);
-                    setCols((JSON.parse(resp.entity_note)).cols)
+                    setCols((JSON.parse(resp.entity_note)).cols);
                 }
             } else {
                 alert("Ошибка: "+err);
@@ -106,9 +90,10 @@ function DiskSpreadsheet(props) {
         selectedEntityIdList.push(entity_id);
         deleteDiskEntity({selectedEntityIdList}, (err,data) => {
             if (!err) navigate(`/disk/${Disk.entity.parent_entity_id?Disk.entity.parent_entity_id:""}`);
-        })
+        });
     }
 
+    // украденная функция обновления строк
     const handleProcessRowUpdate = (updatedRow, originalRow) => {
         const newRows = [...rows];
         const idx = newRows.findIndex((x) => x.id === originalRow.id);
@@ -127,20 +112,27 @@ function DiskSpreadsheet(props) {
         return updatedRow;
     };
 
-    const handleColumnResize = (c,ev,detail) => {
-        console.log(c.colDef.field, c.colDef.width);
+    // ресайз колонок
+    const handleColumnResize = (c) => {
         const newCols = [...cols];
         const idx = newCols.findIndex((x) => x.field === c.colDef.field);
-    
         newCols[idx].width = c.colDef.width;
         setCols(newCols);
     } 
         
+    const handleContextMenu = (event) => {
+        event.preventDefault();
+        setSelectedRow(Number(event.currentTarget.getAttribute('data-id')));
+        setContextMenu(
+          contextMenu === null
+            ? { mouseX: event.clientX - 2, mouseY: event.clientY - 4 }
+            : null,
+        );
+    };
     
-
-    const handleDeleteClick = () => {
-        deleteEntity();
-    }
+    const handleCloseContextMenu = () => {
+        setContextMenu(null);
+    };
 
     const handleBackClick = () => {
         navigate(`/disk/${Disk.entity.parent_entity_id?Disk.entity.parent_entity_id:""}`);
@@ -260,14 +252,77 @@ function DiskSpreadsheet(props) {
     }
 
     const onEditNote = (e,el) => {
-        
         e.preventDefault();
         dispatch(addEntityNote(el));
-        // if (el.note_type==="COMMENT") {
         setShowModalNote(true);
-        // } else {
-        //     window.location.href = el.note_2;
-        // }
+    }
+
+    // Добавление строк
+    const addRows = (e,count,direction) => {
+        // count = 1 | 10
+        // direction = up | down
+        let newRows = [...rows];
+        for (let i=1;i<=count;i++) {
+            newRows.splice(selectedRow+(direction==="up"?-1:0),0,{id:-1*i});
+        }
+        newRows = newRows.map((el,i)=> {
+            el.id = i+1;
+            return el;
+        });
+        setRows([...newRows]);
+        handleCloseContextMenu();
+    }
+
+    // Удаление строки
+    const deleteRow = (e) => {
+        let newRows = [...rows];
+        newRows.splice(selectedRow-1,1);
+        newRows = newRows.map((el,i)=> {
+            el.id = i+1;
+            return el;
+        });
+        setRows([...newRows]);
+        handleCloseContextMenu();
+    }
+
+    // Добавление столбца
+    const addNewCol = (e,field,direction) => {
+        // direction = "left" | "right"
+        let newCols = [...cols];
+        let maxIdx = 0;
+        for (const col of newCols) {
+            const existsIdx = col.field.replace(/[^0-9.]/g, '') ? parseInt(col.field.replace(/[^0-9.]/g, '')) : 0;
+            console.log(col.field, existsIdx);
+            if (existsIdx > maxIdx) {
+                maxIdx = existsIdx;
+            }
+        }
+        maxIdx++;
+        const newFieldName = field.replace(/[0-9]/g,'') + maxIdx;
+
+        const idx = newCols.findIndex((x) => x.field === field); // тек позиция столбца в массиве
+        // добавляем новый столбец либо справа либо слева в зависимости от направления
+        newCols.splice(
+            idx + ( direction==="left" ? 0 : 1 ), 0,
+            {field: newFieldName.toUpperCase(),editable: true}
+        );
+        setCols([...newCols]);
+    }
+
+    // Удаление столбца
+    const deleteCol = (e,field) => {
+        // field = "A" | "B" | "C" | etc...
+        let newCols = [...cols];
+        const idx = newCols.findIndex((x) => x.field === field);
+        newCols.splice(idx,1);
+        let newRows = [...rows];
+        newRows = newRows.map((row,i) => {
+            // удаляем значения в каждой строке для этого столбца
+            delete row[field];
+            return row;
+        });
+        setCols([...newCols]);
+        setRows([...newRows]);
     }
 
     const entityNoteItems = Disk.entityNotes.map((el) => 
@@ -292,23 +347,6 @@ function DiskSpreadsheet(props) {
         </Card>
     );
 
-
-    // Создаем объект <table> со стилями bootstrap, для использования его в markdown
-    const MarkdownTable = props => {
-        return (<table className="table table-bordered"> {props.children} </table>)
-    }
-
-    const MarkdownObject = (props) => {
-        // 1. components: прокидываем свои html объекты
-        // 2. children: markdown -> стилевый текст
-        // 3. remarkPlugins: плагины для поддержки таблиц, стилей текста
-        return <ReactMarkdown components={{ table: MarkdownTable }} children={ props.value } remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]} /> 
-    }
-
-    const handleEditorChange = ({ html, text }) => {
-        setEntityNote(text)
-    }
-
     // Показываем сообщение с информацией о загруженным файле
     const TastInfoSuccessFile = () => {
         return (
@@ -323,26 +361,39 @@ function DiskSpreadsheet(props) {
         )
     }
 
-    // Панель действий
-    const ActionBar = (info) => {
+    function CustomUserItem(props) {
+        return (<>
+          <MenuItem onClick={(e)=>{addNewCol(e,props.colDef.field,"right")}}>
+            <ListItemText>Добавить столбец справа</ListItemText>
+          </MenuItem>
+          <MenuItem onClick={(e)=>{addNewCol(e,props.colDef.field,"left")}}>
+            <ListItemText>Добавить столбец слева</ListItemText>
+          </MenuItem>
+          <MenuItem onClick={(e)=>{deleteCol(e,props.colDef.field)}}>
+            <ListItemText>Удалить столбец</ListItemText>
+          </MenuItem>
+          </>
+        );
+    }
+
+    const CustomColumnMenu = (props) => {
         return (
-            <Row>
-                <Col>
-                    <Form.Group className="mb-3">
-                        <Button style={{marginLeft : "2px"}} type="button" onClick={handleBackClick} variant="outline-secondary" ><i className="bi bi-chevron-left"></i></Button>   
-                        {/* Скрываем действия с файлами если права пользователя только чтение  */}
-                        { info.user_role != "READ" ? 
-                        <>
-                        <Button style={{marginLeft : "2px"}} type="button" variant="outline-success" onClick={handleSave} >Сохранить изменения</Button>
-                        <Button style={{marginLeft : "2px"}} type="button" variant="outline-secondary" onClick={handleInfoEntity}><i className="bi bi-info-circle"></i></Button>
-                        <Button style={{marginLeft : "2px"}} type="button" variant="outline-primary" onClick={actionCallModalNote}><i className="bi bi-calendar2-plus"></i></Button>
-                        <Button style={{marginLeft : "2px"}} variant="outline-primary" onClick={actionCallModalUploadFile}><i className="bi bi-cloud-arrow-up"></i> </Button>
-                        <Button style={{marginLeft : "2px"}} type="button" variant="outline-danger" onClick={handleDeleteClick}><i className="bi bi-trash"></i></Button>
-                        </> : "" }
-                    </Form.Group>
-                </Col>
-            </Row>
-        )
+          <GridColumnMenu
+            {...props}
+            slots={{
+              // Add new item
+              columnMenuUserItem: 
+                CustomUserItem,
+            columnMenuColumnsItem: null,
+            }}
+            slotProps={{
+              columnMenuUserItem: {
+                // set `displayOrder` for new item
+                // displayOrder: 1
+              },
+            }}
+          />
+        );
     }
 
     return (
@@ -385,7 +436,7 @@ function DiskSpreadsheet(props) {
                 <Button style={{marginLeft : "2px"}} type="button" variant="outline-secondary" onClick={handleInfoEntity}><i className="bi bi-info-circle"></i></Button>
                 <Button style={{marginLeft : "2px"}} type="button" variant="outline-primary" onClick={actionCallModalNote}><i className="bi bi-calendar2-plus"></i></Button>
                 <Button style={{marginLeft : "2px"}} variant="outline-primary" onClick={actionCallModalUploadFile}><i className="bi bi-cloud-arrow-up"></i> </Button>
-                <Button style={{marginLeft : "2px"}} type="button" variant="outline-danger" onClick={handleDeleteClick}><i className="bi bi-trash"></i></Button>
+                <Button style={{marginLeft : "2px"}} type="button" variant="outline-danger" onClick={deleteEntity}><i className="bi bi-trash"></i></Button>
                 </> : "" }
             </Form.Group>
         </Col>
@@ -397,29 +448,49 @@ function DiskSpreadsheet(props) {
     </Row>
     <Row>
         <Col>
-            {/* className="shadow p-3 bg-white rounded" */}
-            {/* <div style={{overflow: "scroll"}}>   */}
-            
-            {/* <Button style={{marginLeft : "2px"}} type="button" variant="outline-success" onClick={handleSave} >Сохранить изменения</Button> */}
             <DataGrid
-                        rows={rows}
-                        columns={cols}
-                        getRowHeight={(cell) => {return Object.entries(cell.model).length < 2 ? 21: 'auto'}} // ??? TODO работает не корректно
-                        columnHeaderHeight = {21}
-                        autoHeight
-                        disableRowSelectionOnClick
-                        showCellVerticalBorder={true}
-                        cellSelection
-                        processRowUpdate={handleProcessRowUpdate}
-                        // editMode={"row"}
-                        onColumnResize={handleColumnResize}
-                        // onCellEditStop={(a) => {console.log(a)}}
-                        // onRowEditStop={(a) => {console.log(a)}}
-                        // onCellModesModelChange={(a) => {console.log(a)}}
-                        // disableSelectionOnClick
-                        // experimentalFeatures={{ newEditingApi: true }}
-                        />
-            {/* </div> */}
+            rows={rows}
+            columns={cols}
+            // высота ячеек = auto если заполенных ячеек нет
+            getRowHeight={(cell) => {return Object.entries(cell.model).length < 2 ? 21: 'auto'}}
+            columnHeaderHeight = {21}
+            autoHeight
+            disableRowSelectionOnClick={false}
+            showCellVerticalBorder={true}
+            cellSelection
+            processRowUpdate={handleProcessRowUpdate}
+            onColumnResize={handleColumnResize}
+            slots={{ columnMenu: CustomColumnMenu }}
+            slotProps={{
+                row: {
+                    onContextMenu: handleContextMenu,
+                },
+            }}
+            />
+            <Menu
+                open={contextMenu !== null}
+                onClose={handleCloseContextMenu}
+                anchorReference="anchorPosition"
+                anchorPosition={
+                contextMenu !== null
+                    ? { top: contextMenu.mouseY, left: contextMenu.mouseX }
+                    : undefined
+                }
+                slotProps={{
+                    root: {
+                        onContextMenu: (event) => {
+                            event.preventDefault();
+                            handleCloseContextMenu();
+                        },
+                    },
+                }}
+            >
+                <MenuItem onClick={(e)=>{addRows(e,1,"up")}}>Вставить строку выше</MenuItem>
+                <MenuItem onClick={(e)=>{addRows(e,1,"down")}}>Вставить строку ниже</MenuItem>
+                <MenuItem onClick={(e)=>{addRows(e,10,"up")}}>Вставить 10 строк выше</MenuItem>
+                <MenuItem onClick={(e)=>{addRows(e,10,"down")}}>Вставить 10 строк ниже</MenuItem>
+                <MenuItem onClick={deleteRow}>Удалить строку</MenuItem>
+            </Menu>
         </Col>
     </Row>
     <Row className="mt-2">
@@ -429,13 +500,10 @@ function DiskSpreadsheet(props) {
     </Row>
 
     </div>
-    
-
     {
         // Инфо сообщение, о том что файл загрузили
         showToastSuccessUploadFile ?  <ToastMessage title = "Файл загрузили" body = {TastInfoSuccessFile}  callBack = { actionSuccessUploadFileCallBack } /> : ""
     }
-
     </Container>
     );
 }
