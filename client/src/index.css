@@ -67,9 +67,12 @@ img {
   min-height: 24px;
 }
 
-.test-cell > span {
-  /* width: 400px; */
-  /* background-color: silver; */
+.MuiDataGrid-toolbarContainer {
+  margin-bottom: 8px;
+}
+
+.MuiDataGrid-cell {
+  padding: 0px!important;
 }
 
 .data-grid-container .data-grid .cell.selected {

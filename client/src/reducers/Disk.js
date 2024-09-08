@@ -55,6 +55,11 @@ export const diskSlice = createSlice({
             action.payload.breadcrumb.unshift({entity_name:"Документы",entity_id:""});
             state.entity = (action.payload);
         },
+        modifyEntity: (state, action) => {
+            if (action.payload.entity_name) {
+                state.entity = {...state.entity, entity_name : action.payload.entity_name}
+            }
+        },
         addEntityActivity: (state, action) => {
             state.entityActivity = (action.payload);
         },
@@ -102,6 +107,7 @@ export const {
     addEntityNote,
     addLastUploadFile,
     selectEntity,
+    modifyEntity,
     clearSelectedEntityList} = diskSlice.actions;
 
 export default diskSlice.reducer;
