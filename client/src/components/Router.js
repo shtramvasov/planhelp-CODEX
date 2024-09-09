@@ -1,6 +1,9 @@
 import { createBrowserRouter, RouterProvider, useNavigate, useLocation} from "react-router-dom";
 import Cookies from 'js-cookie';
-
+import Snackbar from '@mui/material/Snackbar';
+import Alert from '@mui/material/Alert';
+import { clearSnackBar } from '../reducers/App';
+import { useSelector, useDispatch } from 'react-redux';
 import { Login}  from "./login/Login";
 import { Logout}  from "./login/Logout";
 
@@ -77,9 +80,40 @@ function Router() {
     if (!Cookies.get("secret") && window.location.pathname != "/login") {
         window.location.href = "/login";
     }
-
-    return (
+    const App = useSelector((state) => state.app);
+    
+    const dispatch = useDispatch()
+    return (<>
         <RouterProvider router={router} />
+        {/* Снек бар либо о позитивных сообщениях либо о негативных 
+            юзается так 
+            1) dispatch(addPositiveMessage(messages.SUCCESS_SAVE));
+            2) dispatch(addNegativeMessage(messages.SUCCESS_SAVE));
+        */}
+        <Snackbar
+            open={!!App.snackbar.positiveMessage || !!App.snackbar.negativeMessage}
+            autoHideDuration={3000}
+            onClose={(event, reason) => {
+                dispatch(clearSnackBar())
+            }}>
+            {App.snackbar.positiveMessage ? 
+                <Alert
+                    severity="success"
+                    variant="filled"
+                    sx={{ width: '100%' }}>
+                    {App.snackbar.positiveMessage}
+                </Alert> : 
+            App.snackbar.negativeMessage ? 
+                <Alert
+                    severity="error"
+                    variant="filled"
+                    sx={{ width: '100%' }}>
+                    {App.snackbar.negativeMessage}
+                </Alert> : 
+            <Alert/>
+            }
+        </Snackbar>
+        </>
     );
 }
 

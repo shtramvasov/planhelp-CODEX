@@ -1,35 +1,23 @@
-import { Navbar }  from "../navbar/Navbar";
-import { Container, Button, Row, Col, Form, Table } from "react-bootstrap";
-import ModalNote from "../helpers/ModalNote";
-import ModalInputFile from "../helpers/ModalInputFile";
 import { useState, useEffect, useRef } from 'react';
 import { useSelector, useDispatch } from 'react-redux'
-import { addEntity, addEntityNotes, addEntityNote, addLastUploadFile } from '../../reducers/Disk';
-import { useNavigate, useParams } from "react-router-dom";
+import { redirect, useNavigate, useParams } from "react-router-dom";
+import { Container, Button, Row, Col, Form, Card } from "react-bootstrap";
+import { DataGrid, GridColumnMenu, GridToolbarContainer, GridToolbarExport } from '@mui/x-data-grid';
+import { Menu, MenuItem, ListItemText } from '@mui/material';
+import { Navbar }  from "../navbar/Navbar";
+import { addEntity, modifyEntity, addEntityNotes, addEntityNote, addLastUploadFile } from '../../reducers/Disk';
+import { addPositiveMessage, addNegativeMessage } from '../../reducers/App';
 import { getDiskEntity, postDiskEntity, deleteDiskEntity } from '../../network/DiskNetwork';
 import { getEntityNoteList, postEntityNote } from '../../network/NoteNetwork';
-
-import ToastMessage from "../helpers/ToastMessage";
-import Card from 'react-bootstrap/Card';
+import { messages } from "../constants/Msg";
+import LinkInput from '../helpers/LinkInput';
+import ModalNote from "../helpers/ModalNote";
+import ModalInputFile from "../helpers/ModalInputFile";
 import Breadcrumb from "../helpers/Breadcrumb";
 import moment from 'moment-timezone';
 import 'moment/locale/ru';
 
-import { DataGrid, GridColumnMenu } from '@mui/x-data-grid';
-import { Menu, MenuItem, ListItemText } from '@mui/material';
-import { legacy_createStore } from "@reduxjs/toolkit";
 moment.locale('ru');
-
-// формируем столбцы
-const alphabetArr = "abcdefghijklmnopqrstuvwxyz".split("");
-// maybe later add more columns
-// const alphabetArrAdd = alphabet.split("").map((el) => el+el);
-
-const _cols = [];
-// default cols end at "n"
-for (let i=0;i<=13;i++) {
-    _cols.push({field: alphabetArr[i].toUpperCase(),editable: true});
-}
 
 function DiskSpreadsheet(props) {
 
@@ -40,20 +28,19 @@ function DiskSpreadsheet(props) {
     
     document.title = Disk.entity.entity_name+" | planhelp";
 
-    // формируем строки
-    let _rows = []
-    for (let i=1;i<=50;i++) {
-        _rows.push({id:i});
-    }
-
-    const [rows, setRows] = useState(_rows);
-    const [cols, setCols] = useState(_cols);
+    const [rows, setRows] = useState([]);
+    const [cols, setCols] = useState([]);
+    // плохая затея, тк после ф5 не применяются
+    // const [styles, setStyles] = useState({});
     const [selectedRow, setSelectedRow] = useState();
+    const [selectedCol, setSelectedCol] = useState();
     const [contextMenu, setContextMenu] = useState(null);
     const [showModalNote, setShowModalNote] = useState(false);
     const [showModalUploadFile, setShowModalUploadFile] = useState(false);
-    const [showToastSuccessUploadFile, setToastSuccessUploadFile] = useState(false);
-    const didCloseToast = () => setToastSuccessUploadFile(false);
+
+    useEffect(() => {
+        // console.log(selectedCol,selectedRow)
+    },[selectedCol,selectedRow])
 
     // Первичная загрузка данных
     useEffect(() => {
@@ -66,21 +53,70 @@ function DiskSpreadsheet(props) {
             if (!err) {
                 dispatch(addEntity(resp));
                 if (resp.entity_note) {
+                    // setStyles((JSON.parse(resp.entity_note)).styles);
+
+                    const cols = (JSON.parse(resp.entity_note)).cols;
+                    setCols(cols);
+                    for (const col of cols) {
+                        // всем столбцам говорим юзать кастомную функцию для рендера ячейки
+                        col.renderCell = renderCell;
+                    }
                     setRows((JSON.parse(resp.entity_note)).rows);
-                    setCols((JSON.parse(resp.entity_note)).cols);
+                } else {
+                    // если в бд документ пустой
+                    // сформируем дефолтный
+                    initDefaultEntityNote();
                 }
             } else {
-                alert("Ошибка: "+err);
+                dispatch(addNegativeMessage(messages.FETCH_FAIL + " " + err));
             }
         });
     };
+
+    const initDefaultEntityNote = () => {
+
+        // //
+        // формируем столбцы
+        const alphabetArr = "abcdefghijklmnopqrstuvwxyz".split("");
+        const _cols = [];
+        // default cols end at "n"
+        for (let i=0;i<=13;i++) {
+            _cols.push({
+                field: alphabetArr[i].toUpperCase(),
+                editable: true,
+                renderCell : renderCell
+            });
+        }
+        // _cols.push({
+        //     field : "_styles",
+        //     editable : true
+        // })
+        setCols(_cols);
+
+        // //
+        // формируем строки
+        let _rows = []
+        for (let i=1;i<=50;i++) {
+            _rows.push({id:i
+                // , _styles : "color : red"
+            });
+        }
+        setRows(_rows);
+
+        // // формируем стили
+        // setStyles({
+        //     'D1' : {color : "red", backgroundColor : "silver", fontWeight : "bold"},
+        //     'D2' : {color : "white", backgroundColor : "blue"},
+        //     'F2' : {color : "white", backgroundColor : "red"}
+        // });
+    }
 
     const fetchEntityNoteList = () => {
         getEntityNoteList({entity_id : entity_id},(err,resp) => {
             if (!err) {
                 dispatch(addEntityNotes(resp));    
             } else {    
-                alert("Ошибка: "+err);
+                dispatch(addNegativeMessage(messages.FETCH_FAIL + " " + err));
             }
         });
     }
@@ -93,12 +129,26 @@ function DiskSpreadsheet(props) {
         });
     }
 
+    const renderCell = (params) => {
+        console.log(params);
+        const style = {};
+        // const style = styles[params.field + params.id];
+        return (
+            <>
+                <div style={style}>
+                {/* <div style={{color: "red", backgroundColor: "#ffc107", paddingLeft: "2px"}}> */}
+                {params.value}
+                </div>
+        </>)
+    }
+    
+
     // украденная функция обновления строк
     const handleProcessRowUpdate = (updatedRow, originalRow) => {
         const newRows = [...rows];
         const idx = newRows.findIndex((x) => x.id === originalRow.id);
         
-        // фича чтобы обмануть высоту  кщц
+        // фича чтобы обмануть высоту row
         Object.entries(updatedRow).map((el)=>{
             if (!el[1]) {
                delete updatedRow[el[0]];
@@ -122,7 +172,6 @@ function DiskSpreadsheet(props) {
         
     const handleContextMenu = (event) => {
         event.preventDefault();
-        setSelectedRow(Number(event.currentTarget.getAttribute('data-id')));
         setContextMenu(
           contextMenu === null
             ? { mouseX: event.clientX - 2, mouseY: event.clientY - 4 }
@@ -147,20 +196,24 @@ function DiskSpreadsheet(props) {
 
         const spreadsheet = {
             rows : rows,
-            cols : cols
+            cols : cols,
+            // styles : styles
         }
+
         postDiskEntity(
             {   
                 entity_id : entity_id,
-                // entity_name : e.target.formEntityName.value,
+                entity_name : Disk.entity.entity_name,
                 entity_note : JSON.stringify(spreadsheet),
                 // parent_entity_id : Disk.entity.entity_id,
                 entity_type : "FILE"
             }, 
             (err,resp) => {
                 if (!err) {
-                    //handleCancelClick();
                     fetchEntity();
+                    dispatch(addPositiveMessage(messages.SUCCESS));
+                } else {
+                    dispatch(addNegativeMessage(messages.SAVE_FAIL + " " + err));
                 }
             }
         );
@@ -209,8 +262,9 @@ function DiskSpreadsheet(props) {
             (err,resp) => {
                 if (!err) {
                     fetchEntityNoteList();
+                    dispatch(addPositiveMessage(messages.SUCCESS));
                 } else {
-                    alert("Ошибка: "+err);
+                    dispatch(addNegativeMessage(messages.SAVE_FAIL + " " + err));
                 }
             });
     }
@@ -220,15 +274,10 @@ function DiskSpreadsheet(props) {
         setShowModalUploadFile(false);
         if (!file) {
             return;
-        }
-
-        /// Записываем информацию о загруженном файле
-        /// Показываем сообщение
-        /// Скрываем сообщение через 5 сек.
+        } 
         dispatch(addLastUploadFile(file));
-        setToastSuccessUploadFile(true);
-        setTimeout(didCloseToast, 5000);
-       
+        //                     <td> {Disk.lastUploadFile.name} </td>
+        //                     <td> {Disk.lastUploadFile.size} Кб </td>
         postEntityNote({
             entity_id : entity_id,
             note : file.name,
@@ -240,15 +289,11 @@ function DiskSpreadsheet(props) {
         (err,resp) => {
             if (!err) {
                 fetchEntityNoteList();
+                dispatch(addPositiveMessage(messages.SUCCESS));
             } else {
-                alert("Ошибка: "+err);
+                dispatch(addNegativeMessage(messages.UPLOAD_FAIL));
             }
         });
-    }
-
-    // Колбек с инфо.сообщение о том что файл загрузили
-    const actionSuccessUploadFileCallBack = () => {
-        didCloseToast()
     }
 
     const onEditNote = (e,el) => {
@@ -292,7 +337,7 @@ function DiskSpreadsheet(props) {
         let maxIdx = 0;
         for (const col of newCols) {
             const existsIdx = col.field.replace(/[^0-9.]/g, '') ? parseInt(col.field.replace(/[^0-9.]/g, '')) : 0;
-            console.log(col.field, existsIdx);
+            // console.log(col.field, existsIdx);
             if (existsIdx > maxIdx) {
                 maxIdx = existsIdx;
             }
@@ -347,20 +392,6 @@ function DiskSpreadsheet(props) {
         </Card>
     );
 
-    // Показываем сообщение с информацией о загруженным файле
-    const TastInfoSuccessFile = () => {
-        return (
-            <Table striped bordered hover>
-                <tbody>
-                    <tr style={{ verticalAlign: 'middle' }} >
-                        <td> {Disk.lastUploadFile.name} </td>
-                        <td> {Disk.lastUploadFile.size} Кб </td>
-                    </tr>
-                </tbody>
-            </Table>
-        )
-    }
-
     function CustomUserItem(props) {
         return (<>
           <MenuItem onClick={(e)=>{addNewCol(e,props.colDef.field,"right")}}>
@@ -395,7 +426,13 @@ function DiskSpreadsheet(props) {
           />
         );
     }
-
+    function CustomToolbar() {
+        return (
+          <GridToolbarContainer>
+            <GridToolbarExport />
+          </GridToolbarContainer>
+        );
+    }
     return (
     <Container fluid>
         <ModalNote 
@@ -443,10 +480,31 @@ function DiskSpreadsheet(props) {
     </Row>
     <Row>
         <Col>
-            <h2>{Disk.entity.entity_name}</h2>
+            <LinkInput
+                type="headerField"
+                placeholder="Имя документа"
+                defaultValue={Disk.entity.entity_name}
+                callBack={(value) => {
+                    console.log(Disk.entity);
+                    postDiskEntity(
+                        {   
+                            entity_id : entity_id,
+                            entity_name : value,
+                        }, 
+                        (err,resp) => {
+                            if (!err) {
+                                dispatch(modifyEntity({entity_name :  value}));
+                                dispatch(addPositiveMessage(messages.SUCCESS));
+                            } else {
+                                dispatch(addNegativeMessage(messages.SAVE_FAIL + " " + err));
+                            }
+                        }
+                    );
+                }}
+            />
         </Col>
     </Row>
-    <Row>
+    <Row style={{marginTop: "12px"}}>
         <Col>
             <DataGrid
             rows={rows}
@@ -455,16 +513,29 @@ function DiskSpreadsheet(props) {
             getRowHeight={(cell) => {return Object.entries(cell.model).length < 2 ? 21: 'auto'}}
             columnHeaderHeight = {21}
             autoHeight
+            disableColumnSorting
             disableRowSelectionOnClick={false}
             showCellVerticalBorder={true}
             cellSelection
+            columnVisibilityModel={{
+                // прячем столбец на будущее, для хранения стилей внутри row / col
+                _styles: false,
+            }}
             processRowUpdate={handleProcessRowUpdate}
             onColumnResize={handleColumnResize}
-            slots={{ columnMenu: CustomColumnMenu }}
+            slots={{ columnMenu: CustomColumnMenu, toolbar: CustomToolbar }}
             slotProps={{
                 row: {
                     onContextMenu: handleContextMenu,
+                    onFocus: (event) => {
+                        setSelectedRow(Number(event.currentTarget.getAttribute('data-id')));
+                    }
                 },
+                cell: {
+                    onFocus: (event) => {
+                        setSelectedCol(event.currentTarget.getAttribute('data-field'));
+                    },
+                }
             }}
             />
             <Menu
@@ -485,6 +556,19 @@ function DiskSpreadsheet(props) {
                     },
                 }}
             >
+                {/* <MenuItem onClick={async (e)=>{
+                        // console.log(selectedCol, selectedRow);
+                        // const pastetext = await navigator.clipboard.read()
+                        
+                        // for (const item of pastetext) {
+                        //     console.log(item.types);
+                        //     const result = await item.getType('text/html');
+                        //     const text = await result.text();
+                        //     console.log(text);      
+                        // }
+
+
+                }}>Вставить из буфера</MenuItem> */}
                 <MenuItem onClick={(e)=>{addRows(e,1,"up")}}>Вставить строку выше</MenuItem>
                 <MenuItem onClick={(e)=>{addRows(e,1,"down")}}>Вставить строку ниже</MenuItem>
                 <MenuItem onClick={(e)=>{addRows(e,10,"up")}}>Вставить 10 строк выше</MenuItem>
@@ -500,10 +584,6 @@ function DiskSpreadsheet(props) {
     </Row>
 
     </div>
-    {
-        // Инфо сообщение, о том что файл загрузили
-        showToastSuccessUploadFile ?  <ToastMessage title = "Файл загрузили" body = {TastInfoSuccessFile}  callBack = { actionSuccessUploadFileCallBack } /> : ""
-    }
     </Container>
     );
 }

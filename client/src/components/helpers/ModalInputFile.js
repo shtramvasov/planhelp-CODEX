@@ -4,11 +4,14 @@ import Form from 'react-bootstrap/Form';
 import Modal from 'react-bootstrap/Modal';
 import ButtonGroup from 'react-bootstrap/ButtonGroup';
 import { uploadFile } from '../../network/DiskNetwork';
-import { useSelector } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
+import { messages } from "../constants/Msg";
+import { addPositiveMessage, addNegativeMessage } from '../../reducers/App';
 
 function ModalInputFile(props) {
     
     var selectedFile;
+    const dispatch = useDispatch();
     const Disk = useSelector((state) => state.disk);
     const [isLoadFile, setLoadFile] = useState(0)
 
@@ -34,7 +37,7 @@ function ModalInputFile(props) {
             if (!err) {
                 props.callBack(response);
             } else {
-                alert("Ошибка: " + err);
+                dispatch(addNegativeMessage(messages.UPLOAD_FAIL));
             }
         })
     }
