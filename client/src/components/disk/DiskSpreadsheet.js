@@ -30,8 +30,7 @@ function DiskSpreadsheet(props) {
 
     const [rows, setRows] = useState([]);
     const [cols, setCols] = useState([]);
-    // плохая затея, тк после ф5 не применяются
-    // const [styles, setStyles] = useState({});
+    const [styles, setStyles] = useState({});
     const [selectedRow, setSelectedRow] = useState();
     const [selectedCol, setSelectedCol] = useState();
     const [contextMenu, setContextMenu] = useState(null);
@@ -39,7 +38,7 @@ function DiskSpreadsheet(props) {
     const [showModalUploadFile, setShowModalUploadFile] = useState(false);
 
     useEffect(() => {
-        // console.log(selectedCol,selectedRow)
+        console.log(selectedCol,selectedRow)
     },[selectedCol,selectedRow])
 
     // Первичная загрузка данных
@@ -48,19 +47,22 @@ function DiskSpreadsheet(props) {
         fetchEntityNoteList();
     },[entity_id]);
 
+    useEffect(() => {
+        const newCols = cols;
+        for (const col of cols) {
+            col.renderCell = renderCell;
+        }
+        setCols([...newCols]);
+    },[styles,cols,rows]);
+
     const fetchEntity = () => {
         getDiskEntity({entity_id : entity_id},(err,resp) => {
             if (!err) {
                 dispatch(addEntity(resp));
                 if (resp.entity_note) {
-                    // setStyles((JSON.parse(resp.entity_note)).styles);
-
+                    setStyles({...(JSON.parse(resp.entity_note)).styles});
                     const cols = (JSON.parse(resp.entity_note)).cols;
                     setCols(cols);
-                    for (const col of cols) {
-                        // всем столбцам говорим юзать кастомную функцию для рендера ячейки
-                        col.renderCell = renderCell;
-                    }
                     setRows((JSON.parse(resp.entity_note)).rows);
                 } else {
                     // если в бд документ пустой
@@ -87,28 +89,15 @@ function DiskSpreadsheet(props) {
                 renderCell : renderCell
             });
         }
-        // _cols.push({
-        //     field : "_styles",
-        //     editable : true
-        // })
         setCols(_cols);
 
         // //
         // формируем строки
         let _rows = []
         for (let i=1;i<=50;i++) {
-            _rows.push({id:i
-                // , _styles : "color : red"
-            });
+            _rows.push({id:i});
         }
         setRows(_rows);
-
-        // // формируем стили
-        // setStyles({
-        //     'D1' : {color : "red", backgroundColor : "silver", fontWeight : "bold"},
-        //     'D2' : {color : "white", backgroundColor : "blue"},
-        //     'F2' : {color : "white", backgroundColor : "red"}
-        // });
     }
 
     const fetchEntityNoteList = () => {
@@ -130,13 +119,10 @@ function DiskSpreadsheet(props) {
     }
 
     const renderCell = (params) => {
-        console.log(params);
-        const style = {};
-        // const style = styles[params.field + params.id];
+        const style = styles[params.field + params.id];
         return (
             <>
                 <div style={style}>
-                {/* <div style={{color: "red", backgroundColor: "#ffc107", paddingLeft: "2px"}}> */}
                 {params.value}
                 </div>
         </>)
@@ -197,7 +183,7 @@ function DiskSpreadsheet(props) {
         const spreadsheet = {
             rows : rows,
             cols : cols,
-            // styles : styles
+            styles : styles
         }
 
         postDiskEntity(
@@ -433,8 +419,55 @@ function DiskSpreadsheet(props) {
           </GridToolbarContainer>
         );
     }
+
+    const changeStyle = (styleKey) => {
+        const newStyles = styles;
+        if (newStyles[selectedCol+selectedRow]) {
+            if (newStyles[selectedCol+selectedRow][styleKey]) {
+                    const {[styleKey] : _ , ...style} = newStyles[selectedCol+selectedRow];
+                    newStyles[selectedCol+selectedRow]= style;
+            } else {
+                newStyles[selectedCol+selectedRow]= {...newStyles[selectedCol+selectedRow]};
+                if (styleKey === "fontWeight") {
+                    newStyles[selectedCol+selectedRow][styleKey] = "bold";
+                }
+                if (styleKey === "fontStyle") {
+                    newStyles[selectedCol+selectedRow][styleKey] = "italic";
+                }
+                if (styleKey === "color") {
+                    newStyles[selectedCol+selectedRow][styleKey] = "red";
+                }
+                if (styleKey === "background") {
+                    newStyles[selectedCol+selectedRow][styleKey] = "#ace1af";
+                }
+            }
+        } else {
+            newStyles[selectedCol+selectedRow] = {};
+            if (styleKey === "fontWeight") {
+                newStyles[selectedCol+selectedRow][styleKey] = "bold";
+            }
+            if (styleKey === "fontStyle") {
+                newStyles[selectedCol+selectedRow][styleKey] = "italic";
+            }
+            if (styleKey === "color") {
+                newStyles[selectedCol+selectedRow][styleKey] = "red";
+            }
+            if (styleKey === "background") {
+                newStyles[selectedCol+selectedRow][styleKey] = "#ace1af";
+            }
+            
+        }
+        console.log(newStyles)
+        setStyles({...newStyles})
+    }
+
     return (
-    <Container fluid>
+    <Container fluid onClick={(e) => {
+            // if (e.target.className.indexOf("MuiDataGrid")) {
+            //     setSelectedRow(null);
+            //     setSelectedCol(null);
+            // }
+    }}>
         <ModalNote 
             type="textarea" 
             title={"Заметка"} 
@@ -474,6 +507,14 @@ function DiskSpreadsheet(props) {
                 <Button style={{marginLeft : "2px"}} type="button" variant="outline-primary" onClick={actionCallModalNote}><i className="bi bi-calendar2-plus"></i></Button>
                 <Button style={{marginLeft : "2px"}} variant="outline-primary" onClick={actionCallModalUploadFile}><i className="bi bi-cloud-arrow-up"></i> </Button>
                 <Button style={{marginLeft : "2px"}} type="button" variant="outline-danger" onClick={deleteEntity}><i className="bi bi-trash"></i></Button>
+                {selectedCol && selectedRow ? <>
+                    <Button type="button" variant="" onClick={()=>{changeStyle("fontWeight")}}><i className="bi bi-type-bold"></i></Button>
+                    <Button type="button" variant="" onClick={()=>{changeStyle("fontStyle")}}><i className="bi bi-type-italic"></i></Button>
+                    <Button type="button" style={{color: "red"}} variant="" onClick={()=>{changeStyle("color")}}>A</Button>
+                    <Button type="button" style={{background: "green"}} variant="" onClick={()=>{changeStyle("background")}}> </Button>
+                    </>
+                    : ""
+                }
                 </> : "" }
             </Form.Group>
         </Col>
@@ -485,7 +526,7 @@ function DiskSpreadsheet(props) {
                 placeholder="Имя документа"
                 defaultValue={Disk.entity.entity_name}
                 callBack={(value) => {
-                    console.log(Disk.entity);
+                    // console.log(Disk.entity);
                     postDiskEntity(
                         {   
                             entity_id : entity_id,
