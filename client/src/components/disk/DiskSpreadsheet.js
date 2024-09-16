@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useSelector, useDispatch } from 'react-redux'
 import { redirect, useNavigate, useParams } from "react-router-dom";
-import { Container, Button, Row, Col, Form, Card } from "react-bootstrap";
+import { Container, Button, Row, Col, Form, Card, ButtonGroup } from "react-bootstrap";
 import { DataGrid, GridColumnMenu, GridToolbarContainer, GridToolbarExport } from '@mui/x-data-grid';
 import { Menu, MenuItem, ListItemText } from '@mui/material';
 import { Navbar }  from "../navbar/Navbar";
@@ -119,7 +119,7 @@ function DiskSpreadsheet(props) {
     }
 
     const renderCell = (params) => {
-        const style = styles[params.field + params.id];
+        const style = styles[params.field + '||' +params.id];
         return (
             <>
                 <div style={style}>
@@ -422,40 +422,45 @@ function DiskSpreadsheet(props) {
 
     const changeStyle = (styleKey) => {
         const newStyles = styles;
-        if (newStyles[selectedCol+selectedRow]) {
-            if (newStyles[selectedCol+selectedRow][styleKey]) {
-                    const {[styleKey] : _ , ...style} = newStyles[selectedCol+selectedRow];
-                    newStyles[selectedCol+selectedRow]= style;
+        if (newStyles[selectedCol+'||'+selectedRow]) {
+            if (newStyles[selectedCol+'||'+selectedRow][styleKey]) {
+                    const {[styleKey] : _ , ...style} = newStyles[selectedCol+'||'+selectedRow];
+                    newStyles[selectedCol+'||'+selectedRow]= style;
             } else {
-                newStyles[selectedCol+selectedRow]= {...newStyles[selectedCol+selectedRow]};
+                newStyles[selectedCol+'||'+selectedRow]= {...newStyles[selectedCol+'||'+selectedRow]};
                 if (styleKey === "fontWeight") {
-                    newStyles[selectedCol+selectedRow][styleKey] = "bold";
+                    newStyles[selectedCol+'||'+selectedRow][styleKey] = "bold";
                 }
                 if (styleKey === "fontStyle") {
-                    newStyles[selectedCol+selectedRow][styleKey] = "italic";
+                    newStyles[selectedCol+'||'+selectedRow][styleKey] = "italic";
                 }
                 if (styleKey === "color") {
-                    newStyles[selectedCol+selectedRow][styleKey] = "red";
+                    newStyles[selectedCol+'||'+selectedRow][styleKey] = "red";
                 }
                 if (styleKey === "background") {
-                    newStyles[selectedCol+selectedRow][styleKey] = "#ace1af";
+                    newStyles[selectedCol+'||'+selectedRow][styleKey] = "#ace1af";
+                }
+                if (styleKey === "textDecoration") {
+                    newStyles[selectedCol+'||'+selectedRow][styleKey] = "line-through";
                 }
             }
         } else {
-            newStyles[selectedCol+selectedRow] = {};
+            newStyles[selectedCol+'||'+selectedRow] = {};
             if (styleKey === "fontWeight") {
-                newStyles[selectedCol+selectedRow][styleKey] = "bold";
+                newStyles[selectedCol+'||'+selectedRow][styleKey] = "bold";
             }
             if (styleKey === "fontStyle") {
-                newStyles[selectedCol+selectedRow][styleKey] = "italic";
+                newStyles[selectedCol+'||'+selectedRow][styleKey] = "italic";
             }
             if (styleKey === "color") {
-                newStyles[selectedCol+selectedRow][styleKey] = "red";
+                newStyles[selectedCol+'||'+selectedRow][styleKey] = "red";
             }
             if (styleKey === "background") {
-                newStyles[selectedCol+selectedRow][styleKey] = "#ace1af";
+                newStyles[selectedCol+'||'+selectedRow][styleKey] = "#ace1af";
             }
-            
+            if (styleKey === "textDecoration") {
+                newStyles[selectedCol+'||'+selectedRow][styleKey] = "line-through";
+            }
         }
         console.log(newStyles)
         setStyles({...newStyles})
@@ -508,10 +513,13 @@ function DiskSpreadsheet(props) {
                 <Button style={{marginLeft : "2px"}} variant="outline-primary" onClick={actionCallModalUploadFile}><i className="bi bi-cloud-arrow-up"></i> </Button>
                 <Button style={{marginLeft : "2px"}} type="button" variant="outline-danger" onClick={deleteEntity}><i className="bi bi-trash"></i></Button>
                 {selectedCol && selectedRow ? <>
-                    <Button type="button" variant="" onClick={()=>{changeStyle("fontWeight")}}><i className="bi bi-type-bold"></i></Button>
-                    <Button type="button" variant="" onClick={()=>{changeStyle("fontStyle")}}><i className="bi bi-type-italic"></i></Button>
-                    <Button type="button" style={{color: "red"}} variant="" onClick={()=>{changeStyle("color")}}>A</Button>
-                    <Button type="button" style={{background: "green"}} variant="" onClick={()=>{changeStyle("background")}}> </Button>
+                    <ButtonGroup style={{marginLeft : "16px"}}>
+                    <Button type="button" variant="outline-secondary" onClick={()=>{changeStyle("fontWeight")}}><i className="bi bi-type-bold"></i></Button>
+                    <Button type="button" variant="outline-secondary" onClick={()=>{changeStyle("fontStyle")}}><i className="bi bi-type-italic"></i></Button>
+                    <Button type="button" variant="outline-secondary" onClick={()=>{changeStyle("textDecoration")}}><i className="bi bi-type-strikethrough"></i></Button>
+                    <Button type="button" variant="outline-secondary" style={{color: "red"}} onClick={()=>{changeStyle("color")}}><i className="bi bi-file-font"></i></Button>
+                    <Button type="button" variant="outline-secondary" style={{color: "green"}} onClick={()=>{changeStyle("background")}}><i className="bi bi-square-fill"></i></Button>
+                    </ButtonGroup>
                     </>
                     : ""
                 }
