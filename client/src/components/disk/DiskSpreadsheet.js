@@ -38,7 +38,7 @@ function DiskSpreadsheet(props) {
     const [showModalUploadFile, setShowModalUploadFile] = useState(false);
 
     useEffect(() => {
-        console.log(selectedCol,selectedRow)
+        // console.log(selectedCol,selectedRow)
     },[selectedCol,selectedRow])
 
     // Первичная загрузка данных
@@ -53,7 +53,7 @@ function DiskSpreadsheet(props) {
             col.renderCell = renderCell;
         }
         setCols([...newCols]);
-    },[styles,cols,rows]);
+    },[styles,rows]); //[styles,cols,rows] if cols - infinity rerender
 
     const fetchEntity = () => {
         getDiskEntity({entity_id : entity_id},(err,resp) => {
@@ -61,9 +61,27 @@ function DiskSpreadsheet(props) {
                 dispatch(addEntity(resp));
                 if (resp.entity_note) {
                     setStyles({...(JSON.parse(resp.entity_note)).styles});
-                    const cols = (JSON.parse(resp.entity_note)).cols;
-                    setCols(cols);
-                    setRows((JSON.parse(resp.entity_note)).rows);
+                    const fetchedCols = (JSON.parse(resp.entity_note)).cols;
+                    // support old ver without _id
+                    const _idCol = fetchedCols.find((col) => col.field === '_id');
+                    if (!_idCol) {
+                        fetchedCols.push({field : "_id", editable : false})
+                    }
+                    ////
+                    setCols(fetchedCols);
+                    
+                    const fetchedRows = (JSON.parse(resp.entity_note)).rows;
+
+                    // support old ver without _id
+                    for (const row of fetchedRows) {
+                        if (row._id) {
+                            break;
+                        } else {
+                            row._id = row.id;
+                        }
+                    }
+                    ////
+                    setRows(fetchedRows);
                 } else {
                     // если в бд документ пустой
                     // сформируем дефолтный
@@ -82,20 +100,21 @@ function DiskSpreadsheet(props) {
         const alphabetArr = "abcdefghijklmnopqrstuvwxyz".split("");
         const _cols = [];
         // default cols end at "n"
-        for (let i=0;i<=13;i++) {
+        for (let i=0;i<=14;i++) {
             _cols.push({
                 field: alphabetArr[i].toUpperCase(),
                 editable: true,
                 renderCell : renderCell
             });
         }
+        _cols.push({field : "_id", editable : false})
         setCols(_cols);
 
         // //
         // формируем строки
         let _rows = []
         for (let i=1;i<=50;i++) {
-            _rows.push({id:i});
+            _rows.push({id:i, _id:i});
         }
         setRows(_rows);
     }
@@ -119,7 +138,8 @@ function DiskSpreadsheet(props) {
     }
 
     const renderCell = (params) => {
-        const style = styles[params.field + '||' +params.id];
+        // console.log(params.row._id);
+        const style = styles[params.field + '||' +params.row._id];
         return (
             <>
                 <div style={style}>
@@ -290,11 +310,19 @@ function DiskSpreadsheet(props) {
 
     // Добавление строк
     const addRows = (e,count,direction) => {
+        // find max _id
+        let max_id = null;
+        for (const row of rows) {
+            if (max_id < row._id) {
+                max_id = row._id;
+            }
+        }
+
         // count = 1 | 10
         // direction = up | down
         let newRows = [...rows];
         for (let i=1;i<=count;i++) {
-            newRows.splice(selectedRow+(direction==="up"?-1:0),0,{id:-1*i});
+            newRows.splice(selectedRow+(direction==="up"?-1:0),0,{id:-1*i, _id : max_id+i});
         }
         newRows = newRows.map((el,i)=> {
             el.id = i+1;
@@ -422,47 +450,56 @@ function DiskSpreadsheet(props) {
 
     const changeStyle = (styleKey) => {
         const newStyles = styles;
-        if (newStyles[selectedCol+'||'+selectedRow]) {
-            if (newStyles[selectedCol+'||'+selectedRow][styleKey]) {
-                    const {[styleKey] : _ , ...style} = newStyles[selectedCol+'||'+selectedRow];
-                    newStyles[selectedCol+'||'+selectedRow]= style;
+
+        let styleId = selectedCol+'||';
+        for (const row of rows) {
+            if (row.id === selectedRow) {
+                styleId += row._id;
+                break;
+            }
+        }
+
+        if (newStyles[styleId]) {
+            if (newStyles[styleId][styleKey]) {
+                    const {[styleKey] : _ , ...style} = newStyles[styleId];
+                    newStyles[styleId]= style;
             } else {
-                newStyles[selectedCol+'||'+selectedRow]= {...newStyles[selectedCol+'||'+selectedRow]};
+                newStyles[styleId]= {...newStyles[styleId]};
                 if (styleKey === "fontWeight") {
-                    newStyles[selectedCol+'||'+selectedRow][styleKey] = "bold";
+                    newStyles[styleId][styleKey] = "bold";
                 }
                 if (styleKey === "fontStyle") {
-                    newStyles[selectedCol+'||'+selectedRow][styleKey] = "italic";
+                    newStyles[styleId][styleKey] = "italic";
                 }
                 if (styleKey === "color") {
-                    newStyles[selectedCol+'||'+selectedRow][styleKey] = "red";
+                    newStyles[styleId][styleKey] = "red";
                 }
                 if (styleKey === "background") {
-                    newStyles[selectedCol+'||'+selectedRow][styleKey] = "#ace1af";
+                    newStyles[styleId][styleKey] = "#ace1af";
                 }
                 if (styleKey === "textDecoration") {
-                    newStyles[selectedCol+'||'+selectedRow][styleKey] = "line-through";
+                    newStyles[styleId][styleKey] = "line-through";
                 }
             }
         } else {
-            newStyles[selectedCol+'||'+selectedRow] = {};
+            newStyles[styleId] = {};
             if (styleKey === "fontWeight") {
-                newStyles[selectedCol+'||'+selectedRow][styleKey] = "bold";
+                newStyles[styleId][styleKey] = "bold";
             }
             if (styleKey === "fontStyle") {
-                newStyles[selectedCol+'||'+selectedRow][styleKey] = "italic";
+                newStyles[styleId][styleKey] = "italic";
             }
             if (styleKey === "color") {
-                newStyles[selectedCol+'||'+selectedRow][styleKey] = "red";
+                newStyles[styleId][styleKey] = "red";
             }
             if (styleKey === "background") {
-                newStyles[selectedCol+'||'+selectedRow][styleKey] = "#ace1af";
+                newStyles[styleId][styleKey] = "#ace1af";
             }
             if (styleKey === "textDecoration") {
-                newStyles[selectedCol+'||'+selectedRow][styleKey] = "line-through";
+                newStyles[styleId][styleKey] = "line-through";
             }
         }
-        console.log(newStyles)
+        // console.log(newStyles)
         setStyles({...newStyles})
     }
 
@@ -559,7 +596,7 @@ function DiskSpreadsheet(props) {
             rows={rows}
             columns={cols}
             // высота ячеек = auto если заполенных ячеек нет
-            getRowHeight={(cell) => {return Object.entries(cell.model).length < 2 ? 21: 'auto'}}
+            getRowHeight={(cell) => {return Object.entries(cell.model).length < 3 ? 21: 'auto'}}
             columnHeaderHeight = {21}
             autoHeight
             disableColumnSorting
@@ -568,7 +605,7 @@ function DiskSpreadsheet(props) {
             cellSelection
             columnVisibilityModel={{
                 // прячем столбец на будущее, для хранения стилей внутри row / col
-                _styles: false,
+                _id1: false,
             }}
             processRowUpdate={handleProcessRowUpdate}
             onColumnResize={handleColumnResize}
