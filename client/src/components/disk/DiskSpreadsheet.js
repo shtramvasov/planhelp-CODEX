@@ -605,7 +605,7 @@ function DiskSpreadsheet(props) {
             cellSelection
             columnVisibilityModel={{
                 // прячем столбец на будущее, для хранения стилей внутри row / col
-                _id1: false,
+                _id: false,
             }}
             processRowUpdate={handleProcessRowUpdate}
             onColumnResize={handleColumnResize}
