@@ -6,6 +6,8 @@ import DragTaskCard from "./board/DragTaskCard";
 import { useNavigate , useSearchParams, useParams} from "react-router-dom";
 import { addTask, dndTask, addTaskList, appendTaskList } from '../../../reducers/Project';
 import { getTask, postTask, getProjectTaskList, getProject, postTaskCommonNote } from '../../../network/TaskNetwork';
+import { Card } from 'react-bootstrap';
+import { PaginationDefault } from '../../constants/Pagination';
 
 function TaskBoardMode(props) {
 
@@ -13,11 +15,13 @@ function TaskBoardMode(props) {
 	const dispatch = useDispatch();
     const { project_id } = useParams();
 
+	const [{limit , offset}, setPagination] = useState({limit : PaginationDefault.limit, offset : PaginationDefault.offset});
+
 	const actionCallModaTaskEdit = props.actionCallModaTaskEdit;
 	const Project = useSelector((state) => state.project);
 	
-	const limit = searchParams.get("limit");
-    const offset = searchParams.get("offset")?searchParams.get("offset"):undefined;
+	// const limit = searchParams.get("limit");
+    // const offset = searchParams.get("offset")?searchParams.get("offset"):undefined;
     const executor_id = searchParams.get("executor_id");
     const responsible_id = searchParams.get("responsible_id");
     const reviewer_id = searchParams.get("reviewer_id");
@@ -26,10 +30,34 @@ function TaskBoardMode(props) {
     const sprint_id = searchParams.get("sprint_id");
 
     useEffect(() => {
+		setPagination({limit : PaginationDefault.limit, offset : PaginationDefault.offset});
 		if (Project.project.project_id) {
 			fetchProjectTaskList();
 		}
     },[executor_id, status_id, responsible_id, reviewer_id, tag_id, sprint_id, Project.project.project_id]);
+
+	useEffect(() => {
+		if (offset) {
+			const closed_status_ids = Project.project.project_status_list.filter((status) => {
+				return status.is_closed === 'Y'
+			});
+			// console.log(Project.taskList);
+			getProjectTaskList({
+				limit,offset, // закрытые задачи c пагинацией
+				project_id,
+				status_ids : closed_status_ids[0].status_id, 
+				executor_id, responsible_id, reviewer_id, tag_id, sprint_id,
+				sort : "orderby_time"
+			},(err,resp_closed) => {
+				if (!err) {
+					dispatch(addTaskList(Project.taskList.concat(resp_closed))); /// ?????
+				} else {
+					alert("Ошибка: "+err);
+				}
+			});
+			// alert(limit +","+ offset);
+		}
+	},[offset])
 
 	// достаем задачи с апи
 	const fetchProjectTaskList = () => {
@@ -40,14 +68,16 @@ function TaskBoardMode(props) {
 			return status.is_closed === 'Y'
 		});
 		getProjectTaskList({
-			limit:limit?limit:"", offset:offset?offset:"",project_id,
+			limit:"", offset:"", // не закрытые задачи без пагинации
+			project_id,
 			status_ids : open_status_ids.map((status) => status.status_id).join(','),
 			executor_id, responsible_id, reviewer_id, tag_id, sprint_id,
 			sort : "orderby_time"
 		},(err,resp_open) => {
 			if (!err) {
 				getProjectTaskList({
-					limit:limit?limit:"", offset:offset?offset:"",project_id,
+					limit : PaginationDefault.limit,offset : PaginationDefault.offset, // закрытые задачи c пагинацией
+					project_id,
 					status_ids : closed_status_ids[0].status_id, 
 					executor_id, responsible_id, reviewer_id, tag_id, sprint_id,
 					sort : "orderby_time"
@@ -104,6 +134,18 @@ function TaskBoardMode(props) {
 		})    
 	}
 	
+	// компонент для "Загрузить еще", передается пропсом в столбец закрытых заявок
+	const loadMoreComponent = () => {
+		return (<Card.Footer>
+			<a href="#" onClick={(e) => {
+				e.preventDefault();
+				const newOffset = offset + PaginationDefault.limit;
+				setPagination({limit, offset: newOffset});
+			}}
+			style={{fontSize: "0.9em"}} className="phLink">Загрузить еще</a>
+		</Card.Footer>)
+	}
+
 	const projectStatus = {};
 	const statusLaneList = Project.project.project_status_list.map((el) => {
 		projectStatus[el.status_id] = [];
@@ -114,7 +156,9 @@ function TaskBoardMode(props) {
         		status_name={el.status_name}
 				variant={el.variant}
 				taskList={projectStatus[el.status_id]}
-				// onDropTask={onChangeStatus}
+				// "Загрузить еще" только для закрывающего статуса
+				loadMoreComponent={ el.is_closed === 'Y' ? loadMoreComponent: "" }
+				
 			/>
 		)
 	});
