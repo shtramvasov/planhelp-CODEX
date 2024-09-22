@@ -49,6 +49,7 @@ function DropStatusLane(props) {
 			<div>
 				{props.taskList}
 			</div>
+            {props.loadMoreComponent ? <props.loadMoreComponent/> : ""}
         </Card>
         }
         </>
