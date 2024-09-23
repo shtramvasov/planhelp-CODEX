@@ -80,7 +80,7 @@ function TaskForm(props) {
 
     }
 
-    const submitComment = (value) => {
+    const submitComment = ({value, note_id}) => {
         // e.preventDefault();
         if (!value.trim()) {
             return;
@@ -90,6 +90,7 @@ function TaskForm(props) {
                 project_id, 
                 task_id, 
                 note : value,
+                note_id : note_id,
                 note_type : "COMMENT"
             }
             ,(err,resp) => {
@@ -159,17 +160,18 @@ function TaskForm(props) {
                     type="markDown"
                     placeholder="Ваш комментарий"
                     submitLabel="Комментировать"
-                    isEditable={false}
+                    // isEditable={false}
+                    additional={{...comment}}
                     defaultValue={comment.note}
-                    callBack={(value) => {
-                        submitComment(value);
+                    callBack={(value,additional) => {
+                        submitComment({value, note_id: additional.note_id});
                     }}
                 />
                 </small>
                 {/* <small>{comment.note}</small> */}
             </div>
             <div style={{textAlign: "right"}}>
-                <small style={{fontWeight: "300"}}>{comment.login} {moment(comment.created_on,'YYYY-MM-DDTHH:mm:ss.SSSZ').fromNow()}</small>
+                <small style={{fontWeight: "300", fontSize:"0.8em"}}>{comment.login} {moment(comment.created_on,'YYYY-MM-DDTHH:mm:ss.SSSZ').fromNow()}</small>
             </div>
             <hr/>
         </div>
@@ -184,7 +186,7 @@ function TaskForm(props) {
                 {/* <small>{comment.note}</small> */}
             </div>
             <div style={{textAlign: "right"}}>
-                <small style={{fontWeight: "300"}}>{comment.login} {moment(comment.created_on,'YYYY-MM-DDTHH:mm:ss.SSSZ').fromNow()}</small>
+            <small style={{fontWeight: "300", fontSize:"0.8em"}}>{comment.login} {moment(comment.created_on,'YYYY-MM-DDTHH:mm:ss.SSSZ').fromNow()}</small>
             </div>
             <hr/>
         </div>
@@ -215,7 +217,7 @@ function TaskForm(props) {
                                     isCancel={false}
                                     submitLabel="Комментировать"
                                     callBack={(value) => {
-                                        submitComment(value);
+                                        submitComment({value});
                                     }}
                                 />
                             </Form.Group>
