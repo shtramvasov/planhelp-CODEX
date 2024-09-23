@@ -155,7 +155,7 @@ export async function postTask({project_id, task_id,
 
 
 export async function postTaskCommonNote({project_id, task_id, note_id, note, note_type, note_2}, cb = () => {}) {
-    const response = await fetch(`/api/secure/project/task/note/${project_id}/${task_id}/`, {
+    const response = await fetch(`/api/secure/project/task/note/${project_id}/${task_id}/${note_id?note_id:""}`, {
         method: 'post',
         body: JSON.stringify({
             note,

@@ -25,6 +25,7 @@ function LinkInput(props) {
     //  submitLabel 
     //  cancelLabel
     //  isEditable true / false
+    //  additional, любые опции, которые необходимо передать после submit (например {comment_id: 1})
 
     // for textArea custom
     //  rows
@@ -68,7 +69,7 @@ function LinkInput(props) {
     const handleSumbit = (e) => {
         e.preventDefault();
         setIsEdit(props.isEdit !== undefined ?props.isEdit:false);
-        props.callBack(value);
+        props.callBack(value, props.additional);
         setValue("");
     }
     
