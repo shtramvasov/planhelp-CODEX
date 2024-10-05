@@ -171,7 +171,7 @@ function LinkInput(props) {
         : 
         <div style={{cursor:"pointer", minHeight:props.height}} onDoubleClick={handleEdit} >
             <MarkdownObject 
-                value = {props.defaultValue?.trim()?props.defaultValue?.replace(/\n/gi, '  <br/>'):noText} 
+                value = {props.defaultValue?.trim()?props.defaultValue?.replace(/\n/gi, '  \n'):noText} 
             />
             {
                 isEditable ? 
