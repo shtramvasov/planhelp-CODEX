@@ -3,7 +3,7 @@ import Button from 'react-bootstrap/Button';
 import Form from 'react-bootstrap/Form';
 import Modal from 'react-bootstrap/Modal';
 import ButtonGroup from 'react-bootstrap/ButtonGroup';
-import {Row, Col, Badge} from 'react-bootstrap';
+import {Row, Col, Badge, Alert, Accordion} from 'react-bootstrap';
 import moment from 'moment-timezone';
 import { getTask, postTask, getProject, postTaskCommonNote, postTaskTags } from '../../../network/TaskNetwork';
 import { getSprintList } from '../../../network/SprintNetwork';
@@ -155,23 +155,26 @@ function TaskForm(props) {
     const commentItems = Project.task?.comments.map((comment, index) => {
         return <div key={index}>
             <div>
-                <small>
-                <LinkInput
-                    type="markDown"
-                    placeholder="Ваш комментарий"
-                    submitLabel="Комментировать"
-                    // isEditable={false}
-                    additional={{...comment}}
-                    defaultValue={comment.note}
-                    callBack={(value,additional) => {
-                        submitComment({value, note_id: additional.note_id});
-                    }}
-                />
-                </small>
-                {/* <small>{comment.note}</small> */}
-            </div>
-            <div style={{textAlign: "right"}}>
-                <small style={{fontWeight: "300", fontSize:"0.8em"}}>{comment.login} {moment(comment.created_on,'YYYY-MM-DDTHH:mm:ss.SSSZ').fromNow()}</small>
+                <div style={{marginBottom: "8px"}}>
+                    <small style={{ fontSize:"0.8em"}}>
+                        <b>{comment.login}</b> {moment(comment.created_on,'YYYY-MM-DDTHH:mm:ss.SSSZ').fromNow()}
+                    </small>
+                </div>
+                <div>
+                    <small>
+                        <LinkInput
+                            type="markDown"
+                            placeholder="Ваш комментарий"
+                            submitLabel="Комментировать"
+                            // isEditable={false}
+                            additional={{...comment}}
+                            defaultValue={comment.note}
+                            callBack={(value,additional) => {
+                                submitComment({value, note_id: additional.note_id});
+                            }}
+                        />
+                    </small>
+                </div>
             </div>
             <hr/>
         </div>
@@ -179,14 +182,16 @@ function TaskForm(props) {
     // список файлов
     const fileItems = Project.task?.files.map((comment, index) => {
         return <div key={index}>
+            <div style={{marginBottom: "8px"}}>
+                <small style={{ fontSize:"0.8em"}}>
+                    <b>{comment.login}</b> {moment(comment.created_on,'YYYY-MM-DDTHH:mm:ss.SSSZ').fromNow()}
+                </small>
+            </div>
             <div>
                 <small>
                     <a target="_blank" className="phLink" href={comment.note_2}>{comment.note}</a>
                 </small>
                 {/* <small>{comment.note}</small> */}
-            </div>
-            <div style={{textAlign: "right"}}>
-            <small style={{fontWeight: "300", fontSize:"0.8em"}}>{comment.login} {moment(comment.created_on,'YYYY-MM-DDTHH:mm:ss.SSSZ').fromNow()}</small>
             </div>
             <hr/>
         </div>
@@ -203,7 +208,7 @@ function TaskForm(props) {
         return(
             <>
                 {/* Форма добавления коммента */}
-                <Row>
+                <Row style={{marginTop:"6px"}}>
                     <Col>
                         {/* <form onSubmit={submitComment}> */}
                         <Row>
@@ -262,21 +267,43 @@ function TaskForm(props) {
                 {/* Файлы */}
                 <Row>
                     <Col>
-                        <small><b>Файлы</b></small>&nbsp;
-                        <Badge bg="secondary">{fileItems.length}</Badge>
-                        <hr/>
-                        {fileItems}
+                    <Accordion defaultActiveKey="1">
+                        <Accordion.Item eventKey="0">
+                        <Accordion.Header>
+                            <small><b>Файлы</b></small>&nbsp;
+                            <Badge bg="secondary">{fileItems.length}</Badge>
+                        </Accordion.Header>
+                        <Accordion.Body>    
+                            {fileItems}
+                        </Accordion.Body>
+                        </Accordion.Item>
+                    </Accordion>
+                    </Col>
+                </Row>
+                <Row style={{marginTop:"6px"}}>
+                    <Col>
+                    <Accordion defaultActiveKey="1">
+                        <Accordion.Item eventKey="1">
+                        <Accordion.Header>
+                            <small><b>Комментарии</b></small>&nbsp;
+                            <Badge bg="secondary">{commentItems.length}</Badge>
+                        </Accordion.Header>
+                        <Accordion.Body>
+                            {commentItems}
+                        </Accordion.Body>
+                        </Accordion.Item>
+                    </Accordion>
                     </Col>
                 </Row>
                 {/* Комменты */}
-                <Row>
+                {/* <Row>
                     <Col>
                         <small><b>Комментарии</b></small>&nbsp;
                         <Badge bg="secondary">{commentItems.length}</Badge>
                         <hr/>
                         {commentItems}
                     </Col>
-                </Row>
+                </Row> */}
                 <DragDropFile files = { <FilesContainer /> } callBack= {actionUploadFileCallBack}  />
             </Col>
             <Col>

@@ -106,6 +106,7 @@ function LinkInput(props) {
             children={ props.value } 
             remarkPlugins={[remarkGfm]} 
             rehypePlugins={[rehypeRaw]} 
+            className="markdown-object"
         /> 
     }
 
@@ -150,7 +151,7 @@ function LinkInput(props) {
                         view={{menu: true, md: true, html: false}}  
                         onChange={onChangeMarkdown} 
                         value={value}
-                        style={{ height: props.height }} 
+                        style={{ height: props.height || "300px"}} 
                         renderHTML={ text => <MarkdownObject value = {text} /> } 
                     /> 
                 </Col>
@@ -170,7 +171,7 @@ function LinkInput(props) {
         : 
         <div style={{cursor:"pointer", minHeight:props.height}} onDoubleClick={handleEdit} >
             <MarkdownObject 
-                value = {props.defaultValue?.trim()?props.defaultValue?.replace(/\n/gi, '  \n'):noText} 
+                value = {props.defaultValue?.trim()?props.defaultValue?.replace(/\n/gi, '  <br/>'):noText} 
             />
             {
                 isEditable ? 
