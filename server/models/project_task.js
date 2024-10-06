@@ -45,6 +45,8 @@ class ProjectTask extends Model {
             status_ids,
             tag_id,
             sprint_id,
+            date_start,
+            date_end,
             sort
         } ) {
             console.log("limit, offset",limit, offset);
@@ -66,6 +68,18 @@ class ProjectTask extends Model {
                 no_value : true
                 // value: tag_id
             });
+        }
+        if (date_start) {
+            _custom.push( { 
+                sql : ` and (project_task.created_on >= ? )`, 
+                value : date_start 
+            } );
+        }
+        if (date_end) {
+            _custom.push( { 
+                sql : ` and (project_task.created_on <= ? )`, 
+                value : date_end 
+            } );
         }
         const taskList = await ProjectTask.find(con, {
             select : `project_task.*,

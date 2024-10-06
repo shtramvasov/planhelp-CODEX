@@ -91,3 +91,7 @@ ul.timeline > li:before {
 .accordion-header > .accordion-button > small{
   color: black!important;
 } 
+
+.phDatePicker {
+  width: 120px;
+}

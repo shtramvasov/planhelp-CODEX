@@ -24,17 +24,20 @@ function TaskListMode(props) {
     const status_id = searchParams.get("status_id");
     const tag_id = searchParams.get("tag_id");
     const sprint_id = searchParams.get("sprint_id");
+    const date_start = searchParams.get("date_start");
+	const date_end = searchParams.get("date_end");
     
     useEffect(() => {
         // загрузка данных о задачах
         fetchProjectTaskList();
-    },[offset, executor_id, status_id, responsible_id, reviewer_id, tag_id, sprint_id])
+    },[offset, executor_id, status_id, responsible_id, reviewer_id, tag_id, sprint_id, date_start, date_end])
 
     // достаем задачи с апи
     const fetchProjectTaskList = () => {
         getProjectTaskList({
             limit, offset, project_id,
             status_id, executor_id, responsible_id, reviewer_id, tag_id, sprint_id,
+            date_start, date_end,
             sort : "task_id"
         },(err,resp) => {
             if (!err) {
