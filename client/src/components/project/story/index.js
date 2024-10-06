@@ -5,7 +5,6 @@ import { useParams } from 'react-router-dom';
 import React, { useState, useEffect, useRef } from 'react';
 import Breadcrumb from "../../helpers/Breadcrumb";
 import { useSelector, useDispatch } from 'react-redux';
-import { getProject, getProjectTaskList, postTask } from "../../../network/TaskNetwork";
 import { addProject, addTaskList } from '../../../reducers/Project';
 import TabBar from "../TabBar";
 import moment from 'moment-timezone';

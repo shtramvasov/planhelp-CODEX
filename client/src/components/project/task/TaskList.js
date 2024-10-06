@@ -1,5 +1,7 @@
 import { Navbar }  from "../../navbar/Navbar";
 import { Container, Row, Col, Form, Button, ListGroup, Table, Badge, Dropdown, DropdownButton, InputGroup } from 'react-bootstrap';
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
 import { useNavigate , useSearchParams} from "react-router-dom";
 import { useParams } from 'react-router-dom';
 import React, { useState, useEffect, useRef } from 'react';
@@ -40,13 +42,20 @@ function TaskList(props) {
     const status_id = searchParams.get("status_id");
     const tag_id = searchParams.get("tag_id");
     const sprint_id = searchParams.get("sprint_id"); 
+    const date_start = searchParams.get("date_start"); 
+    const date_end = searchParams.get("date_end"); 
 
     const Project = useSelector((state) => state.project);
 
     document.title = Project.project.project_name +" | planhelp";
 
-    const onChangeUrl = ({status_id, executor_id, responsible_id, reviewer_id, tag_id, offset, limit}) => {
-        
+    const addDays = (date, days) => {
+        var result = new Date(date);
+        result.setDate(result.getDate() + days);
+        return result;
+    }
+
+    const onChangeUrl = ({status_id, executor_id, responsible_id, reviewer_id, tag_id, offset, limit, date_start, date_end}) => {
         const currentUrlObj = queryString.parse(document.location.search.slice(1));
         
         if (status_id !== undefined) currentUrlObj.status_id = status_id;
@@ -56,6 +65,8 @@ function TaskList(props) {
         if (tag_id !== undefined) currentUrlObj.tag_id = tag_id;
         if (limit !== undefined) currentUrlObj.limit = limit;
         if (offset !== undefined) currentUrlObj.offset = offset;
+        if (date_start !== undefined) currentUrlObj.date_start = date_start;
+        if (date_end !== undefined) currentUrlObj.date_end = date_end;
 
         navigate(`/project/${project_id}/${mode}?${queryString.stringify(currentUrlObj)}`);
         
@@ -107,6 +118,7 @@ function TaskList(props) {
         getProjectTaskList({
             limit:limit?limit:"", offset:offset?offset:"",project_id,
             status_id, executor_id, responsible_id, reviewer_id, tag_id, sprint_id,
+            date_start, date_end,
             sort : mode === "board" ? "orderby_time" : "task_id"
         },(err,resp) => {
             if (!err) {
@@ -239,6 +251,20 @@ function TaskList(props) {
                 }}
                 options={tagSelectOptions}
             />
+            &nbsp;
+            <DatePicker 
+                    wrapperClassName="datePicker phDatePicker" 
+                    placeholderText="ДД.ММ.ГГГГ"
+                    selected={Date.parse(date_start)}
+                    onChange={(date) => { onChangeUrl({date_start : date ? date.toISOString():""}) }}
+                    dateFormat="d.MM.yyyy"/>
+            <div style={{paddingTop: "6px",paddingBottom: "6px"}}>&nbsp;&mdash;&nbsp;</div>
+            <DatePicker 
+                    wrapperClassName="datePicker phDatePicker" 
+                    placeholderText="ДД.ММ.ГГГГ"
+                    selected={date_end ? addDays(Date.parse(date_end),-1): null}
+                    onChange={(date) => { onChangeUrl({date_end : date ? addDays(date,1).toISOString():""}) }}
+                    dateFormat="d.MM.yyyy"/>
         </InputGroup>        
         </Col>
     </Row>

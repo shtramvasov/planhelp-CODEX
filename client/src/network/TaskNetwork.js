@@ -87,7 +87,7 @@ export async function delUserToProject({ project_id, selectedUserId, user_role }
 }
 
 export async function getProjectTaskList(
-    {limit, offset, executor_id, responsible_id, reviewer_id, tag_id, sprint_id, status_id, status_ids, project_id, sort }
+    {limit, offset, executor_id, responsible_id, reviewer_id, tag_id, sprint_id, status_id, status_ids, project_id, date_start, date_end, sort }
     , cb = () => {}) {
     let url = `/api/secure/project/task/${project_id}/?`;
     limit !== undefined && (url += `limit=${limit}&`)
@@ -99,6 +99,8 @@ export async function getProjectTaskList(
     status_ids && (url += `status_ids=${status_ids}&`)
     tag_id && (url += `tag_id=${tag_id}&`)
     sprint_id && (url += `sprint_id=${sprint_id}&`)
+    date_start && (url += `date_start=${date_start}&`)
+    date_end && (url += `date_end=${date_end}&`)
     sort && (url += `sort=${sort}&`)
     const response = await fetch(url, {
         method: 'get',

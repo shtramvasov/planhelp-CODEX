@@ -3,7 +3,7 @@ import { Container, Row, Col, Button, Form, Nav } from 'react-bootstrap';
 import { Route, Routes, useNavigate , useLocation, Link} from "react-router-dom";
 import { useParams } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
-import { getProject, getProjectTaskList, postTask } from "../../network/TaskNetwork";
+import { getProject } from "../../network/TaskNetwork";
 import { addProject, addTaskList } from '../../reducers/Project';
 
 const noText = "Проект без названия";

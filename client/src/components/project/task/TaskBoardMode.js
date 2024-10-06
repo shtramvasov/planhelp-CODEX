@@ -28,13 +28,15 @@ function TaskBoardMode(props) {
     const status_id = searchParams.get("status_id");
     const tag_id = searchParams.get("tag_id");
     const sprint_id = searchParams.get("sprint_id");
-
+	const date_start = searchParams.get("date_start");
+	const date_end = searchParams.get("date_end");
+	
     useEffect(() => {
 		setPagination({limit : PaginationDefault.limit, offset : PaginationDefault.offset});
 		if (Project.project.project_id) {
 			fetchProjectTaskList();
 		}
-    },[executor_id, status_id, responsible_id, reviewer_id, tag_id, sprint_id, Project.project.project_id]);
+    },[executor_id, status_id, responsible_id, reviewer_id, tag_id, sprint_id, Project.project.project_id, date_start, date_end]);
 
 	useEffect(() => {
 		if (offset) {
@@ -47,6 +49,7 @@ function TaskBoardMode(props) {
 				project_id,
 				status_ids : closed_status_ids[0].status_id, 
 				executor_id, responsible_id, reviewer_id, tag_id, sprint_id,
+				date_start, date_end,
 				sort : "orderby_time"
 			},(err,resp_closed) => {
 				if (!err) {
@@ -72,6 +75,7 @@ function TaskBoardMode(props) {
 			project_id,
 			status_ids : open_status_ids.map((status) => status.status_id).join(','),
 			executor_id, responsible_id, reviewer_id, tag_id, sprint_id,
+			date_start, date_end,
 			sort : "orderby_time"
 		},(err,resp_open) => {
 			if (!err) {
@@ -80,6 +84,7 @@ function TaskBoardMode(props) {
 					project_id,
 					status_ids : closed_status_ids[0].status_id, 
 					executor_id, responsible_id, reviewer_id, tag_id, sprint_id,
+					date_start, date_end,
 					sort : "orderby_time"
 				},(err,resp_closed) => {
 					if (!err) {
