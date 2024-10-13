@@ -5,7 +5,8 @@ import Modal from 'react-bootstrap/Modal';
 import ButtonGroup from 'react-bootstrap/ButtonGroup';
 import {Row, Col, Badge, Alert, Accordion} from 'react-bootstrap';
 import moment from 'moment-timezone';
-import { getTask, postTask, getProject, postTaskCommonNote, postTaskTags } from '../../../network/TaskNetwork';
+import { getTask, postTask, postTaskCommonNote, postTaskTags, 
+            postProjectTaskTimelineStart, postProjectTaskTimelineEnd} from '../../../network/TaskNetwork';
 import { getSprintList } from '../../../network/SprintNetwork';
 import { addTask, addSprintList } from '../../../reducers/Project';
 import { Link, useNavigate , useSearchParams} from "react-router-dom";
@@ -14,6 +15,7 @@ import { useParams } from 'react-router-dom';
 import LinkInput from '../../helpers/LinkInput';
 import ToastMessage from "../../helpers/ToastMessage";
 import DragDropFile from "../../helpers/DragDropFile";
+import { addPositiveMessage, addNegativeMessage } from '../../../reducers/App';
 
 import 'moment/locale/ru';
 moment.locale('ru');
@@ -33,6 +35,7 @@ function TaskForm(props) {
     const navigate = useNavigate();
     const { project_id, task_id } = props;
 
+    const User = useSelector((state) => state.user);
     const Project = useSelector((state) => state.project);
     
     // Первичная загрузка данных
@@ -46,7 +49,7 @@ function TaskForm(props) {
             if (!err) {
                 dispatch(addTask(resp));
             } else {
-                alert("Ошибка: "+err);
+                dispatch(addNegativeMessage(err));
             }
         });
     };
@@ -64,7 +67,7 @@ function TaskForm(props) {
             if (!err) {
                 fetchTask();
             } else {
-                alert("Ошибка: "+err);
+                dispatch(addNegativeMessage(err));
             }
         })    
     }
@@ -74,10 +77,31 @@ function TaskForm(props) {
             if (!err) {
                 fetchTask();
             } else {
-                alert("Ошибка: "+err);
+                dispatch(addNegativeMessage(err));
             }
         })
 
+    }
+
+    const startPtt = () => {
+        postProjectTaskTimelineStart({project_id : project_id, task_id : task_id}, (err,resp) => {
+            if (!err) {
+                fetchTask();
+                dispatch(addPositiveMessage("Вы начали работу над задачей"));
+            } else {
+                dispatch(addNegativeMessage(err));
+            }
+        });
+    }
+    const stopPtt = () => {
+        postProjectTaskTimelineEnd({project_id : project_id, task_id : task_id}, (err,resp) => {
+            if (!err) {
+                fetchTask();
+                dispatch(addPositiveMessage("Вы остановили работу над задачей"));
+            } else {
+                dispatch(addNegativeMessage(err));
+            }
+        });
     }
 
     const submitComment = ({value, note_id}) => {
@@ -98,7 +122,7 @@ function TaskForm(props) {
                     fetchTask();
                     // e.target.taskCommonNote.value = "";
                 } else {
-                    alert("Ошибка: "+err);
+                    dispatch(addNegativeMessage(err));
                 }
             })
     }
@@ -121,7 +145,7 @@ function TaskForm(props) {
                 if (!err) {
                     fetchTask();
                 } else {
-                    alert("Ошибка: "+err);
+                    dispatch(addNegativeMessage(err));
                 }
         })
     }
@@ -176,7 +200,7 @@ function TaskForm(props) {
                     </small>
                 </div>
             </div>
-            <hr/>
+            {( Project.task?.comments.length !== index+1 ? <hr/> : "" )}
         </div>
     });
     // список файлов
@@ -193,7 +217,26 @@ function TaskForm(props) {
                 </small>
                 {/* <small>{comment.note}</small> */}
             </div>
-            <hr/>
+            {( Project.task?.files.length !== index+1 ? <hr/> : "" )}
+        </div>
+    });
+    // список временной таблицы
+    const timetableItems = Project.task?.timetable.map((timeline, index) => {
+        return <div key={index}>
+            <div style={{marginBottom: "8px"}}>
+                <small style={{ fontSize:"0.8em"}}>
+                    <b>{timeline.login}</b>&nbsp;
+                    {moment(timeline.date_start,'YYYY-MM-DDTHH:mm:ss.SSSZ').format('LLL')}
+                    &nbsp;&mdash;&nbsp;
+                    {timeline.date_end ? 
+                        moment(timeline.date_end,'YYYY-MM-DDTHH:mm:ss.SSSZ').format('LLL') 
+                        : "дата и время окончания еще не указана"}
+                </small>
+                &nbsp;
+                <small><a className="phLink" style={{fontSize:"0.8em"}} href="#" onClick={()=>{alert("Будет чуть позже ;)")}}>изменить</a></small>
+            </div>
+            {( Project.task?.timetable.length !== index+1 ? <hr/> : "" )}
+            
         </div>
     });
     // список тэгов
@@ -264,8 +307,24 @@ function TaskForm(props) {
                         </Form.Group>
                     </Col>
                 </Row>
+                {/* Временная таблица */}
+                <Row style={{marginTop:"6px"}}>
+                    <Col>
+                    <Accordion defaultActiveKey="1">
+                        <Accordion.Item eventKey="0">
+                        <Accordion.Header>
+                            <small><b>Учет затраченного времени</b></small>&nbsp;
+                            <Badge bg="secondary">{timetableItems.length}</Badge>
+                        </Accordion.Header>
+                        <Accordion.Body>
+                            {timetableItems}
+                        </Accordion.Body>
+                        </Accordion.Item>
+                    </Accordion>
+                    </Col>
+                </Row>
                 {/* Файлы */}
-                <Row>
+                <Row style={{marginTop:"6px"}}>
                     <Col>
                     <Accordion defaultActiveKey="1">
                         <Accordion.Item eventKey="0">
@@ -280,6 +339,7 @@ function TaskForm(props) {
                     </Accordion>
                     </Col>
                 </Row>
+                {/* Комментарии */}
                 <Row style={{marginTop:"6px"}}>
                     <Col>
                     <Accordion defaultActiveKey="1">
@@ -295,18 +355,24 @@ function TaskForm(props) {
                     </Accordion>
                     </Col>
                 </Row>
-                {/* Комменты */}
-                {/* <Row>
-                    <Col>
-                        <small><b>Комментарии</b></small>&nbsp;
-                        <Badge bg="secondary">{commentItems.length}</Badge>
-                        <hr/>
-                        {commentItems}
-                    </Col>
-                </Row> */}
                 <DragDropFile files = { <FilesContainer /> } callBack= {actionUploadFileCallBack}  />
             </Col>
             <Col>
+                <Row style={{marginTop: "8px"}}>
+                    <Col>
+                        {Project.task?.timetable.some((timeline) => 
+                            timeline.user_id == User.profile.user_id 
+                                && !timeline.date_end) ?
+                                <Button variant="secondary" onClick={stopPtt}>
+                                    <i className="bi bi-stop-fill"></i>
+                                </Button>
+                                :
+                                <Button variant="success" onClick={startPtt}>
+                                    <i className="bi bi-play-fill"></i>
+                                </Button>
+                        }
+                    </Col>
+                </Row>
                 <Row style={{marginTop: "8px"}}>
                     <Col>
                         <div>
