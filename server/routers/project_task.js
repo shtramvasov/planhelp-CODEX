@@ -11,6 +11,7 @@ const ProjectTags = require('../models/project_tags');
 const ProjectTaskTags = require('../models/project_task_tags');
 const ProjectSprints = require('../models/project_sprints');
 const ProjectStatus = require('../models/project_status');
+const ProjectTaskTimetable = require('../models/project_task_timetable');
 
 // Список тасков или детали таски
 router.get('/:project_id/:task_id?', withTransaction(async (req, res, next) => {
@@ -60,6 +61,17 @@ router.get('/:project_id/:task_id?', withTransaction(async (req, res, next) => {
         where : {task_id}
     });
     task.tags = tags;
+    // достаем таблицу времени
+    const timetable = await ProjectTaskTimetable.find(con, {
+        select : "project_task_timetable.* ,ref_users.login",
+        joins : [ 
+            { table : "ref_users", on : "project_task_timetable.user_id = ref_users.user_id" }
+        ],
+        where : {task_id},
+        orderby : "date_start"
+    });
+    task.timetable = timetable;
+
     res.send(task);
 }));
 

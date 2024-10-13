@@ -276,3 +276,39 @@ export async function deleteProjectTag({ project_id, tag_id }, cb = () => {}) {
         cb(response.status + " " + response.statusText);
     }
 }
+
+export async function postProjectTaskTimelineStart({ project_id, task_id }, cb = () => {}) {
+    const response = await fetch(`/api/secure/project/task/ptt/${project_id}/${task_id}/start`, {
+        method: 'post',
+        body: JSON.stringify({}),
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${Cookies.get("secret")}`
+        }
+    });
+
+    if (response.ok) {
+        const data = await response.json();
+        cb(null,data);
+    } else {
+        cb(response.status + " " + response.statusText);
+    }
+}
+
+export async function postProjectTaskTimelineEnd({ project_id, task_id }, cb = () => {}) {
+    const response = await fetch(`/api/secure/project/task/ptt/${project_id}/${task_id}/end`, {
+        method: 'post',
+        body: JSON.stringify({}),
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${Cookies.get("secret")}`
+        }
+    });
+
+    if (response.ok) {
+        const data = await response.json();
+        cb(null,data);
+    } else {
+        cb(response.status + " " + response.statusText);
+    }
+}
