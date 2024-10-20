@@ -312,3 +312,40 @@ export async function postProjectTaskTimelineEnd({ project_id, task_id }, cb = (
         cb(response.status + " " + response.statusText);
     }
 }
+
+export async function deleteProjectTaskTimeline({ project_id, task_id, ptt_id }, cb = () => {}) {
+    const response = await fetch(`/api/secure/project/task/ptt/${project_id}/${task_id}/${ptt_id}`, {
+        method: 'delete',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${Cookies.get("secret")}`
+        }
+    });
+
+    if (response.ok) {
+        const data = await response.json();
+        cb(null,data);
+    } else {
+        cb(response.status + " " + response.statusText);
+    }
+}
+
+export async function postProjectTaskTimeline({ project_id, task_id, ptt_id, user_id, date_start, date_end }, cb = () => {}) {
+    const response = await fetch(`/api/secure/project/task/ptt/${project_id}/${task_id}/${ptt_id ? ptt_id : ""}`, {
+        method: 'post',
+        body: JSON.stringify({
+            user_id, date_start, date_end
+        }),
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${Cookies.get("secret")}`
+        }
+    });
+
+    if (response.ok) {
+        const data = await response.json();
+        cb(null,data);
+    } else {
+        cb(response.status + " " + response.statusText);
+    }
+}
