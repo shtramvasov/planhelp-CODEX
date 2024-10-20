@@ -1,21 +1,20 @@
 import React, { useState , useEffect} from 'react';
 import Button from 'react-bootstrap/Button';
 import Form from 'react-bootstrap/Form';
-import Modal from 'react-bootstrap/Modal';
-import ButtonGroup from 'react-bootstrap/ButtonGroup';
 import {Row, Col, Badge, Alert, Accordion} from 'react-bootstrap';
 import moment from 'moment-timezone';
-import { getTask, postTask, postTaskCommonNote, postTaskTags, 
-            postProjectTaskTimelineStart, postProjectTaskTimelineEnd} from '../../../network/TaskNetwork';
-import { getSprintList } from '../../../network/SprintNetwork';
-import { addTask, addSprintList } from '../../../reducers/Project';
+import  { getTask, postTask, postTaskCommonNote, postTaskTags, 
+            postProjectTaskTimelineStart, postProjectTaskTimelineEnd, 
+            deleteProjectTaskTimeline, postProjectTaskTimeline
+        } from '../../../network/TaskNetwork';
+import { addTask, addPtt } from '../../../reducers/Project';
 import { Link, useNavigate , useSearchParams} from "react-router-dom";
 import { useSelector, useDispatch } from 'react-redux';
-import { useParams } from 'react-router-dom';
 import LinkInput from '../../helpers/LinkInput';
-import ToastMessage from "../../helpers/ToastMessage";
+import PttModal from "./PttModal";
 import DragDropFile from "../../helpers/DragDropFile";
 import { addPositiveMessage, addNegativeMessage } from '../../../reducers/App';
+import { messages } from "../../constants/Msg";
 
 import 'moment/locale/ru';
 moment.locale('ru');
@@ -30,7 +29,8 @@ moment.locale('ru');
 
 function TaskForm(props) {
     
-    const [isEdit, setIsEdit] = useState(false);
+    const [showModalPttEdit, setShowModalPttEdit] = useState(false);
+
     const dispatch = useDispatch();
     const navigate = useNavigate();
     const { project_id, task_id } = props;
@@ -150,6 +150,47 @@ function TaskForm(props) {
         })
     }
 
+    const actionCallPtt = (e, timeline) => {
+        e.preventDefault();
+        dispatch(addPtt(timeline ? timeline : {}))
+        setShowModalPttEdit(true);
+    }
+
+    // колбэк после изменения времени
+    const actionCallModaPttCallback = (ptt) => {
+        if (ptt) {
+            postProjectTaskTimeline({
+                user_id : ptt.user_id,
+                date_start : ptt.date_start,
+                date_end : ptt.date_end,
+                ptt_id : ptt.ptt_id,
+                project_id : project_id,
+                task_id : task_id
+            },(err,resp) => {
+                    if (!err) {
+                        dispatch(addPositiveMessage(messages.SUCCESS));
+                        fetchTask();
+                    } else {
+                        dispatch(addNegativeMessage(err));
+                    }
+                }
+            )
+        }
+        setShowModalPttEdit(false);
+    }
+
+    const actionCallModaPttDeleteCallback = (ptt) => {
+        deleteProjectTaskTimeline({project_id : project_id, task_id : task_id, ptt_id : ptt.ptt_id}, (err,resp) => {
+            if (!err) {
+                dispatch(addPositiveMessage(messages.SUCCESS));
+                fetchTask();
+            } else {
+                dispatch(addNegativeMessage(err));
+            }
+        });
+        setShowModalPttEdit(false);
+    }
+
     // мапированный массив статусов
     const statusSelectOptions = Project.project.project_status_list.map(status => {
         return {value : status.status_id, label : status.status_name}
@@ -233,7 +274,13 @@ function TaskForm(props) {
                         : "дата и время окончания еще не указана"}
                 </small>
                 &nbsp;
-                <small><a className="phLink" style={{fontSize:"0.8em"}} href="#" onClick={()=>{alert("Будет чуть позже ;)")}}>изменить</a></small>
+                {Project.project.user_role === "OWNER" || timeline.login === User.profile.login?
+                    <small>
+                        <a className="phLink" style={{fontSize:"0.8em"}} href="#" onClick={(e)=>{actionCallPtt(e,timeline)}}>изменить</a>
+                    </small>
+                    : ""
+                }
+
             </div>
             {( Project.task?.timetable.length !== index+1 ? <hr/> : "" )}
             
@@ -279,8 +326,14 @@ function TaskForm(props) {
     }
 
     return (
-    
         <Row>
+            {/* Модалка создания */}
+            <PttModal 
+                fullscreen={true}
+                show={showModalPttEdit} 
+                callBack={actionCallModaPttCallback}
+                deleteCallBack={actionCallModaPttDeleteCallback}
+            />
             <Col sm={12} lg={10}>
                 <Row>
                     <Col>
@@ -317,6 +370,11 @@ function TaskForm(props) {
                             <Badge bg="secondary">{timetableItems.length}</Badge>
                         </Accordion.Header>
                         <Accordion.Body>
+                            <Form.Group className="mb-3">
+                                <Button style={{padding: "0px"}} type="button" variant="" onClick={(e) => actionCallPtt(e)} >
+                                    <i className="bi bi-plus-circle"></i>
+                                </Button>
+                            </Form.Group>
                             {timetableItems}
                         </Accordion.Body>
                         </Accordion.Item>

@@ -80,7 +80,15 @@ export const projectSlice = createSlice({
             is_deleted: "",
             status: null
         },
-        sprintList : []
+        sprintList : [],
+        ptt : {
+            ptt_id : null,
+            task_id : 103,
+            user_id : null,
+            date_start : null,
+            date_end : null,
+            login : ""
+        }
     },
     reducers: {
         addProject: (state, action) => {
@@ -133,6 +141,9 @@ export const projectSlice = createSlice({
         addSprintList: (state, action) => {
             state.sprintList = (action.payload);
         },
+        addPtt : (state, action) => {
+            state.ptt = (action.payload);
+        }
     }
 });
 
@@ -144,7 +155,8 @@ export const {
     addTaskList,
     appendTaskList,
     addSprint,
-    addSprintList
+    addSprintList,
+    addPtt
 } = projectSlice.actions;
 
 export default projectSlice.reducer;
