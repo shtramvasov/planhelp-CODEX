@@ -152,7 +152,10 @@ function TaskForm(props) {
 
     const actionCallPtt = (e, timeline) => {
         e.preventDefault();
-        dispatch(addPtt(timeline ? timeline : {}))
+        dispatch(addPtt(timeline ? timeline : { 
+            user_id : User.profile.user_id,
+            login : User.profile.login
+         }))
         setShowModalPttEdit(true);
     }
 

@@ -80,7 +80,7 @@ function PttModal(props) {
                                 <LinkInput 
                                     type="selectList"
                                     placeholder="Исполнитель"
-                                    defaultDisplay={Project.ptt.user_id ? Project.ptt.login : User.profile.login}
+                                    defaultDisplay={Project.ptt.login}
                                     value={executorSelectOptionsDefault}
                                     options={userSelectOptions}
                                     callBack={ (value, label) => { onChange({user_id : value, login : label}) } }
