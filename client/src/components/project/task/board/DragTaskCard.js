@@ -59,7 +59,7 @@ function DragTaskCard(props) {
 			<Card onClick={props.onClick}
 				ref={ref}
 				key={props.task_id}
-				style={{textWrap: "balance", margin: "4px", cursor: "pointer"}}>
+				style={{whiteSpace: "normal", textWrap: "balance", wordBreak: "break-word", margin: "4px", cursor: "pointer", overflow: "hidden"}}>
 				<Card.Body>
 					<div style={{fontSize: "0.9em", fontWeight: "500"}}>
 						{props.task_title}
