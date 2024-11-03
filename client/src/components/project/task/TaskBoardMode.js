@@ -196,7 +196,7 @@ function TaskBoardMode(props) {
 
     return (
         <div>
-			<div style={{overflow: "auto", whiteSpace: "nowrap", minHeight: "600px"}}>
+			<div style={{overflow: "auto", whiteSpace: "nowrap"}}>
 				{statusLaneList}
 			</div>
         </div>

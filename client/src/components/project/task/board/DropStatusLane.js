@@ -23,13 +23,20 @@ function DropStatusLane(props) {
                 marginRight: "2px",
                 marginLeft: "2px",
 				verticalAlign: "top",
-                minHeight : "400px",
+                // minHeight : "400px",
+                // height :"100vh",
+                overflow: "scroll"
             }}
 			ref={drop} >
 			<Card.Header><Badge style={{fontWeight:"400"}} bg={props.variant}>{props.status_name}</Badge></Card.Header>
-			<div>
+			<div style={{
+                height :"93vh",
+                overflow: "scroll"
+            }}>
 				{props.taskList}
+                {props.loadMoreComponent ? <props.loadMoreComponent/> : ""}
 			</div>
+            
         </Card>
         : 
         <Card 
@@ -40,16 +47,21 @@ function DropStatusLane(props) {
                 marginRight: "2px",
                 marginLeft: "2px",
 				verticalAlign: "top",
-                minHeight : "400px",
+                // minHeight : "400px",
+                
             }}
 			// ref={drop} 
             // no drop if exists tasks in lane
             >
 			<Card.Header><Badge style={{fontWeight:"400"}} bg={props.variant}>{props.status_name}</Badge></Card.Header>
-			<div>
+			<div style={{
+                height :"93vh",
+                overflow: "scroll"
+            }}>
 				{props.taskList}
+                {props.loadMoreComponent ? <props.loadMoreComponent/> : ""}
 			</div>
-            {props.loadMoreComponent ? <props.loadMoreComponent/> : ""}
+            
         </Card>
         }
         </>
