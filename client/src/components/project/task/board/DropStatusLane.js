@@ -53,7 +53,10 @@ function DropStatusLane(props) {
 			// ref={drop} 
             // no drop if exists tasks in lane
             >
-			<Card.Header><Badge style={{fontWeight:"400"}} bg={props.variant}>{props.status_name}</Badge></Card.Header>
+			<Card.Header>
+                <Badge style={{fontWeight:"400"}} bg={props.variant}>{props.status_name}</Badge>&nbsp;
+                <Badge bg="white" text="secondary">{props.taskList.length}</Badge>
+            </Card.Header>
 			<div style={{
                 height :"93vh",
                 overflow: "scroll"
