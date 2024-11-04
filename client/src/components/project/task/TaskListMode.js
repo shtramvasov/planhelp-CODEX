@@ -86,14 +86,19 @@ function TaskListMode(props) {
                     {el.executor_id?<><i className="bi bi-person"></i> {el.ru_executor_login} &nbsp;</> :""}
                     {el.ru_responsible_id?<><i className="bi bi-person-check"></i> {el.ru_responsible_login} &nbsp;</> :""}
                     {el.ru_reviewer_id?<><i className="bi bi-arrow-right"></i> {el.ru_reviewer_login} &nbsp;</> :""}
-                    {
+                    {el.comments_files_count.split(":")[0] != 0? 
+								<>
+									<i style={{color: "#555"}}className="bi bi-chat-text-fill"></i> {el.comments_files_count.split(":")[0]}
+								</>
+								: ""}
+                    {/* {
 							el.date_start ? 
 								<i className="bi bi-circle-fill" style={{fontSize: "0.8em", color : 
 									moment(el.date_end,'YYYY-MM-DDTHH:mm:ss.SSSZ').diff(moment(),'days') < 0 ? "red" : 
 									moment(el.date_end,'YYYY-MM-DDTHH:mm:ss.SSSZ').diff(moment(),'days') < 2 ? "yellow" : "green"
 								}}></i>
 							: ""
-                    }
+                    } */}
                 </p>
                 <div>
                     {el.tags_str?.split(',').map((el) =>

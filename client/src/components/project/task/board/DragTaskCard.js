@@ -54,6 +54,8 @@ function DragTaskCard(props) {
 	
 	drop(drag(ref));
 
+	const commentsCount = props.comments_files_count.split(":")[0];
+
 	return (
 		<a href={`/project/${props.project_id}/task/${props.task_id}/`} style={{textDecoration: "none", color: "inherit"}}>
 			<Card onClick={props.onClick}
@@ -67,16 +69,23 @@ function DragTaskCard(props) {
 					<div>
 						<p className="mb-1" style={{fontSize: "0.8em"}}>
 							{props.ru_executor_id?<><i className="bi bi-person"></i> {props.ru_executor_login} &nbsp;</> :""}
+							{commentsCount != 0? 
+								<>
+									<i style={{color: "#555"}}className="bi bi-chat-text-fill"></i> {commentsCount}
+								</>
+								: ""}
+							{/* <i style={{color: "#555"}}className="bi bi-file-earmark-text-fill"></i> {props.comments_files_count.split(":")[1]} */}
+
 							{/* {props.ru_responsible_id?<><i className="bi bi-person-check"></i> {props.ru_responsible_login} &nbsp;</> :""}
 							{props.ru_reviewer_id?<><i className="bi bi-arrow-right"></i> {props.ru_reviewer_login} &nbsp;</> :""} */}
-							{
+							{/* {
 							props.date_start ? 
 								<i className="bi bi-circle-fill" style={{fontSize: "0.8em", color : 
 									moment(props.date_end,'YYYY-MM-DDTHH:mm:ss.SSSZ').diff(moment(),'days') < 0 ? "red" : 
 									moment(props.date_end,'YYYY-MM-DDTHH:mm:ss.SSSZ').diff(moment(),'days') < 2 ? "yellow" : "green"
 								}}></i>
 							: ""
-							}
+							} */}
 						</p>
 					</div>
 					<div>
