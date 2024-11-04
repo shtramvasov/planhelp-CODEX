@@ -145,7 +145,7 @@ static getEntityBreadcrumb = async({entity_tree, user_id}, con) => {
 }
 
 // Контекстный поиск
-static getEntitySearch = async ({entity_id, search, user_id}, con) => {
+static getEntitySearch = async ({entity_tree, search, user_id}, con) => {
     const params = [];
     let sql = `select de.entity_id,
                     de.entity_name, 
@@ -154,7 +154,7 @@ static getEntitySearch = async ({entity_id, search, user_id}, con) => {
                     de.created_by, 
                     de.created_on,
                     deu.user_role
-                from (select ? p_entity_id, ? p_search, ? p_user_id) params 
+                from (select ? p_entity_tree, ? p_search, ? p_user_id) params 
                         cross join disk_entity de
                         inner join disk_entity_users deu 
                             on de.entity_id = deu.entity_id
@@ -165,9 +165,9 @@ static getEntitySearch = async ({entity_id, search, user_id}, con) => {
                         upper(de.entity_note) like concat('%',params.p_search,'%')
                         )
                     and de.is_deleted = 'N'`;
-    if (entity_id) {
-        sql = sql + ` and de.entity_tree like p_entity_id `;
-        params.push(entity_id +'/%');
+    if (entity_tree) {
+        sql = sql + ` and de.entity_tree like p_entity_tree `;
+        params.push(entity_tree +'%');
     } else {
         params.push(null);
     }
