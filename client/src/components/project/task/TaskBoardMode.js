@@ -184,6 +184,7 @@ function TaskBoardMode(props) {
 					ru_executor_login={el.ru_executor_login}
 					ru_responsible_login={el.ru_responsible_login}
 					ru_reviewer_login={el.ru_reviewer_login}
+					comments_files_count={el.comments_files_count}
 					tags_str={el.tags_str}
 					date_start={el.date_start}
 					date_end={el.date_end}

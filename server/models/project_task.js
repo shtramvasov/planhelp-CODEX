@@ -94,7 +94,18 @@ class ProjectTask extends Model {
                         project_status.variant,
                         ps.date_end,
                         ps.date_start,
-                        ps.sprint_name`,
+                        ps.sprint_name,
+                        (select concat(
+                                    coalesce(
+                                    cast(sum(case when note_type = 'COMMENT' then 1 else 0 end) as char(40))
+                                    ,'0'),
+                                    ':',
+                                    coalesce(
+                                    cast(sum(case when note_type = 'FILE' then 1 else 0 end) as char(40))
+                                    ,'0')
+                                )
+                           from common_note cn where cn.task_id = project_task.task_id) as "comments_files_count"
+                        `,
             joins : [
                 { table : "ref_users ru_created", 
                         on : "project_task.created_by = ru_created.user_id" },

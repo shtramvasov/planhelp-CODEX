@@ -17,7 +17,7 @@ function TabBar(props) {
 
             <Nav.Item>
                 <Nav.Link as={Link} to={`/project/${project_id}/settings/access`}
-                    active={location.pathname == (`/project/${project_id}/settings/access`)}>Доступы</Nav.Link>
+                    active={location.pathname == (`/project/${project_id}/settings/access`)}>Команда</Nav.Link>
             </Nav.Item>
 
             <Nav.Item>

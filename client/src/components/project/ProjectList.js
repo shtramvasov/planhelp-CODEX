@@ -1,5 +1,5 @@
 import { Navbar }  from "../navbar/Navbar";
-import { Container, Row, Col, Button } from 'react-bootstrap';
+import { Container, Row, Col, Button, Badge } from 'react-bootstrap';
 import { useNavigate , useSearchParams} from "react-router-dom";
 import { useParams } from 'react-router-dom';
 import React, { useState, useEffect, useRef } from 'react';
@@ -53,6 +53,9 @@ function ProjectList(props) {
                         <small className="text-body-secondary">
                             Проект создан: { moment(el.created_on,'YYYY-MM-DDTHH:mm:ss.SSSZ').fromNow() } <br />
                             {/* (Вроде как тут планировалось показывать last update, но поле только created_on есть) */}
+                            <i style={{color : "#555"}}className="bi bi-people-fill"></i> {
+                            <Badge bg="secondary">{el.total_user_count}</Badge>
+                            }
                         </small>
                     </p>
                 </div>
