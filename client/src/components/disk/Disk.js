@@ -69,7 +69,8 @@ function Disk(props) {
     // Поиск по диску, вызывается по enter на поле поиска
     const actionFindSubmit = (e) => {
         e.preventDefault();
-        navigate(`/disk?search=${e.target.formFindText.value}`);
+
+        navigate(`/disk${entity_id?"/"+entity_id:""}?search=${e.target.formFindText.value}`);
         //fetchEntity();
     }
 
@@ -400,7 +401,11 @@ function Disk(props) {
         <Col>
             <form onSubmit={actionFindSubmit}>
                 <Form.Group controlId="formFindText">
-                    <Form.Control type="text" placeholder="Поиск" defaultValue={searchParams.get("search")}/>
+                    <Form.Control type="text" 
+                        placeholder={`${Disk.entity.entity_type === 'ROOT'?
+                            "Поиск по всем документам": "Поиск в "+Disk.entity.entity_name}`}
+                        defaultValue={searchParams.get("search")}
+                    />
                 </Form.Group>
             </form>
         </Col>
