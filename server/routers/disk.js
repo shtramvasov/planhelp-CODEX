@@ -30,7 +30,11 @@ router.get('/:entity_id?', async (req, res, next) => {
         }
         if (search) {
             // контекстный поиск, не валидируем entity, потому что не надо
-            entity.childEntityList = await entityModel.getEntitySearch({entity_id, search,user_id },con);
+            entity.childEntityList = await entityModel.getEntitySearch({
+                entity_tree : entity.entity_tree, 
+                search,
+                user_id 
+            },con);
         }
         if (!search 
             && (entity.entity_type === PATH || entity.entity_type === ROOT)) {
