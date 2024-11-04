@@ -85,7 +85,7 @@ router.post('/', async (req, res, next) => {
                 created_by : user_id,
                 is_deleted : Project.CONSTANTS.N,
                 total_task_count : 0,
-                total_user_count : 0
+                total_user_count : 1
             }
         });
         // тот кто сто создал проект - owner
@@ -199,7 +199,10 @@ router.post('/:project_id/users', async (req, res, next) => {
         if (projectRole.user_role !== ProjectUser.CONSTANTS.OWNER) throw 'Permission denied';
 
         await ProjectUser.create(con,{values : { project_id, user_id, user_role }});
-
+        await Project.update(con, {
+            values : {total_user_count : {expression : "total_user_count + 1"}}, 
+            where: {project_id}
+        });
         res.send({ok:true});
     } catch(error) {
         next(error);
@@ -316,7 +319,10 @@ router.post('/:project_id/users/revoke', async (req, res, next) => {
         if (projectRole.user_role !== ProjectUser.CONSTANTS.OWNER) throw 'Permission denied';
 
         await ProjectUser.delete(con,{where : { project_id, user_id }});
-
+        await Project.update(con, {
+            values : {total_user_count : {expression : "total_user_count - 1"}}, 
+            where: {project_id}
+        });
         res.send({ok:true});
     } catch(error) {
         next(error);
