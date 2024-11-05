@@ -1,5 +1,5 @@
 import { Navbar }  from "../../navbar/Navbar";
-import { Container, Row, Col, Form, Button, ListGroup, Table, Badge, Dropdown, DropdownButton, InputGroup } from 'react-bootstrap';
+import { Container, Row, Col, Form, Button, ListGroup, Table, Badge, Dropdown, DropdownButton, InputGroup, Collapse } from 'react-bootstrap';
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { useNavigate , useSearchParams} from "react-router-dom";
@@ -30,6 +30,7 @@ function TaskList(props) {
     const dispatch = useDispatch();
     const navigate = useNavigate();
     const { project_id, mode } = useParams();
+    const [showFilters, setshowFilters] = useState(false);
     const [showModalTaskEdit, setShowModalTaskEdit] = useState(false);
     const [showModalTaskCreate, setShowModalTaskCreate] = useState(false);
     const [modalProjectTaskData, setModalProjectTaskData] = useState({project_id: undefined, task_id : undefined});
@@ -85,6 +86,12 @@ function TaskList(props) {
         e.preventDefault();
         // dispatch(addEntityNote({}));
         setShowModalTaskCreate(true);
+    }
+
+    // вызов фильров
+    const actionCallFilter = (e) => {
+        e.preventDefault();
+        setshowFilters(!showFilters);
     }
 
     // колбэк после редактирования задачи
@@ -190,85 +197,123 @@ function TaskList(props) {
         <Col>
         <InputGroup>
             <Button type="button" variant="" onClick={actionCallModaTaskCreate} >
-                    <i className="bi bi-plus-circle"></i>
+                <i className="bi bi-plus-circle"></i>
             </Button>
-            <Select 
-                // isMulti 
-                closeMenuOnSelect={true} 
-                isClearable
-                onChange={(option) => {
-                    onChangeUrl({status_id : option?option.value:null})
-                }}
-                value={statusSelectOptionsDefault}
-                placeholder="Статус" 
-                options={statusSelectOptions}
-            />
-            &nbsp;
-            <Select 
-                // isMulti 
-                closeMenuOnSelect={true} 
-                isClearable
-                placeholder="Исполнитель" 
-                value={executorSelectOptionsDefault}
-                onChange={(option) => {
-                    onChangeUrl({executor_id : option?option.value:null})
-                }}
-                options={userSelectOptions}
-            />
-            &nbsp;
-            <Select 
-                // isMulti 
-                closeMenuOnSelect={true}
-                isClearable
-                placeholder="Ответственный"
-                value={responsibleSelectOptionsDefault}
-                onChange={(option) => {
-                    onChangeUrl({responsible_id : option?option.value:null})
-                }}
-                options={userSelectOptions}
-            />
-            &nbsp;
-            <Select 
-                // isMulti 
-                closeMenuOnSelect={true}
-                isClearable
-                placeholder="Ревьювер" 
-                value={reviewerSelectOptionsDefault}
-                onChange={(option) => {
-                    onChangeUrl({reviewer_id : option?option.value:null})
-                }}
-                options={userSelectOptions}
-            />
-            &nbsp;
-            <Select 
-                // isMulti 
-                closeMenuOnSelect={true}
-                isClearable
-                placeholder="Тэг" 
-                value={tagSelectOptionsDefault}
-                onChange={(option) => {
-                    onChangeUrl({tag_id : option?option.value:null})
-                }}
-                options={tagSelectOptions}
-            />
-            &nbsp;
-            <DatePicker 
-                    wrapperClassName="datePicker phDatePicker" 
-                    placeholderText="ДД.ММ.ГГГГ"
-                    selected={Date.parse(date_start)}
-                    onChange={(date) => { onChangeUrl({date_start : date ? date.toISOString():""}) }}
-                    dateFormat="d.MM.yyyy"/>
-            <div style={{paddingTop: "6px",paddingBottom: "6px"}}>&nbsp;&mdash;&nbsp;</div>
-            <DatePicker 
-                    wrapperClassName="datePicker phDatePicker" 
-                    placeholderText="ДД.ММ.ГГГГ"
-                    selected={date_end ? addDays(Date.parse(date_end),-1): null}
-                    onChange={(date) => { onChangeUrl({date_end : date ? addDays(date,1).toISOString():""}) }}
-                    dateFormat="d.MM.yyyy"/>
+            <Button type="button" variant="" onClick={actionCallFilter} >
+                <i className="bi bi-filter"></i>
+            </Button>
         </InputGroup>        
         </Col>
     </Row>
-    <Row style={{marginTop: "16px"}}>
+    <Row style={{marginTop: "8px"}}>
+        <Col>
+        <Collapse in={showFilters}>
+            <div>
+            <Row>
+                <Col md={3}>
+                    <Form.Group className="mb-3">
+                    <Select 
+                        // isMulti 
+                        closeMenuOnSelect={true} 
+                        isClearable
+                        onChange={(option) => {
+                            onChangeUrl({status_id : option?option.value:null})
+                        }}
+                        value={statusSelectOptionsDefault}
+                        placeholder="Статус" 
+                        options={statusSelectOptions}
+                    />
+                    </Form.Group>
+                </Col>
+                <Col md={3}>
+                    <Form.Group className="mb-3">
+                    <Select 
+                        // isMulti 
+                        closeMenuOnSelect={true} 
+                        isClearable
+                        placeholder="Исполнитель" 
+                        value={executorSelectOptionsDefault}
+                        onChange={(option) => {
+                            onChangeUrl({executor_id : option?option.value:null})
+                        }}
+                        options={userSelectOptions}
+                    />
+                    </Form.Group>
+                </Col>
+                <Col md={3}>
+                    <Form.Group className="mb-3">
+                    <Select 
+                        // isMulti 
+                        closeMenuOnSelect={true}
+                        isClearable
+                        placeholder="Ответственный"
+                        value={responsibleSelectOptionsDefault}
+                        onChange={(option) => {
+                            onChangeUrl({responsible_id : option?option.value:null})
+                        }}
+                        options={userSelectOptions}
+                    />
+                    </Form.Group>
+                </Col>
+                <Col md={3}>
+                    <Form.Group className="mb-3">
+                    <Select 
+                        // isMulti 
+                        closeMenuOnSelect={true}
+                        isClearable
+                        placeholder="Ревьювер" 
+                        value={reviewerSelectOptionsDefault}
+                        onChange={(option) => {
+                            onChangeUrl({reviewer_id : option?option.value:null})
+                        }}
+                        options={userSelectOptions}
+                    />
+                    </Form.Group>
+                </Col>
+            </Row>
+            <Row>
+                <Col md={3}>
+                    <Form.Group className="mb-3">
+                    <Select 
+                        // isMulti 
+                        closeMenuOnSelect={true}
+                        isClearable
+                        placeholder="Тэг" 
+                        value={tagSelectOptionsDefault}
+                        onChange={(option) => {
+                            onChangeUrl({tag_id : option?option.value:null})
+                        }}
+                        options={tagSelectOptions}
+                    />
+                    </Form.Group>
+                </Col>
+                <Col md={6}>
+                    <InputGroup>
+                    <Form.Group className="mb-3">
+                        <DatePicker 
+                            wrapperClassName="datePicker phDatePicker" 
+                            placeholderText="ДД.ММ.ГГГГ"
+                            selected={Date.parse(date_start)}
+                            onChange={(date) => { onChangeUrl({date_start : date ? date.toISOString():""}) }}
+                            dateFormat="d.MM.yyyy"/>
+                    </Form.Group>
+                    <div style={{paddingTop: "6px",paddingBottom: "6px"}}>&nbsp;&mdash;&nbsp;</div>
+                    <Form.Group className="mb-3">
+                        <DatePicker 
+                            wrapperClassName="datePicker phDatePicker" 
+                            placeholderText="ДД.ММ.ГГГГ"
+                            selected={date_end ? addDays(Date.parse(date_end),-1): null}
+                            onChange={(date) => { onChangeUrl({date_end : date ? addDays(date,1).toISOString():""}) }}
+                            dateFormat="d.MM.yyyy"/>
+                    </Form.Group>
+                    </InputGroup>
+                </Col>
+            </Row>
+            </div>
+        </Collapse>
+        </Col>
+    </Row>
+    <Row>
         <Col lg={12}>
             {mode === "board"? 
                 <TaskBoardMode actionCallModaTaskEdit={actionCallModaTaskEdit}/> 
