@@ -80,7 +80,7 @@ function TaskListMode(props) {
             variant={el.is_closed === "Y"? "secondary":""}>
                 <div className="d-flex w-100 justify-content-between">
                     <h6 className="mb-1">{el.task_title}</h6>
-                    <small>{moment(el.created_on,'YYYY-MM-DDTHH:mm:ss.SSSZ').fromNow()}</small>
+                    <small>{moment(el.created_on,'YYYY-MM-DDTHH:mm:ss.SSSZ').format('LLL')}</small>
                 </div>
                 <p className="mb-1" style={{fontSize: "0.8em"}}>
                     {el.executor_id?<><i className="bi bi-person"></i> {el.ru_executor_login} &nbsp;</> :""}
