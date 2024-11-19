@@ -64,7 +64,9 @@ function TaskDetail(props) {
                     </span>
                     </h5>
                     <hr/>
+                <div>
                 <TaskForm project_id={project_id} task_id={task_id} />
+                </div>
             </Col>
         </Row>
     </Container>

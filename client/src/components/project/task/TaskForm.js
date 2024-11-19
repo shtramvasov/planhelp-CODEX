@@ -12,6 +12,7 @@ import { Link, useNavigate , useSearchParams} from "react-router-dom";
 import { useSelector, useDispatch } from 'react-redux';
 import LinkInput from '../../helpers/LinkInput';
 import PttModal from "./PttModal";
+import ModalInputFile from "../../helpers/ModalInputFile";
 import DragDropFile from "../../helpers/DragDropFile";
 import { addPositiveMessage, addNegativeMessage } from '../../../reducers/App';
 import { messages } from "../../constants/Msg";
@@ -30,6 +31,7 @@ moment.locale('ru');
 function TaskForm(props) {
     
     const [showModalPttEdit, setShowModalPttEdit] = useState(false);
+    const [showModalUploadFile, setShowModalUploadFile] = useState(false);
 
     const dispatch = useDispatch();
     const navigate = useNavigate();
@@ -129,6 +131,7 @@ function TaskForm(props) {
 
     // Колбэк с модалки загрузки файла
     const actionUploadFileCallBack = (file) => {
+        setShowModalUploadFile(false);
         if (!file) {
             return;
         }
@@ -144,6 +147,7 @@ function TaskForm(props) {
             ,(err,resp) => {
                 if (!err) {
                     fetchTask();
+                    dispatch(addPositiveMessage(messages.SUCCESS));
                 } else {
                     dispatch(addNegativeMessage(err));
                 }
@@ -337,6 +341,11 @@ function TaskForm(props) {
                 callBack={actionCallModaPttCallback}
                 deleteCallBack={actionCallModaPttDeleteCallback}
             />
+            <ModalInputFile 
+                title={"Загрузить файл"} 
+                show={showModalUploadFile} 
+                callBack= {actionUploadFileCallBack}  
+            />
             <Col sm={12} lg={10}>
                 <Row>
                     <Col>
@@ -393,7 +402,15 @@ function TaskForm(props) {
                             <small><b>Файлы</b></small>&nbsp;
                             <Badge bg="secondary">{fileItems.length}</Badge>
                         </Accordion.Header>
-                        <Accordion.Body>    
+                        <Accordion.Body>
+                            <Form.Group className="mb-3">
+                                <Button style={{padding: "0px"}} 
+                                    type="button" 
+                                    variant="" 
+                                    onClick={(e) => {e.preventDefault();setShowModalUploadFile(true);}} >
+                                    <i className="bi bi-plus-circle"></i>
+                                </Button>
+                            </Form.Group>
                             {fileItems}
                         </Accordion.Body>
                         </Accordion.Item>
