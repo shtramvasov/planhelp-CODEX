@@ -10,10 +10,11 @@ import { useNavigate , useSearchParams} from "react-router-dom";
 import { getDiskEntity, postDiskEntity, moveDiskEntity, deleteDiskEntity } from '../../network/DiskNetwork';
 import { postEntityNote } from '../../network/NoteNetwork';
 import { useParams } from 'react-router-dom';
-import ToastMessage from "../helpers/ToastMessage";
 import DragDropFile from "../helpers/DragDropFile";
 import DiskRemindList from "./DiskRemindList";
 import Breadcrumb from "../helpers/Breadcrumb";
+import { addPositiveMessage, addNegativeMessage } from '../../reducers/App';
+import { messages } from "../constants/Msg";
 
 function Disk(props) {
     
@@ -29,9 +30,6 @@ function Disk(props) {
     const [showModalUploadFile, setShowModalUploadFile] = useState(false);
     const [showModalCreateSpreadsheet, setShowModalCreateSpreadsheet] = useState(false);
     
-    const [showToastSuccessUploadFile, setToastSuccessUploadFile] = useState(false);
-    const didCloseToast = () => setToastSuccessUploadFile(false);
-    
     const fetchEntity = () => {
         getDiskEntity({entity_id : entity_id, search : searchParams.get("search")},(err,resp) => {
             if (!err) {
@@ -39,9 +37,8 @@ function Disk(props) {
                     navigate(`/disk/${entity_id}/file/read`);
                 }
                 dispatch(addEntity(resp));
-                // fetchFiles();
             } else {
-                alert("Ошибка: "+err);
+                dispatch(addNegativeMessage(err));
             }
         });
     };
@@ -69,21 +66,17 @@ function Disk(props) {
     // Поиск по диску, вызывается по enter на поле поиска
     const actionFindSubmit = (e) => {
         e.preventDefault();
-
         navigate(`/disk${entity_id?"/"+entity_id:""}?search=${e.target.formFindText.value}`);
-        //fetchEntity();
     }
 
     // Вызов модалки создания папки
     const actionCallModalNewPath = (e) => {
-        console.log("newPath");
         e.preventDefault();
         setShowModalCreatePath(true);
     }
 
     // Вызов модалки создания файла
     const actionCallModalNewFile = (e) => {
-        console.log("newFile");
         e.preventDefault();
         setShowModalCreateFile(true);
     }
@@ -138,7 +131,7 @@ function Disk(props) {
         );
     }
     
-   // Колбэк с модалки после создания файла
+   // Колбэк с модалки после создания spreadsheet
    const actionNewSpreadsheetCallBack = (fileName) => {
         setShowModalCreateSpreadsheet(false);
         if (!fileName) return;
@@ -160,16 +153,9 @@ function Disk(props) {
     // Колбэк с модалки загрузки файла
     const actionUploadFileCallBack = (file) => {
         setShowModalUploadFile(false);
-        if (!file) {
-            return;
-        }
-
-        /// Записываем информацию о загруженном файле
-        /// Показываем сообщение
-        /// Скрываем сообщение через 5 сек.
-        dispatch(addLastUploadFile(file));
-        setToastSuccessUploadFile(true);
-        setTimeout(didCloseToast, 5000);
+        if (!file) return;
+        
+        dispatch(addLastUploadFile(file)); 
 
         // Адовая Дичь и лапша и говна которую надо переписать будет в будущем
         // нарушение атомарности 
@@ -194,20 +180,14 @@ function Disk(props) {
                     },
                     (err,resp) => {
                         if (!err) {
-                            
+                            dispatch(addPositiveMessage(messages.SUCCESS));
                         } else {
-                            alert("Ошибка: "+err);
+                            dispatch(addNegativeMessage(messages.UPLOAD_FAIL));
                         }
                     });
-
                 }
             }
         );
-    }
-
-    // Колбек с инфо.сообщение о том что файл загрузили
-    const actionSuccessUploadFileCallBack = () => {
-        didCloseToast()
     }
 
     // Обработка клика по entity
@@ -298,20 +278,6 @@ function Disk(props) {
                 >
                 {Disk.entity.type === "PATH" ? <strong>..</strong> : <small>..</small>}    
             </ListGroup.Item>
-        )
-    }
-
-    // Показываем сообщение с информацией о загруженным файле
-    const TastInfoSuccessFile = () => {
-        return (
-            <Table striped bordered hover>
-                <tbody>
-                    <tr style={{ verticalAlign: 'middle' }} >
-                        <td> {Disk.lastUploadFile.name} </td>
-                        <td> {Disk.lastUploadFile.size} Кб </td>
-                    </tr>
-                </tbody>
-            </Table>
         )
     }
 
@@ -449,18 +415,6 @@ function Disk(props) {
             : <></>
         }
     </Row>
-    <br />
-    {/* <Row>
-        <Col>
-            <ListGroup> {listFiles} </ListGroup>
-        </Col>
-    </Row> */}
-
-    {
-        // Инфо сообщение, о том что файл загрузили
-        showToastSuccessUploadFile ?  <ToastMessage title = "Файл загрузили" body = {TastInfoSuccessFile}  callBack = { actionSuccessUploadFileCallBack } /> : ""
-    }
-
     </Container>
     );
 }

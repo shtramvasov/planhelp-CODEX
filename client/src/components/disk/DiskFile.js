@@ -9,11 +9,12 @@ import { useNavigate } from "react-router-dom";
 import { getDiskEntity, postDiskEntity, deleteDiskEntity } from '../../network/DiskNetwork';
 import { getEntityNoteList, postEntityNote } from '../../network/NoteNetwork';
 import { useParams } from 'react-router-dom';
-import ToastMessage from "../helpers/ToastMessage";
 import Card from 'react-bootstrap/Card';
 import Breadcrumb from "../helpers/Breadcrumb";
 import moment from 'moment-timezone';
 import 'moment/locale/ru';
+import { addPositiveMessage, addNegativeMessage } from '../../reducers/App';
+import { messages } from "../constants/Msg";
 
 // Обработчик markdown 
 import ReactMarkdown from 'react-markdown'
@@ -31,8 +32,6 @@ MdEditor.unuse(Plugins.BlockQuote)
 // - Фулл скрин (не нужен)
 MdEditor.unuse(Plugins.FullScreen)
 
-
-
 moment.locale('ru');
 
 function DiskFile(props) {
@@ -47,15 +46,13 @@ function DiskFile(props) {
     const [showModalNote, setShowModalNote] = useState(false);
     const [showModalUploadFile, setShowModalUploadFile] = useState(false);
     const [entityNote, setEntityNote]  = useState("");
-    const [showToastSuccessUploadFile, setToastSuccessUploadFile] = useState(false);
-    const didCloseToast = () => setToastSuccessUploadFile(false);
 
     const fetchEntity = () => {
         getDiskEntity({entity_id : entity_id},(err,resp) => {
             if (!err) {
                 dispatch(addEntity(resp));    
             } else {
-                alert("Ошибка: "+err);
+                dispatch(addNegativeMessage(err));
             }
         });
     };
@@ -65,7 +62,7 @@ function DiskFile(props) {
             if (!err) {
                 dispatch(addEntityNotes(resp));    
             } else {    
-                alert("Ошибка: "+err);
+                dispatch(addNegativeMessage(err));
             }
         });
     }
@@ -172,7 +169,7 @@ function DiskFile(props) {
                 if (!err) {
                     fetchEntityNoteList();
                 } else {
-                    alert("Ошибка: "+err);
+                    dispatch(addNegativeMessage(err));
                 }
             });
     }
@@ -183,13 +180,7 @@ function DiskFile(props) {
         if (!file) {
             return;
         }
-
-        /// Записываем информацию о загруженном файле
-        /// Показываем сообщение
-        /// Скрываем сообщение через 5 сек.
         dispatch(addLastUploadFile(file));
-        setToastSuccessUploadFile(true);
-        setTimeout(didCloseToast, 5000);
        
         postEntityNote({
             entity_id : entity_id,
@@ -201,16 +192,12 @@ function DiskFile(props) {
         },
         (err,resp) => {
             if (!err) {
+                dispatch(addPositiveMessage(messages.SUCCESS));
                 fetchEntityNoteList();
             } else {
-                alert("Ошибка: "+err);
+                dispatch(addNegativeMessage(messages.UPLOAD_FAIL));
             }
         });
-    }
-
-    // Колбек с инфо.сообщение о том что файл загрузили
-    const actionSuccessUploadFileCallBack = () => {
-        didCloseToast()
     }
 
     const onEditNote = (e,el) => {
@@ -261,20 +248,6 @@ function DiskFile(props) {
 
     const handleEditorChange = ({ html, text }) => {
         setEntityNote(text)
-    }
-
-    // Показываем сообщение с информацией о загруженным файле
-    const TastInfoSuccessFile = () => {
-        return (
-            <Table striped bordered hover>
-                <tbody>
-                    <tr style={{ verticalAlign: 'middle' }} >
-                        <td> {Disk.lastUploadFile.name} </td>
-                        <td> {Disk.lastUploadFile.size} Кб </td>
-                    </tr>
-                </tbody>
-            </Table>
-        )
     }
 
     // Панель действий
@@ -380,12 +353,6 @@ function DiskFile(props) {
     </Row>
     </form>
     }
-
-    {
-        // Инфо сообщение, о том что файл загрузили
-        showToastSuccessUploadFile ?  <ToastMessage title = "Файл загрузили" body = {TastInfoSuccessFile}  callBack = { actionSuccessUploadFileCallBack } /> : ""
-    }
-
     </Container>
     );
 }
