@@ -103,7 +103,8 @@ ul.timeline > li:before {
 
 .phUl > li {
   font-size: 0.8em;
-  padding-bottom: 8px;
+  padding-bottom: 4px;
+  padding-top: 4px;
   padding-left: 8px;
 }
 
