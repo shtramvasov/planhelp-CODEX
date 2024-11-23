@@ -95,3 +95,24 @@ ul.timeline > li:before {
 .phDatePicker {
   width: 120px;
 }
+
+.phUl {
+  list-style: none;
+  padding-inline-start: 10px;
+}
+
+.phUl > li {
+  font-size: 0.8em;
+  padding-bottom: 8px;
+  padding-left: 8px;
+}
+
+.phUl > li.active {
+  border-left: 2px solid blue;
+  padding-left: 6px;
+  /* font-weight: 800; */
+}
+
+.phUl > li > a {
+  text-decoration: none;
+}
