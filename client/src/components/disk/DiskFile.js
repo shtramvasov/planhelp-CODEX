@@ -323,7 +323,7 @@ function DiskFile(props) {
                 <hr style={{marginBottom: "8px",marginTop: "8px"}}/>
                 <ul className="phUl">
                 {Disk.entity?.levelEntityList.map((el)=>{
-                    if (el.entity_type === "FILE") 
+                    if (["FILE","GRID"].includes(el.entity_type)) 
                         return (
                             <li class={el.entity_id == entity_id ? "active" : 'notactive'}>
                                 <a onClick={(e)=>{ e.preventDefault(); navigate(`/disk/${el.entity_id}/file/read`); }}
