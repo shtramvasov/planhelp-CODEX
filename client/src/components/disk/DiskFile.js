@@ -309,34 +309,41 @@ function DiskFile(props) {
             <h2>{Disk.entity.entity_name}</h2>
         </Col>
     </Row>
-    {Disk.entity.entity_note?
-        <Row className="p-2 mt-0 pt-0">
-            <Col lg={10} className="shadow p-3 bg-white rounded">
-                {/* hack for \n for reactMarkdown replace(/\n/gi, '  \n') */}
-                {/* replace all \n for space + space + \n */}
-                <MarkdownObject value = {(Disk.entity.entity_note)?.replace(/\n/gi, '  \n')} />
-            </Col>
-            <Col lg={2}>
-                <span style={{fontSize: "0.9em",marginLeft:"8px", color: "#555"}}>
-                    <b>Еще файлы в папке:</b>
-                </span>
-                <hr style={{marginBottom: "8px",marginTop: "8px"}}/>
-                <ul className="phUl">
-                {Disk.entity?.levelEntityList.map((el)=>{
-                    if (["FILE","GRID"].includes(el.entity_type)) 
-                        return (
-                            <li class={el.entity_id == entity_id ? "active" : 'notactive'}>
-                                <a onClick={(e)=>{ e.preventDefault(); navigate(`/disk/${el.entity_id}/file/read`); }}
-                                    href={`/disk/${el.entity_id}/file/read`}>
-                                        {el.entity_name}
-                                </a>
-                            </li>
-                        );
-                })}
-                </ul>
-            </Col>
-        </Row>:""
-    }
+    
+    <Row className="p-2 mt-0 pt-0">
+        <Col lg={10} className="shadow p-3 bg-white rounded">
+            {/* hack for \n for reactMarkdown replace(/\n/gi, '  \n') */}
+            {/* replace all \n for space + space + \n */}
+            {Disk.entity.entity_note?
+                <MarkdownObject value = {(Disk.entity.entity_note)?.replace(/\n/gi, '  \n')} />:""
+            }
+        </Col>
+        <Col lg={2}>
+            <span style={{fontSize: "0.9em",marginLeft:"8px", color: "#555"}}>
+                <b>Еще файлы в папке:</b>
+            </span>
+            <hr style={{marginBottom: "8px",marginTop: "8px"}}/>
+            <ul className="phUl">
+            {Disk.entity.levelEntityList?.map((el)=>{
+                if (["FILE","GRID"].includes(el.entity_type)) 
+                    return (
+                        <li class={el.entity_id == entity_id ? "active" : 'notactive'}>
+                            <a onClick={(e)=>{ 
+                                    e.preventDefault(); 
+                                    if (el.entity_type == "FILE") navigate(`/disk/${el.entity_id}/file/read`); 
+                                    else
+                                    if (el.entity_type == "GRID") navigate(`/disk/${el.entity_id}/spreadsheet`); 
+                                }}
+                                href={`/disk/${el.entity_id}/file/read`}>
+                                    {el.entity_name}
+                            </a>
+                        </li>
+                    );
+            })}
+            </ul>
+        </Col>
+    </Row>
+    
     <Row className="mt-2">
         <Col lg={6}>
             {entityNoteItems}
