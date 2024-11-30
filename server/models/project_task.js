@@ -81,6 +81,13 @@ class ProjectTask extends Model {
                 value : date_end 
             } );
         }
+        if (search?.trim()) {
+            // "aa  IOS    BUG" => "+aa +IOS +BUG"
+            _custom.push( { 
+                sql : ` and MATCH(task_title) AGAINST(?  IN BOOLEAN MODE)`, 
+                value : "+"+search.split(' ').filter((word) => !!word).join(" +") 
+            } );
+        }
         const taskList = await ProjectTask.find(con, {
             select : `project_task.*,
                         ru_created.login as "ru_created_login",
