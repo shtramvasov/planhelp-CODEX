@@ -52,7 +52,11 @@ function TaskList(props) {
     useEffect(() => {
         // загрузка данных о проекте
         setFilterCount(
-            Object.values(queryString.parse(document.location.search.slice(1))).filter((el) => !!el).length
+            Object.values(
+                // queryString.parse(document.location.search.slice(1))
+                // для подсчета кол-ва фильтров исключаем limit / offset 
+                {...queryString.parse(document.location.search.slice(1)), limit:'', offset:''}
+            ).filter((el) => !!el).length
         );
     },[document.location.search]);
 
