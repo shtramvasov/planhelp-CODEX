@@ -47,7 +47,8 @@ class ProjectTask extends Model {
             sprint_id,
             date_start,
             date_end,
-            sort
+            sort,
+            search
         } ) {
             console.log("limit, offset",limit, offset);
         limit = (limit === undefined || limit === null || limit === "") ? undefined : +limit;
