@@ -26,18 +26,19 @@ function TaskListMode(props) {
     const sprint_id = searchParams.get("sprint_id");
     const date_start = searchParams.get("date_start");
 	const date_end = searchParams.get("date_end");
-    
+    const search = searchParams.get("search"); 
+
     useEffect(() => {
         // загрузка данных о задачах
         fetchProjectTaskList();
-    },[offset, executor_id, status_id, responsible_id, reviewer_id, tag_id, sprint_id, date_start, date_end])
+    },[offset, executor_id, status_id, responsible_id, reviewer_id, tag_id, sprint_id, date_start, date_end, search])
 
     // достаем задачи с апи
     const fetchProjectTaskList = () => {
         getProjectTaskList({
             limit, offset, project_id,
             status_id, executor_id, responsible_id, reviewer_id, tag_id, sprint_id,
-            date_start, date_end,
+            date_start, date_end, search, 
             sort : "task_id"
         },(err,resp) => {
             if (!err) {
@@ -59,6 +60,7 @@ function TaskListMode(props) {
         if (tag_id !== undefined) currentUrlObj.tag_id = tag_id;
         if (limit !== undefined) currentUrlObj.limit = limit;
         if (offset !== undefined) currentUrlObj.offset = offset;
+        if (search !== undefined) currentUrlObj.search = search;
 
         navigate(`/project/${project_id}/list?${queryString.stringify(currentUrlObj)}`);
         

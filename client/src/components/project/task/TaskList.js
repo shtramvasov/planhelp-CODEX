@@ -46,6 +46,7 @@ function TaskList(props) {
     const sprint_id = searchParams.get("sprint_id"); 
     const date_start = searchParams.get("date_start"); 
     const date_end = searchParams.get("date_end"); 
+    const search = searchParams.get("search"); 
 
     // Первичная загрузка данных
     useEffect(() => {
@@ -65,7 +66,7 @@ function TaskList(props) {
         return result;
     }
 
-    const onChangeUrl = ({status_id, executor_id, responsible_id, reviewer_id, tag_id, offset, limit, date_start, date_end}) => {
+    const onChangeUrl = ({status_id, executor_id, responsible_id, reviewer_id, tag_id, offset, limit, date_start, date_end, search}) => {
         const currentUrlObj = queryString.parse(document.location.search.slice(1));
         
         if (status_id !== undefined) currentUrlObj.status_id = status_id;
@@ -77,6 +78,7 @@ function TaskList(props) {
         if (offset !== undefined) currentUrlObj.offset = offset;
         if (date_start !== undefined) currentUrlObj.date_start = date_start;
         if (date_end !== undefined) currentUrlObj.date_end = date_end;
+        if (search !== undefined) currentUrlObj.search = search;
 
         navigate(`/project/${project_id}/${mode}?${queryString.stringify(currentUrlObj)}`);
         
@@ -109,6 +111,12 @@ function TaskList(props) {
         setShowModalTaskEdit(false);
     }
 
+    // submit find search text
+    const actionFindSubmit = (e) => {
+        e.preventDefault();
+        onChangeUrl({search : e.target.formFindText.value});
+    }
+
     // колбэк после создания новой задачи
     const actionCallModaTaskCreateCallback = (task) => {
         setShowModalTaskCreate(false);
@@ -134,7 +142,7 @@ function TaskList(props) {
         getProjectTaskList({
             limit:limit?limit:"", offset:offset?offset:"",project_id,
             status_id, executor_id, responsible_id, reviewer_id, tag_id, sprint_id,
-            date_start, date_end,
+            date_start, date_end, search, 
             sort : mode === "board" ? "orderby_time" : "task_id"
         },(err,resp) => {
             if (!err) {
@@ -221,6 +229,18 @@ function TaskList(props) {
         <Col>
         <Collapse in={showFilters}>
             <div>
+            <Row>
+                <Col md={12}>
+                <form onSubmit={actionFindSubmit}>
+                    <Form.Group controlId="formFindText" className="mb-3">
+                        <Form.Control type="text" 
+                            placeholder='Поиск по заголовкам, например "детали оповещения"'
+                            defaultValue={searchParams.get("search")}
+                        />
+                    </Form.Group>
+                </form>
+                </Col>
+            </Row>
             <Row>
                 <Col md={3}>
                     <Form.Group className="mb-3">
