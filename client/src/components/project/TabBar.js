@@ -47,7 +47,7 @@ function TabBar(props) {
         <div>
             <Nav variant='tabs' defaultActiveKey={ window.location.pathname }>
                 <Nav.Item>
-                    <Nav.Link as={Link} to={`/project/${project_id}/list`}
+                    <Nav.Link as={Link} to={`/project/${project_id}/list${location.search}`}
                         active={
                             location.pathname.startsWith(`/project/${project_id}/list`) || 
                             location.pathname == (`/project/${project_id}`)
@@ -56,7 +56,7 @@ function TabBar(props) {
                 </Nav.Item>
 
                 <Nav.Item>
-                    <Nav.Link as={Link} to={`/project/${project_id}/board`}
+                    <Nav.Link as={Link} to={`/project/${project_id}/board${location.search}`}
                         active={location.pathname.startsWith(`/project/${project_id}/board`)}>Канбан</Nav.Link>
                 </Nav.Item>
 

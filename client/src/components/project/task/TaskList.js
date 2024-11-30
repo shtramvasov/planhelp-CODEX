@@ -34,7 +34,8 @@ function TaskList(props) {
     const [showModalTaskEdit, setShowModalTaskEdit] = useState(false);
     const [showModalTaskCreate, setShowModalTaskCreate] = useState(false);
     const [modalProjectTaskData, setModalProjectTaskData] = useState({project_id: undefined, task_id : undefined});
-    
+    const [filterCount, setFilterCount] = useState(0);
+
     const limit = searchParams.get("limit");
     const offset = searchParams.get("offset")?searchParams.get("offset"):0;
     const executor_id = searchParams.get("executor_id");
@@ -45,6 +46,14 @@ function TaskList(props) {
     const sprint_id = searchParams.get("sprint_id"); 
     const date_start = searchParams.get("date_start"); 
     const date_end = searchParams.get("date_end"); 
+
+    // Первичная загрузка данных
+    useEffect(() => {
+        // загрузка данных о проекте
+        setFilterCount(
+            Object.values(queryString.parse(document.location.search.slice(1))).filter((el) => !!el).length
+        );
+    },[document.location.search]);
 
     const Project = useSelector((state) => state.project);
 
@@ -201,6 +210,9 @@ function TaskList(props) {
             </Button>
             <Button type="button" variant="" onClick={actionCallFilter} >
                 <i className="bi bi-filter"></i>
+                <span className="position-absolute top-0 start-55 translate-right badge rounded-pill bg-danger">
+                    {filterCount?filterCount:""}
+                </span>
             </Button>
         </InputGroup>        
         </Col>
