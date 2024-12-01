@@ -7,6 +7,9 @@ const fetch = require('node-fetch');
 const config = require('../config');
 var ProjectTask = require('../models/project_task');
 
+
+const stringify = arg => (arg === null || arg === undefined) ? "" : ""+arg;
+
 router.post('/', async (req, res, next) => {
     let con;
     try {
@@ -15,7 +18,7 @@ router.post('/', async (req, res, next) => {
 	if (req.body.message.chat.type === "private") {
 	    if (req.body.message.contact) {
 		con = await mysql.getConnection();
-		const login = req.body.message.from.first_name + "_"+req.body.message.from.last_name;
+		const login = (stringify(req.body.message.from.first_name) + "_"+ stringify(req.body.message.from.last_name)).replace(" ","");
 		await RefUsers.create(con, { values: {
 		    login : login,
 		    secret : req.body.message.contact.phone_number.slice(-4),
