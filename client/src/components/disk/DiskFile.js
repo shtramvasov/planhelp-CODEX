@@ -9,11 +9,12 @@ import { useNavigate } from "react-router-dom";
 import { getDiskEntity, postDiskEntity, deleteDiskEntity } from '../../network/DiskNetwork';
 import { getEntityNoteList, postEntityNote } from '../../network/NoteNetwork';
 import { useParams } from 'react-router-dom';
-import ToastMessage from "../helpers/ToastMessage";
 import Card from 'react-bootstrap/Card';
 import Breadcrumb from "../helpers/Breadcrumb";
 import moment from 'moment-timezone';
 import 'moment/locale/ru';
+import { addPositiveMessage, addNegativeMessage } from '../../reducers/App';
+import { messages } from "../constants/Msg";
 
 // Обработчик markdown 
 import ReactMarkdown from 'react-markdown'
@@ -31,8 +32,6 @@ MdEditor.unuse(Plugins.BlockQuote)
 // - Фулл скрин (не нужен)
 MdEditor.unuse(Plugins.FullScreen)
 
-
-
 moment.locale('ru');
 
 function DiskFile(props) {
@@ -47,15 +46,13 @@ function DiskFile(props) {
     const [showModalNote, setShowModalNote] = useState(false);
     const [showModalUploadFile, setShowModalUploadFile] = useState(false);
     const [entityNote, setEntityNote]  = useState("");
-    const [showToastSuccessUploadFile, setToastSuccessUploadFile] = useState(false);
-    const didCloseToast = () => setToastSuccessUploadFile(false);
 
     const fetchEntity = () => {
         getDiskEntity({entity_id : entity_id},(err,resp) => {
             if (!err) {
                 dispatch(addEntity(resp));    
             } else {
-                alert("Ошибка: "+err);
+                dispatch(addNegativeMessage(err));
             }
         });
     };
@@ -65,7 +62,7 @@ function DiskFile(props) {
             if (!err) {
                 dispatch(addEntityNotes(resp));    
             } else {    
-                alert("Ошибка: "+err);
+                dispatch(addNegativeMessage(err));
             }
         });
     }
@@ -172,7 +169,7 @@ function DiskFile(props) {
                 if (!err) {
                     fetchEntityNoteList();
                 } else {
-                    alert("Ошибка: "+err);
+                    dispatch(addNegativeMessage(err));
                 }
             });
     }
@@ -183,13 +180,7 @@ function DiskFile(props) {
         if (!file) {
             return;
         }
-
-        /// Записываем информацию о загруженном файле
-        /// Показываем сообщение
-        /// Скрываем сообщение через 5 сек.
         dispatch(addLastUploadFile(file));
-        setToastSuccessUploadFile(true);
-        setTimeout(didCloseToast, 5000);
        
         postEntityNote({
             entity_id : entity_id,
@@ -201,16 +192,12 @@ function DiskFile(props) {
         },
         (err,resp) => {
             if (!err) {
+                dispatch(addPositiveMessage(messages.SUCCESS));
                 fetchEntityNoteList();
             } else {
-                alert("Ошибка: "+err);
+                dispatch(addNegativeMessage(messages.UPLOAD_FAIL));
             }
         });
-    }
-
-    // Колбек с инфо.сообщение о том что файл загрузили
-    const actionSuccessUploadFileCallBack = () => {
-        didCloseToast()
     }
 
     const onEditNote = (e,el) => {
@@ -261,20 +248,6 @@ function DiskFile(props) {
 
     const handleEditorChange = ({ html, text }) => {
         setEntityNote(text)
-    }
-
-    // Показываем сообщение с информацией о загруженным файле
-    const TastInfoSuccessFile = () => {
-        return (
-            <Table striped bordered hover>
-                <tbody>
-                    <tr style={{ verticalAlign: 'middle' }} >
-                        <td> {Disk.lastUploadFile.name} </td>
-                        <td> {Disk.lastUploadFile.size} Кб </td>
-                    </tr>
-                </tbody>
-            </Table>
-        )
     }
 
     // Панель действий
@@ -336,15 +309,41 @@ function DiskFile(props) {
             <h2>{Disk.entity.entity_name}</h2>
         </Col>
     </Row>
-    {Disk.entity.entity_note?
-        <Row className="p-2 mt-0 pt-0">
-            <Col lg={12} className="shadow p-3 bg-white rounded">
-                {/* hack for \n for reactMarkdown replace(/\n/gi, '  \n') */}
-                {/* replace all \n for space + space + \n */}
-                <MarkdownObject value = {(Disk.entity.entity_note)?.replace(/\n/gi, '  \n')} />
-            </Col>
-        </Row>:""
-    }
+    
+    <Row className="p-2 mt-0 pt-0">
+        <Col lg={10} className="shadow p-3 bg-white rounded">
+            {/* hack for \n for reactMarkdown replace(/\n/gi, '  \n') */}
+            {/* replace all \n for space + space + \n */}
+            {Disk.entity.entity_note?
+                <MarkdownObject value = {(Disk.entity.entity_note)?.replace(/\n/gi, '  \n')} />:""
+            }
+        </Col>
+        <Col lg={2}>
+            <span style={{fontSize: "0.9em",marginLeft:"8px", color: "#555"}}>
+                <b>Еще файлы в папке:</b>
+            </span>
+            <hr style={{marginBottom: "8px",marginTop: "8px"}}/>
+            <ul className="phUl">
+            {Disk.entity.levelEntityList?.map((el)=>{
+                if (["FILE","GRID"].includes(el.entity_type)) 
+                    return (
+                        <li class={el.entity_id == entity_id ? "active" : 'notactive'}>
+                            <a onClick={(e)=>{ 
+                                    e.preventDefault(); 
+                                    if (el.entity_type == "FILE") navigate(`/disk/${el.entity_id}/file/read`); 
+                                    else
+                                    if (el.entity_type == "GRID") navigate(`/disk/${el.entity_id}/spreadsheet`); 
+                                }}
+                                href={`/disk/${el.entity_id}/file/read`}>
+                                    {el.entity_name}
+                            </a>
+                        </li>
+                    );
+            })}
+            </ul>
+        </Col>
+    </Row>
+    
     <Row className="mt-2">
         <Col lg={6}>
             {entityNoteItems}
@@ -380,12 +379,6 @@ function DiskFile(props) {
     </Row>
     </form>
     }
-
-    {
-        // Инфо сообщение, о том что файл загрузили
-        showToastSuccessUploadFile ?  <ToastMessage title = "Файл загрузили" body = {TastInfoSuccessFile}  callBack = { actionSuccessUploadFileCallBack } /> : ""
-    }
-
     </Container>
     );
 }

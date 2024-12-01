@@ -47,7 +47,8 @@ class ProjectTask extends Model {
             sprint_id,
             date_start,
             date_end,
-            sort
+            sort,
+            search
         } ) {
             console.log("limit, offset",limit, offset);
         limit = (limit === undefined || limit === null || limit === "") ? undefined : +limit;
@@ -79,6 +80,13 @@ class ProjectTask extends Model {
             _custom.push( { 
                 sql : ` and (project_task.created_on <= ? )`, 
                 value : date_end 
+            } );
+        }
+        if (search?.trim()) {
+            // "aa  IOS    BUG" => "+aa +IOS +BUG"
+            _custom.push( { 
+                sql : ` and MATCH(task_title) AGAINST(?  IN BOOLEAN MODE)`, 
+                value : "+"+search.split(' ').filter((word) => !!word).join(" +") 
             } );
         }
         const taskList = await ProjectTask.find(con, {
