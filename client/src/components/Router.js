@@ -31,6 +31,8 @@ import SprintCreate from "./project/sprint/SprintCreate";
 import SprintUpdate from "./project/sprint/SprintUpdate";
 import SprintTaskList from "./project/sprint/SprintTaskList";
 
+import Calendar from "./calendar/Calendar";
+
 import Story from "./project/story";
 
 import Hr from "./hr/Hr";
@@ -65,6 +67,8 @@ const router = createBrowserRouter([
     { path: "/project/:project_id/sprint/:sprint_id/task", element: <SprintTaskList /> },
 
     { path: "/project/:project_id/story", element: <Story /> },
+
+    { path: "/calendar", element: <Calendar /> },
 
     { path: "/hr", element: <Hr /> },
     { path: "/notify", element: <NotifyList /> },
