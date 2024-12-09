@@ -122,17 +122,22 @@ function Calendar(props) {
     }
 
     // Вызов модалки создания файла
-    const actionCallModalNote = (e) => {
+    const actionCallModalNote = (e, day) => {
+        console.log(day);
+        console.log(moment(day).format('YYYY-MM-DDTHH:mm:ss.SSSZ'))
         e.preventDefault();
-        // dispatch(addEntityNote({}));
+        dispatch(addNote({
+            is_remind: 1, 
+            remind_on : moment(day).tz('UTC').format('YYYY-MM-DDTHH:mm:ss.SSSZ')
+        }));
         setShowModalNote(true);
     }
 
     const actionModalNoteCallback = (commonNote) => {
         //moment(commonNote.remind_on,'YYYY-MM-DD HH:mm:ss').tz('UTC').format('YYYY-MM-DD HH:mm:ss')
         setShowModalNote(false);
-        console.log(commonNote)
-        // dispatch(addEntityNote({}));
+        // console.log(commonNote)
+        // dispatch(addNote({}));
         if (!commonNote) {
             return;
         }
@@ -166,8 +171,8 @@ function Calendar(props) {
         );
     }
 
-    const onEditNote = (e,el) => {
-        console.log(el);
+    const onEditNote = (e,el, day) => {
+        console.log(el,day);
         e.preventDefault();
         dispatch(addNote(el));
         // if (el.note_type==="COMMENT") {
@@ -230,17 +235,20 @@ function Calendar(props) {
                                             style={{
                                                 // fontSize: "0.8em",
                                                 textAlign:"center",
-                                                fontWeight: "500"}}>
+                                                fontWeight: "500",
+                                                marginBottom : "4px",
+                                                marginTop : "4px"
+                                                }}>
                                             {i===0?(moment(day).format('dd')+", "):""}
                                             {day.getDate()}
                                             {/* <Button style={{padding: "0px"}} type="button" variant=""  > */}
                                                 &nbsp;
-                                                <i style={{cursor: "pointer"}}className="bi bi-plus-circle" onClick={actionCallModalNote}></i>
+                                                <i style={{cursor: "pointer"}}className="bi bi-plus-circle" onClick={(e)=>{actionCallModalNote(e,day)}}></i>
                                             {/* </Button> */}
                                         </div>
                                         {Note.noteList[moment(day).format('DD.MM.YYYY')] ? 
                                             Note.noteList[moment(day).format('DD.MM.YYYY')].map((note) => {
-                                                return <div 
+                                                return <div key={note.note_id}
                                                     onClick={(e)=>onEditNote(e,note)}
                                                     className={getFontBgColor(note.variant)}
                                                     style={{
