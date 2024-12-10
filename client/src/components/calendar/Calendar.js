@@ -12,6 +12,7 @@ import 'moment/locale/ru';
 import { Spinner, Button } from "react-bootstrap";
 import { useNavigate , useSearchParams, useParams} from "react-router-dom";
 import ModalNote from "../helpers/ModalNote";
+import { addPositiveMessage, addNegativeMessage } from '../../reducers/App';
 moment.locale('ru');
 
 function Calendar(props) {
@@ -121,10 +122,10 @@ function Calendar(props) {
         )
     }
 
-    // Вызов модалки создания файла
+    // Вызов модалки создания заметки
     const actionCallModalNote = (e, day) => {
-        console.log(day);
-        console.log(moment(day).format('YYYY-MM-DDTHH:mm:ss.SSSZ'))
+        // console.log(day);
+        // console.log(moment(day).format('YYYY-MM-DDTHH:mm:ss.SSSZ'))
         e.preventDefault();
         dispatch(addNote({
             is_remind: 1, 
@@ -133,7 +134,12 @@ function Calendar(props) {
         setShowModalNote(true);
     }
 
-    const actionModalNoteCallback = (commonNote) => {
+    const actionModalNoteCallback = (commonNote, action) => {
+        if (action === "save" && !commonNote.remind_on) {
+            dispatch(addNegativeMessage("Неверный формат даты"));
+            return;
+        }
+        
         //moment(commonNote.remind_on,'YYYY-MM-DD HH:mm:ss').tz('UTC').format('YYYY-MM-DD HH:mm:ss')
         setShowModalNote(false);
         // console.log(commonNote)
@@ -192,7 +198,9 @@ function Calendar(props) {
             show={showModalNote} 
             placeholder="Напишите комментарий"
             callBack={actionModalNoteCallback}
-            note={Note.note} />
+            note={Note.note}
+            is_check={false}
+            />
             
     <Row>
         <Col>
@@ -220,7 +228,7 @@ function Calendar(props) {
             // console.log(week);
             return <Row key={i}>
                     {week.map((day, index) => {
-                        return <Col key={index} style={{padding : "1px", margin: "0px"}}>
+                        return <Col key={index} style={{minWidth: "130px", padding : "1px", margin: "0px"}}>
                                 <Card style={{
                                     minHeight:"150px",
                                     height: "150px",

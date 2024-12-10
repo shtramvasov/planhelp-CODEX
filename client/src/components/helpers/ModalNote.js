@@ -9,12 +9,16 @@ import moment from 'moment-timezone';
 import 'moment/locale/ru';
 moment.locale('ru');
 
+//
+// props.is_check true / false
+
+
 function ModalNote(props) {
     // свитчер напоминания
     const [isRemind, setRemind] = useState(false);
     
     const closeMe = () => {
-        props.callBack();
+        props.callBack(null,"cancel");
     }
     useEffect(() => {
         if (props.note.remind_on) {
@@ -22,7 +26,7 @@ function ModalNote(props) {
         } else {
             setRemind(false);
         }
-    },[props.note?.note_id]);
+    },[props.note]);
 
     const deleteMe = (e) => {
         e.preventDefault();
@@ -32,7 +36,7 @@ function ModalNote(props) {
             note : props.note.note,
             note_type : props.note.note_type,
             note_2 : props.note.note_2
-        });
+        },"delete");
     }
 
     const saveMe = (e) => {
@@ -53,7 +57,7 @@ function ModalNote(props) {
             note_id : e.target.modalId.value,
             note_type : e.target.modalNoteType.value,
             note_2 : e.target.modalNote2?.value
-        });
+        }, "save");
     }
 
     const remindOn = props.note.remind_on?moment(props.note.remind_on,'YYYY-MM-DDTHH:mm:ss.SSSZ').format('YYYY-MM-DD HH:mm'):"";
@@ -77,6 +81,15 @@ function ModalNote(props) {
                     defaultValue={props.note.note_type}
                 />
             </Form.Group>
+            {props.note.entity_id?
+                <Form.Group className="mb-3" controlId="modalText">
+                    <Row>
+                        <Col>
+                            <a className="phLink" href={`/disk/${props.note.entity_id}/file/read`}>Перейти в документ</a>
+                        </Col>
+                    </Row>
+                </Form.Group>:""
+            }
             <Form.Group className="mb-3" controlId="modalText">
                 <Row>
                     <Col>
@@ -121,13 +134,14 @@ function ModalNote(props) {
             </Form.Group>
             <Row style={{marginTop: "10px"}}>
                 <Col>
+                {props.is_check === true || props.is_check === undefined?
                 <Form.Check 
                     type="switch"
                     id="custom-switch"
                     label="Напомнить"
                     onChange={(e) => {setRemind(e.target.checked)}}
                     checked={isRemind}
-                />
+                />:""}
                 </Col>
             </Row>
                 {isRemind?
