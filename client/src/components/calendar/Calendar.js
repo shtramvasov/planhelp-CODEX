@@ -13,6 +13,8 @@ import { Spinner, Button } from "react-bootstrap";
 import { useNavigate , useSearchParams, useParams} from "react-router-dom";
 import ModalNote from "../helpers/ModalNote";
 import { addPositiveMessage, addNegativeMessage } from '../../reducers/App';
+import queryString from "query-string";
+import DayDetail from "./DayDetail";
 moment.locale('ru');
 
 function Calendar(props) {
@@ -34,12 +36,14 @@ function Calendar(props) {
 
     const dispatch = useDispatch();
     const navigate = useNavigate();
+    const [ searchParams ] = useSearchParams();
     const Note = useSelector((state) => state.note);
     const monthNames = ["Январь", "Февраль", "Март", "Апрель", "Май", "Июнь","Июль", "Август", "Сентябрь", "Октябрь", "Ноябрь", "Декабрь"];
     const [dateArrays, setDateArrays] = useState([]);
     const [currentMonthDate, setCurrentMonthDate] = useState(new Date());
     const [isLoading, setIsLoading] = useState(false);
     const [showModalNote, setShowModalNote] = useState(false);
+    const [showModalDayDetail, setShowModalDayDetail] = useState(false);
 
     useEffect(() => {
         // const month = 12;
@@ -87,6 +91,16 @@ function Calendar(props) {
         }
     },[dateArrays]);
 
+    useEffect(() => {
+        const day = searchParams.get('day');
+        if (day) {
+            // dispatch(addPositiveMessage("Скоро откроются детали календаря на указанный день :). Пока не готово"))
+            // navigate("/calendar");
+            // console.log("searchParams",searchParams.get('day'))
+            setShowModalDayDetail(true);
+        }
+    },[searchParams.get('day')])
+
     const fetchNoteList = () => {
         setIsLoading(true);
         getNoteList({
@@ -100,7 +114,9 @@ function Calendar(props) {
                 } else {
                     const groupByDate = {};
                     for(let i=0;i<resp.length;i++) {
-                        const key = moment(resp[i].remind_on,'YYYY-MM-DDTHH:mm:ss.SSSZ').format('DD.MM.YYYY');
+                        // единый формат???
+                        // в модалке не просить детали!
+                        const key = moment(resp[i].remind_on,'YYYY-MM-DDTHH:mm:ss.SSSZ').format('YYYY-MM-DD');
                         if (!groupByDate[key]) {
                             groupByDate[key] = [];
                         }
@@ -122,6 +138,11 @@ function Calendar(props) {
         )
     }
 
+    const handleDetailDay = (e, day) => {
+        e.preventDefault()
+        navigate(`/calendar?day=${day.getFullYear()}-${day.getMonth()+1}-${day.getDate()}`);
+    }
+
     // Вызов модалки создания заметки
     const actionCallModalNote = (e, day) => {
         // console.log(day);
@@ -132,6 +153,11 @@ function Calendar(props) {
             remind_on : moment(day).tz('UTC').format('YYYY-MM-DDTHH:mm:ss.SSSZ')
         }));
         setShowModalNote(true);
+    }
+
+    const actionModalDayDetailCallback = () => {
+        setShowModalDayDetail(false);
+        navigate("/calendar");
     }
 
     const actionModalNoteCallback = (commonNote, action) => {
@@ -201,7 +227,15 @@ function Calendar(props) {
             note={Note.note}
             is_check={false}
             />
-            
+        <DayDetail 
+            onCreateNote={actionCallModalNote}
+            onEditNote={onEditNote}
+            day={searchParams.get('day')}
+            title={"Заметка"} 
+            show={showModalDayDetail} 
+            placeholder="Напишите комментарий"
+            callBack={actionModalDayDetailCallback}
+            />
     <Row>
         <Col>
             <Navbar />
@@ -248,14 +282,18 @@ function Calendar(props) {
                                                 marginTop : "4px"
                                                 }}>
                                             {i===0?(moment(day).format('dd')+", "):""}
-                                            {day.getDate()}
+                                            {<a style={{color: "#555", textDecoration:"none"}}
+                                                href={`/calendar?day=${day.getFullYear()}-${day.getMonth()+1}-${day.getDate()}`} 
+                                                onClick={(e) => {handleDetailDay(e, day)}}>
+                                                    {day.getDate()}
+                                            </a>}
                                             {/* <Button style={{padding: "0px"}} type="button" variant=""  > */}
                                                 &nbsp;
                                                 <i style={{cursor: "pointer"}}className="bi bi-plus-circle" onClick={(e)=>{actionCallModalNote(e,day)}}></i>
                                             {/* </Button> */}
                                         </div>
-                                        {Note.noteList[moment(day).format('DD.MM.YYYY')] ? 
-                                            Note.noteList[moment(day).format('DD.MM.YYYY')].map((note) => {
+                                        {Note.noteList[moment(day).format('YYYY-MM-DD')] ? 
+                                            Note.noteList[moment(day).format('YYYY-MM-DD')].map((note) => {
                                                 return <div key={note.note_id}
                                                     onClick={(e)=>onEditNote(e,note)}
                                                     className={getFontBgColor(note.variant)}
