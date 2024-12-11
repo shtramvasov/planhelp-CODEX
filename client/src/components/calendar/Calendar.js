@@ -45,6 +45,8 @@ function Calendar(props) {
     const [showModalNote, setShowModalNote] = useState(false);
     const [showModalDayDetail, setShowModalDayDetail] = useState(false);
 
+    document.title = "Календарь | planhelp";
+
     useEffect(() => {
         // const month = 12;
         // var date = new Date(2024, month-1, 1), y = date.getFullYear(), m = date.getMonth();
