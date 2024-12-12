@@ -16,6 +16,7 @@ function ProjectList(props) {
     document.title = "Мои проекты | planhelp";
 
     const Project = useSelector((state) => state.project);
+    const User = useSelector((state) => state.user);
 
     // Первичная загрузка данных,
     // Последующие загрзки при измененеии entity_id
@@ -52,10 +53,19 @@ function ProjectList(props) {
                     <p className="card-text">
                         <small className="text-body-secondary">
                             Проект создан: { moment(el.created_on,'YYYY-MM-DDTHH:mm:ss.SSSZ').fromNow() } <br />
-                            {/* (Вроде как тут планировалось показывать last update, но поле только created_on есть) */}
-                            <i style={{color : "#555"}}className="bi bi-people-fill"></i> {
-                            <Badge bg="secondary">{el.total_user_count}</Badge>
-                            }
+                            
+                            <i style={{color : "#555"}}className="bi bi-people-fill"></i> 
+                            &nbsp;<Badge bg="secondary">{el.total_user_count}</Badge>                            
+                            &nbsp;&nbsp;&nbsp;
+                            {el.status_id?<>
+                                <i style={{color : "#555"}}className="bi bi-person"></i> 
+                                {User.profile.login}
+                                &nbsp;<Badge bg="secondary">{el.status_id ? el.user_project_task_open_count:""}</Badge>
+                            </>
+                            :""}
+                            
+                            
+                            
                         </small>
                     </p>
                 </div>
