@@ -279,7 +279,7 @@ function Calendar(props) {
                                             style={{
                                                 // fontSize: "0.8em",
                                                 textAlign:"center",
-                                                fontWeight: "700",
+                                                fontWeight: "600",
                                                 marginBottom : "4px",
                                                 marginTop : "4px"
                                                 }}>
