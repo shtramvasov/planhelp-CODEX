@@ -17,12 +17,24 @@ router.get('/:project_id?', withTransaction(async (req, res, next) => {
 
     // список разрешенных проектов или один
     const projectList = await Project.find(con,{
-        select : "project.*, pu.user_role",
+        select : `project.*, 
+                  pu.user_role,
+                  ( -- кол-во открытых задач по проектам
+                   select count(*) 
+                     from project_task pt 
+                    where pt.status_id != ps.status_id
+                      and pt.project_id = project.project_id
+                      and (pt.executor_id = pu.user_id 
+                             or pt.responsible_id = pu.user_id 
+                                or pt.reviewer_id = pu.user_id)
+                   ) user_project_task_open_count,
+                  ps.status_id`,
         joins : [
-            { table: 'project_user pu', on : "project.project_id = pu.project_id" }
+            { table: 'project_user pu', on : "project.project_id = pu.project_id" },
+            { table: 'project_status ps', on : "project.project_id = ps.project_id and ps.is_closed = 'Y'", type: 'left join' }
         ], 
         where : {
-            is_deleted : 'N',
+            "project.is_deleted" : 'N',
             "project.project_id" : project_id,
             "pu.user_id" : user_id
         },
