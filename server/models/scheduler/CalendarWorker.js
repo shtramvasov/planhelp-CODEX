@@ -9,6 +9,8 @@ class CalendarWorker extends JobScheduler {
         try {
             con = await mysql.getConnection();
             await mysql.begin(con);
+            // убрал условие
+            // and de.is_deleted = 'N'
             const calendarList = await mysql.query(con, 
                 `select de.entity_name,
                         de.entity_id, 
@@ -24,7 +26,6 @@ class CalendarWorker extends JobScheduler {
                   where is_remind = 1 
                     and remind_on is not null
                     and cn.is_deleted = 0
-                    and de.is_deleted = 'N'
                     and remind_on < now()
                   limit 50`,[]);
             calendarList.length && console.log(`Found ${calendarList.length} for calendar job`);
