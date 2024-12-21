@@ -31,7 +31,9 @@ router.get('/:project_id?', withTransaction(async (req, res, next) => {
                   ps.status_id`,
         joins : [
             { table: 'project_user pu', on : "project.project_id = pu.project_id" },
-            { table: 'project_status ps', on : "project.project_id = ps.project_id and ps.is_closed = 'Y'", type: 'left join' }
+            { table: 'project_status ps', 
+                on : "project.project_id = ps.project_id and ps.is_closed = 'Y' and ps.is_deleted = 'N'", 
+                type: 'left join' }
         ], 
         where : {
             "project.is_deleted" : 'N',
