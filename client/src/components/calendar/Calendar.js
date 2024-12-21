@@ -40,7 +40,10 @@ function Calendar(props) {
     const Note = useSelector((state) => state.note);
     const monthNames = ["Январь", "Февраль", "Март", "Апрель", "Май", "Июнь","Июль", "Август", "Сентябрь", "Октябрь", "Ноябрь", "Декабрь"];
     const [dateArrays, setDateArrays] = useState([]);
-    const [currentMonthDate, setCurrentMonthDate] = useState(new Date());
+    const [currentMonthDate, setCurrentMonthDate] = useState(
+        // дефолтная дата либо текущая либо если есть day в query то она
+        searchParams.get('day') ? new Date(searchParams.get('day')) : new Date()
+    );
     const [isLoading, setIsLoading] = useState(false);
     const [showModalNote, setShowModalNote] = useState(false);
     const [showModalDayDetail, setShowModalDayDetail] = useState(false);
@@ -96,9 +99,6 @@ function Calendar(props) {
     useEffect(() => {
         const day = searchParams.get('day');
         if (day) {
-            // dispatch(addPositiveMessage("Скоро откроются детали календаря на указанный день :). Пока не готово"))
-            // navigate("/calendar");
-            // console.log("searchParams",searchParams.get('day'))
             setShowModalDayDetail(true);
         }
     },[searchParams.get('day')])
@@ -142,7 +142,7 @@ function Calendar(props) {
 
     const handleDetailDay = (e, day) => {
         e.preventDefault()
-        navigate(`/calendar?day=${day.getFullYear()}-${day.getMonth()+1}-${day.getDate()}`);
+        navigate(`/calendar?day=${day.getFullYear()}-${('0'+(day.getMonth()+1)).slice(-2)}-${('0'+day.getDate()).slice(-2)}`);
     }
 
     // Вызов модалки создания заметки
@@ -151,7 +151,7 @@ function Calendar(props) {
         // console.log(moment(day).format('YYYY-MM-DDTHH:mm:ss.SSSZ'))
         e.preventDefault();
         dispatch(addNote({
-            is_remind: 1, 
+            is_remind: 0, 
             remind_on : moment(day).tz('UTC').format('YYYY-MM-DDTHH:mm:ss.SSSZ')
         }));
         setShowModalNote(true);
@@ -176,7 +176,7 @@ function Calendar(props) {
             return;
         }
         
-        const {note, remind_on, variant, note_id, note_type, note_2, is_deleted} = commonNote;
+        const {note, remind_on, variant, note_id, note_type, note_2, is_deleted, is_remind} = commonNote;
         // if (!is_deleted)
         //     if (!commonNote.note) {
         //         return;
@@ -193,7 +193,8 @@ function Calendar(props) {
                 note_id : note_id,
                 // note_type : "COMMENT",
                 note_2 : note_2,
-                is_deleted : is_deleted
+                is_deleted : is_deleted,
+                is_remind : is_remind
             },
             (err,resp) => {
                 if (!err) {
@@ -227,7 +228,8 @@ function Calendar(props) {
             placeholder="Напишите комментарий"
             callBack={actionModalNoteCallback}
             note={Note.note}
-            is_check={false}
+            // conditionalRemindDateTime={false}
+            // is_check={false}
             />
         <DayDetail 
             onCreateNote={actionCallModalNote}

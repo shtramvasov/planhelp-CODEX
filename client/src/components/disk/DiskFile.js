@@ -139,14 +139,14 @@ function DiskFile(props) {
 
     // Колбэк с модалки после создания файла
     const actionModalNoteCallback = (commonNote) => {
-        //moment(commonNote.remind_on,'YYYY-MM-DD HH:mm:ss').tz('UTC').format('YYYY-MM-DD HH:mm:ss')
+
         setShowModalNote(false);
         dispatch(addEntityNote({}));
         if (!commonNote) {
             return;
         }
         
-        const {note, remind_on, variant, note_id, note_type, note_2, is_deleted} = commonNote;
+        const {note, remind_on, variant, note_id, note_type, note_2, is_deleted, is_remind} = commonNote;
         if (!is_deleted)
             if (!commonNote.note) {
                 return;
@@ -163,7 +163,8 @@ function DiskFile(props) {
                 note_id : note_id,
                 note_type : note_type,
                 note_2 : note_2,
-                is_deleted : is_deleted
+                is_deleted : is_deleted,
+                is_remind : is_remind
             },
             (err,resp) => {
                 if (!err) {
@@ -227,7 +228,7 @@ function DiskFile(props) {
                 <small> 
                     {moment(el.created_on,'YYYY-MM-DDTHH:mm:ss.SSSZ').fromNow()} 
                     ({el.login})<br/>
-                    {el.remind_on?"напомнить "+moment(el.remind_on,'YYYY-MM-DDTHH:mm:ss.SSSZ').format('Do MMMM YYYY, в HH:mm:ss'):""}
+                    {el.remind_on? (el.is_remind?"напомнить ":"")+moment(el.remind_on,'YYYY-MM-DDTHH:mm:ss.SSSZ').format('Do MMMM YYYY, в HH:mm:ss'):""}
                 </small>
             </div>
         </Card>
@@ -281,7 +282,8 @@ function DiskFile(props) {
             show={showModalNote} 
             placeholder="Напишите комментарий"
             callBack={actionModalNoteCallback}
-            note={Disk.entityNote} />
+            note={Disk.entityNote}
+            conditionalRemindDateTime={true} />
         <ModalInputFile 
             title={"Загрузить файл"} 
             show={showModalUploadFile} 

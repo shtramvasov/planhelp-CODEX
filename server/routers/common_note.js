@@ -38,7 +38,7 @@ router.get('/', withTransaction(async (req, res, next) => {
 router.post('/', withTransaction(async (req, res, next) => {
     const con = res.locals.dbinstance;
     const { user_id } = req.userModel;
-    const { remind_on, note, variant, note_type, note_2 } = req.body;
+    const { remind_on, is_remind, note, variant, note_type, note_2 } = req.body;
 
     if (![commonNote.CONSTANTS.TYPE_COMMENT,commonNote.CONSTANTS.TYPE_FILE].includes(note_type)) {
         throw "Not valid note_type in body params, only COMMENT or FILE";
@@ -51,7 +51,7 @@ router.post('/', withTransaction(async (req, res, next) => {
     await commonNote.create(con, {values: {
         user_id,
         remind_on,
-        is_remind : remind_on ? commonNote.CONSTANTS.REMIND_ON : commonNote.CONSTANTS.REMIND_OFF,
+        is_remind,
         note,
         variant,
         note_type,
