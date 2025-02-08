@@ -113,8 +113,8 @@ router.post('/:project_id/:task_id/:ptt_id?', withTransaction(async (req, res, n
         }
         await ProjectTaskTimetable.update(con, {
             values : { 
-                date_start : date_start.replace('.000Z',''), 
-                date_end : date_end ? date_end.replace('.000Z','') : null, 
+                date_start : date_start.split(".")[0], 
+                date_end : date_end ? date_end.split(".")[0] : null, 
                 user_id : projectUser.user_role === ProjectUser.CONSTANTS.WRITE ? profile_user_id : user_id
             }, 
             where : { task_id, ptt_id }
@@ -125,8 +125,8 @@ router.post('/:project_id/:task_id/:ptt_id?', withTransaction(async (req, res, n
         await ProjectTaskTimetable.create(con, {values : { 
             task_id, 
             user_id : projectUser.user_role === ProjectUser.CONSTANTS.WRITE ? profile_user_id : user_id, 
-            date_start : date_start.replace('.000Z',''), 
-            date_end : date_end ? date_end.replace('.000Z','') : null
+            date_start : date_start.split(".")[0], 
+            date_end : date_end ? date_end.split(".")[0] : null
         }});
     }
 
