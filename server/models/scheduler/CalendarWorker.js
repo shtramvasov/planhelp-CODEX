@@ -9,6 +9,8 @@ class CalendarWorker extends JobScheduler {
         try {
             con = await mysql.getConnection();
             await mysql.begin(con);
+            // убрал условие
+            // and de.is_deleted = 'N'
             const calendarList = await mysql.query(con, 
                 `select de.entity_name,
                         de.entity_id, 
@@ -18,17 +20,22 @@ class CalendarWorker extends JobScheduler {
                         cn.user_id,
                         u.is_notify,
                         u.telegram_chat_id
-                   from common_note cn inner join disk_entity de on cn.entity_id = de.entity_id  
-                                       inner join ref_users u on cn.user_id = u.user_id
+                   from common_note cn inner join ref_users u on cn.user_id = u.user_id
+                                        left join disk_entity de on cn.entity_id = de.entity_id  
+                                       
                   where is_remind = 1 
                     and remind_on is not null
                     and cn.is_deleted = 0
-                    and de.is_deleted = 'N'
                     and remind_on < now()
                   limit 50`,[]);
             calendarList.length && console.log(`Found ${calendarList.length} for calendar job`);
             for (const calendar of calendarList) {
-                const notify = `Напоминание: ${calendar.note} в ${calendar.entity_name}`;
+                let notify = `Напоминание: ${calendar.note}`;
+
+                //TEST THIS
+                if (calendar.entity_id) {
+                    notify += ` в ${calendar.entity_name}`;
+                }
                 
                 await mysql.query(con,
                     `insert into notify(user_id,object_id,object_type,notify_note,is_read,created_on)

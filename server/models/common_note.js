@@ -33,35 +33,35 @@ static CONSTANTS = {
     TYPE_FILE : "FILE",
 }
 
-static async createNote({user_id,entity_id,remind_on,is_remind,note,variant,note_type,note_2}, con) {
-    return await mysql.query(con,
-        `insert into common_note(
-            user_id,
-            entity_id,
-            created_on,
-            remind_on,
-            is_remind,
-            note,
-            variant,
-            note_type,
-            note_2)
-        values(?,?,now(),?,?,?,?,?,?)`,
-        [ user_id, entity_id, remind_on, is_remind, note, variant, note_type, note_2 ]);
-}
+// static async createNote({user_id,entity_id,remind_on,is_remind,note,variant,note_type,note_2}, con) {
+//     return await mysql.query(con,
+//         `insert into common_note(
+//             user_id,
+//             entity_id,
+//             created_on,
+//             remind_on,
+//             is_remind,
+//             note,
+//             variant,
+//             note_type,
+//             note_2)
+//         values(?,?,now(),?,?,?,?,?,?)`,
+//         [ user_id, entity_id, remind_on, is_remind, note, variant, note_type, note_2 ]);
+// }
 
-static async updateNote({user_id,note_id,remind_on,is_remind,note,is_deleted,variant,note_type,note_2}, con) {
-    return await mysql.query(con,
-        `update common_note
-            set is_deleted = coalesce(?, is_deleted),
-                note = coalesce(?, note),
-                is_remind = coalesce(?, is_remind),
-                remind_on = coalesce(?, remind_on),
-                variant = coalesce(?, variant),
-                note_type = coalesce(?, note_type),
-                note_2 = coalesce(?, note_2)
-          where note_id = ?`,
-        [ is_deleted, note, is_remind, remind_on, variant, note_type, note_2, note_id ]);
-}
+// static async updateNote({user_id,note_id,remind_on,is_remind,note,is_deleted,variant,note_type,note_2}, con) {
+//     return await mysql.query(con,
+//         `update common_note
+//             set is_deleted = coalesce(?, is_deleted),
+//                 note = coalesce(?, note),
+//                 is_remind = coalesce(?, is_remind),
+//                 remind_on = coalesce(?, remind_on),
+//                 variant = coalesce(?, variant),
+//                 note_type = coalesce(?, note_type),
+//                 note_2 = coalesce(?, note_2)
+//           where note_id = ?`,
+//         [ is_deleted, note, is_remind, remind_on, variant, note_type, note_2, note_id ]);
+// }
 
 static async deleteNote({note_id}, con) {
     return await CommonNote.updateNote({note_id, is_deleted : CommonNote.CONSTANTS.DELETED_ON}, con);

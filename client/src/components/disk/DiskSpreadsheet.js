@@ -246,7 +246,7 @@ function DiskSpreadsheet(props) {
             return;
         }
         
-        const {note, remind_on, variant, note_id, note_type, note_2, is_deleted} = commonNote;
+        const {note, remind_on, variant, note_id, note_type, note_2, is_deleted, is_remind} = commonNote;
         if (!is_deleted)
             if (!commonNote.note) {
                 return;
@@ -263,7 +263,8 @@ function DiskSpreadsheet(props) {
                 note_id : note_id,
                 note_type : note_type,
                 note_2 : note_2,
-                is_deleted : is_deleted
+                is_deleted : is_deleted,
+                is_remind : is_remind
             },
             (err,resp) => {
                 if (!err) {
@@ -516,7 +517,8 @@ function DiskSpreadsheet(props) {
             show={showModalNote} 
             placeholder="Напишите комментарий"
             callBack={actionModalNoteCallback}
-            note={Disk.entityNote} />
+            note={Disk.entityNote} 
+            conditionalRemindDateTime={true} />
         <ModalInputFile 
             title={"Загрузить файл"} 
             show={showModalUploadFile} 

@@ -496,7 +496,7 @@ router.get('/:entity_id/note/:note_id?', async (req,res,next) => {
 router.post('/:entity_id/note', async (req, res, next) => {
     const { user_id } = req.userModel;
     const { entity_id } = req.params;
-    const { remind_on, note, variant, note_type, note_2 } = req.body;
+    const { remind_on, note, variant, note_type, note_2, is_remind } = req.body;
     // note_type - тип ноты, FILE / COMMENT
     // note_2 - url на файл
     let con;
@@ -520,17 +520,29 @@ router.post('/:entity_id/note', async (req, res, next) => {
         const entity = await entityModel.getEntity({entity_id,user_id},con, true);
         if (!entity) throw 'Permission denied';
         if (entity.user_role === READ) throw 'Permission denied, read only role';
-
-        await commonNote.createNote({
+        
+        await commonNote.create(con, {values: {
             user_id,
-            entity_id,
             remind_on,
-            is_remind : remind_on ? commonNote.CONSTANTS.REMIND_ON : commonNote.CONSTANTS.REMIND_OFF,
+            is_remind,
             note,
             variant,
             note_type,
-            note_2}, 
-        con);
+            note_2,
+            entity_id,
+            created_on : {expression : "now()"}
+        }});
+
+        // await commonNote.createNote({
+        //     is_remind,
+        //     user_id,
+        //     entity_id,
+        //     remind_on,
+        //     note,
+        //     variant,
+        //     note_type,
+        //     note_2}, 
+        // con);
 
         res.send({ok:true});
     } catch(error) {
@@ -545,7 +557,7 @@ router.post('/:entity_id/note', async (req, res, next) => {
 router.post('/:entity_id/note/:note_id', async (req, res, next) => {
     const { user_id } = req.userModel;
     const { entity_id, note_id } = req.params;
-    const { remind_on, note, variant, is_deleted, note_type, note_2 } = req.body;
+    const { remind_on, note, variant, is_deleted, note_type, note_2, is_remind } = req.body;
     // note_type - тип ноты, FILE / COMMENT
     // note_2 - url на файл
     let con;
@@ -576,17 +588,31 @@ router.post('/:entity_id/note/:note_id', async (req, res, next) => {
             // изменять могут либо свои комменты либо если OWNER
             throw 'Permission denied';
         }
-        await commonNote.updateNote({
-            user_id,
-            note_id, 
-            remind_on,
-            is_remind : remind_on ? commonNote.CONSTANTS.REMIND_ON : commonNote.CONSTANTS.REMIND_OFF,
-            note,
-            variant,
-            is_deleted,
-            note_type,
-            note_2}, 
-        con);
+        await commonNote.update(con, {
+            values: {
+                remind_on,
+                is_remind,
+                note,
+                variant,
+                note_2,
+                is_deleted,
+                updated_on : { expression : "now()" },
+                updated_by : user_id
+            },
+            where : { note_id, entity_id }
+        });
+
+        // await commonNote.updateNote({
+        //     user_id,
+        //     note_id, 
+        //     remind_on,
+        //     is_remind,
+        //     note,
+        //     variant,
+        //     is_deleted,
+        //     note_type,
+        //     note_2}, 
+        // con);
 
         res.send({ok:true});
     } catch(error) {

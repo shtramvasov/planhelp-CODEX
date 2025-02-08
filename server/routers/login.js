@@ -37,4 +37,17 @@ router.post('/', async (req, res, next) => {
 
 });
 
+router.delete('/:id', (req,res) => {
+    console.log("delete");
+    console.log(req.body);
+    console.log("end");
+    res.send(req.body);
+});
+
+router.post('/:id', (req,res) => {
+    console.log("post")
+    console.log(req.body)
+    res.send(req.body)
+})
+
 module.exports = router;

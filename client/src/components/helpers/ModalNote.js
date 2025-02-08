@@ -9,20 +9,25 @@ import moment from 'moment-timezone';
 import 'moment/locale/ru';
 moment.locale('ru');
 
+// Условно ли выбираются дата и время ?
+// для календаря нет
+// для документов да
+// conditionalRemindDateTime true / false (undefined)
+
 function ModalNote(props) {
     // свитчер напоминания
     const [isRemind, setRemind] = useState(false);
     
     const closeMe = () => {
-        props.callBack();
+        props.callBack(null,"cancel");
     }
     useEffect(() => {
-        if (props.note.remind_on) {
+        if (props.note.is_remind) {
             setRemind(true);
         } else {
             setRemind(false);
         }
-    },[props.note?.note_id]);
+    },[props.note]);
 
     const deleteMe = (e) => {
         e.preventDefault();
@@ -32,7 +37,7 @@ function ModalNote(props) {
             note : props.note.note,
             note_type : props.note.note_type,
             note_2 : props.note.note_2
-        });
+        },"delete");
     }
 
     const saveMe = (e) => {
@@ -52,8 +57,10 @@ function ModalNote(props) {
             variant : e.target.modalVariant.value,
             note_id : e.target.modalId.value,
             note_type : e.target.modalNoteType.value,
-            note_2 : e.target.modalNote2?.value
-        });
+            note_2 : e.target.modalNote2?.value,
+            // "напомнить" только если указан remind_on
+            is_remind : isRemind ? remind_on ? 1 : 0 : 0
+        }, "save");
     }
 
     const remindOn = props.note.remind_on?moment(props.note.remind_on,'YYYY-MM-DDTHH:mm:ss.SSSZ').format('YYYY-MM-DD HH:mm'):"";
@@ -77,6 +84,15 @@ function ModalNote(props) {
                     defaultValue={props.note.note_type}
                 />
             </Form.Group>
+            {props.note.entity_id?
+                <Form.Group className="mb-3" controlId="modalText">
+                    <Row>
+                        <Col>
+                            <a className="phLink" href={`/disk/${props.note.entity_id}/file/read`}>Перейти в документ</a>
+                        </Col>
+                    </Row>
+                </Form.Group>:""
+            }
             <Form.Group className="mb-3" controlId="modalText">
                 <Row>
                     <Col>
@@ -119,35 +135,38 @@ function ModalNote(props) {
                     </Col>
                 </Row>
             </Form.Group>
-            <Row style={{marginTop: "10px"}}>
+            <Row style={{marginTop: "30px"}}>
                 <Col>
-                <Form.Check 
-                    type="switch"
-                    id="custom-switch"
-                    label="Напомнить"
-                    onChange={(e) => {setRemind(e.target.checked)}}
-                    checked={isRemind}
-                />
+                    Добавить в календарь
                 </Col>
             </Row>
-                {isRemind?
-                <Row style={{marginTop: "10px"}}>
-                    <Col>
-                        <Form.Control 
-                            type="date" 
-                            id="remind_date"
-                            defaultValue={remindOn?remindOn.split(" ")[0]:null}
-                        />
-                    </Col>
-                    <Col>
-                        <Form.Control 
-                            type="time" 
-                            id="remind_time"
-                            defaultValue={remindOn?remindOn.split(" ")[1]:null}
-                        />
-                    </Col>
-                </Row>:""
-                }
+            <Row style={{marginTop: "6px"}}>
+                <Col>
+                    <Form.Control 
+                        type="date" 
+                        id="remind_date"
+                        defaultValue={remindOn?remindOn.split(" ")[0]:null}
+                    />
+                </Col>
+                <Col>
+                    <Form.Control 
+                        type="time" 
+                        id="remind_time"
+                        defaultValue={remindOn?remindOn.split(" ")[1]:null}
+                    />
+                </Col>
+            </Row>
+            <Row style={{marginTop: "10px"}}>
+                <Col>
+                    <Form.Check 
+                        type="switch"
+                        id="custom-switch"
+                        label="Напомнить (telegram push)"
+                        onChange={(e) => {setRemind(e.target.checked)}}
+                        checked={isRemind}
+                    />
+                </Col>
+            </Row>
         </Modal.Body>
         <Modal.Footer>
             {props.note?.note_id?
