@@ -1,8 +1,9 @@
 var express = require('express');
 var router = express.Router();
 const path = require("path");
+const yandexS3 = require('../yandexs3');
 
-// Получение файла
+// Получение файла локально
 router.get("*/:year/:month/:day/:file_name", async (req, res, next) => {
     try {
         const rootPath = process.env.PWD;
@@ -16,6 +17,17 @@ router.get("*/:year/:month/:day/:file_name", async (req, res, next) => {
                 console.log(err);
                 next("No such file");
             });
+    } catch(err) {
+        next(err);
+    }
+});
+
+// Получение файла yandexS3
+router.get("/3/:file_name", async (req, res, next) => {
+    try {
+        const file = await yandexS3.get(req.params.file_name);
+        res.setHeader('Content-Disposition', `attachment; filename="${encodeURIComponent(req.params.file_name)}"`);
+        file.Body.pipe(res);
     } catch(err) {
         next(err);
     }
