@@ -1,2 +1,2 @@
-FROM node:14
+FROM node:16
 RUN mkdir /srv/app

@@ -4,5 +4,12 @@ module.exports = {
     db_user : "",
     db_pass : "",
     db : "",
-    telegram_bot_url : ""
+    telegram_bot_url : "",
+    yandexS3 : {
+        region : "",
+        endpoint : "",
+        accessKeyId : "",
+        secretAccessKey : "",
+        bucketName : ""
+    }
 }
