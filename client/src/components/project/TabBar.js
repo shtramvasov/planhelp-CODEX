@@ -60,10 +60,6 @@ function TabBar(props) {
                         active={location.pathname.startsWith(`/project/${project_id}/board`)}>Канбан</Nav.Link>
                 </Nav.Item>
 
-                <Nav.Item>
-                    <Nav.Link as={Link} to={`/project/${project_id}/sprint`} 
-                        active={location.pathname.startsWith(`/project/${project_id}/sprint`)}>Спринты</Nav.Link>
-                </Nav.Item>
                 {/* <Nav.Item>
                     <Nav.Link as={Link} to={`/project/${project_id}/story`} 
                         active={location.pathname.startsWith(`/project/${project_id}/story`)}>Сторисы</Nav.Link>

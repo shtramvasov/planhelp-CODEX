@@ -36,9 +36,6 @@ export const projectSlice = createSlice({
             ],
             project_tag_list : [
 
-            ],
-            project_open_sprints : [
-
             ]
         },
         task : {
@@ -67,20 +64,6 @@ export const projectSlice = createSlice({
             timetable : []
         },
         taskList : [],
-        sprint : {
-            sprint_id: null,
-            project_id: null,
-            sprint_name: "",
-            date_start: "",
-            date_end: "",
-            created_on: "",
-            created_by: null,
-            updated_on: null,
-            updated_by: null,
-            is_deleted: "",
-            status: null
-        },
-        sprintList : [],
         ptt : {
             ptt_id : null,
             task_id : 103,
@@ -135,12 +118,6 @@ export const projectSlice = createSlice({
         appendTaskList: (state, action) => {
             state.taskList.push([...action.payload]);
         },
-        addSprint: (state, action) => {
-            state.sprint = (action.payload);
-        },
-        addSprintList: (state, action) => {
-            state.sprintList = (action.payload);
-        },
         addPtt : (state, action) => {
             state.ptt = (action.payload);
         }
@@ -154,8 +131,6 @@ export const {
     dndTask,
     addTaskList,
     appendTaskList,
-    addSprint,
-    addSprintList,
     addPtt
 } = projectSlice.actions;
 

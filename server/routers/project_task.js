@@ -9,7 +9,6 @@ var ProjectTask = require('../models/project_task');
 var CommonNote = require('../models/common_note');
 const ProjectTags = require('../models/project_tags');
 const ProjectTaskTags = require('../models/project_task_tags');
-const ProjectSprints = require('../models/project_sprints');
 const ProjectStatus = require('../models/project_status');
 const ProjectTaskTimetable = require('../models/project_task_timetable');
 
@@ -19,7 +18,7 @@ router.get('/:project_id/:task_id?', withTransaction(async (req, res, next) => {
     const profile_user_id = req.userModel.user_id;
     const { project_id, task_id } = req.params;
     const { limit, offset, executor_id, responsible_id, 
-            reviewer_id, status_id, tag_id, sprint_id, date_start, date_end, sort,
+            reviewer_id, status_id, tag_id, date_start, date_end, sort,
             search} = req.query;
     let { status_ids } = req.query;
         
@@ -28,7 +27,7 @@ router.get('/:project_id/:task_id?', withTransaction(async (req, res, next) => {
     // Получаем список задач
     const taskList = await ProjectTask.getList(con, 
         { project_id, task_id, limit, offset, executor_id, responsible_id, 
-            reviewer_id, status_id, status_ids, tag_id, sprint_id, date_start, date_end, sort,
+            reviewer_id, status_id, status_ids, tag_id, date_start, date_end, sort,
             search }
     );
 
@@ -86,7 +85,7 @@ router.post('/:project_id/:task_id?', withTransaction(async (req, res, next) => 
     const { project_id } = req.params;
     let { task_id } = req.params;
     const { task_title,task_note,is_deleted,status_id,
-        executor_id,responsible_id,reviewer_id, sprint_id,
+        executor_id,responsible_id,reviewer_id,
         prev_task_id } = req.body;
        
     const projectUser = (await ProjectUser.find(con,{where : {project_id, user_id : profile_user_id}}))[0];
@@ -165,7 +164,6 @@ router.post('/:project_id/:task_id?', withTransaction(async (req, res, next) => 
                 executor_id, 
                 responsible_id, 
                 reviewer_id,
-                sprint_id,
                 updated_by : profile_user_id,
                 updated_on : { expression : "now()" },
                 closed_on : closed_on,

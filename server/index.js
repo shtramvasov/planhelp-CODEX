@@ -21,7 +21,7 @@ const commonNote = require('./routers/common_note');
 const projectRouter = require('./routers/project');
 const projectTaskRouter = require('./routers/project_task');
 const projectTaskNoteRouter = require('./routers/project_task_note');
-const projectSprintsRouter = require('./routers/project_sprints');
+// const projectSprintsRouter = require('./routers/project_sprints');
 const projectTaskTimetableRouter = require('./routers/project_task_timetable');
 const auth = require('./auth');
 
@@ -52,7 +52,7 @@ app.use('/api/secure/note', commonNote);
 app.use('/api/secure/file',fileRouter);
 app.use('/api/secure/project/task/note',projectTaskNoteRouter);
 app.use('/api/secure/project/task/ptt',projectTaskTimetableRouter);
-app.use('/api/secure/project/sprints',projectSprintsRouter);
+// app.use('/api/secure/project/sprints',projectSprintsRouter);
 app.use('/api/secure/project/task',projectTaskRouter);
 app.use('/api/secure/project',projectRouter);
 

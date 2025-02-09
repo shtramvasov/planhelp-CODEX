@@ -7,7 +7,6 @@ var RefUsers = require('../models/ref_users');
 var ProjectUser = require('../models/project_user');
 var ProjectStatus = require('../models/project_status');
 const ProjectTags = require('../models/project_tags');
-const ProjectSprints = require('../models/project_sprints');
 
 // Список проектов или детали проекта
 router.get('/:project_id?', withTransaction(async (req, res, next) => {
@@ -73,14 +72,6 @@ router.get('/:project_id?', withTransaction(async (req, res, next) => {
             where : { project_id },
             order : "tag"
         });
-    const openSprints = await ProjectSprints.find(con, {
-        where : { 
-            project_id : project_id, 
-            is_deleted : ProjectSprints.CONSTANTS.IS_DELETED.NO,
-            status : ProjectSprints.CONSTANTS.STATUS.OPEN 
-        }
-    })
-    projectOne.project_open_sprints = openSprints;
     res.send(projectOne);
 }));
 

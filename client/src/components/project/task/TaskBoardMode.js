@@ -27,7 +27,7 @@ function TaskBoardMode(props) {
     const reviewer_id = searchParams.get("reviewer_id");
     const status_id = searchParams.get("status_id");
     const tag_id = searchParams.get("tag_id");
-    const sprint_id = searchParams.get("sprint_id");
+    
 	const date_start = searchParams.get("date_start");
 	const date_end = searchParams.get("date_end");
 	const search = searchParams.get("search"); 
@@ -37,7 +37,7 @@ function TaskBoardMode(props) {
 		if (Project.project.project_id) {
 			fetchProjectTaskList();
 		}
-    },[executor_id, status_id, responsible_id, reviewer_id, tag_id, sprint_id, Project.project.project_id, date_start, date_end, search]);
+    },[executor_id, status_id, responsible_id, reviewer_id, tag_id, Project.project.project_id, date_start, date_end, search]);
 
 	useEffect(() => {
 		if (offset) {
@@ -49,7 +49,7 @@ function TaskBoardMode(props) {
 				limit,offset, // закрытые задачи c пагинацией
 				project_id,
 				status_ids : closed_status_ids[0].status_id, 
-				executor_id, responsible_id, reviewer_id, tag_id, sprint_id,
+				executor_id, responsible_id, reviewer_id, tag_id,
 				date_start, date_end,
 				sort : "orderby_time"
 			},(err,resp_closed) => {
@@ -75,7 +75,7 @@ function TaskBoardMode(props) {
 			limit:"", offset:"", // не закрытые задачи без пагинации
 			project_id,
 			status_ids : open_status_ids.map((status) => status.status_id).join(','),
-			executor_id, responsible_id, reviewer_id, tag_id, sprint_id,
+			executor_id, responsible_id, reviewer_id, tag_id,
 			date_start, date_end, search,
 			sort : "orderby_time"
 		},(err,resp_open) => {
@@ -84,7 +84,7 @@ function TaskBoardMode(props) {
 					limit : PaginationDefault.limit,offset : PaginationDefault.offset, // закрытые задачи c пагинацией
 					project_id,
 					status_ids : closed_status_ids[0].status_id, 
-					executor_id, responsible_id, reviewer_id, tag_id, sprint_id,
+					executor_id, responsible_id, reviewer_id, tag_id,
 					date_start, date_end, search,
 					sort : "orderby_time"
 				},(err,resp_closed) => {
@@ -99,26 +99,6 @@ function TaskBoardMode(props) {
 			}
 		});
 	};
-
-	// const fetchClosedProjectTaskList = () => {
-	// 	const closed_status_ids = Project.project.project_status_list.filter((status) => {
-	// 		return status.is_closed === 'Y'
-	// 	});
-	// 	if (closed_status_ids.length > 0) {
-	// 		getProjectTaskList({
-	// 			limit:limit?limit:"", offset:offset?offset:"",project_id,
-	// 			status_ids : closed_status_ids[0].status_id, 
-	// 			executor_id, responsible_id, reviewer_id, tag_id, sprint_id,
-	// 			sort : "orderby_time"
-	// 		},(err,resp) => {
-	// 			if (!err) {
-	// 				dispatch(addTaskList(resp));
-	// 			} else {
-	// 				alert("Ошибка: "+err);
-	// 			}
-	// 		});
-	// 	}
-	// };
 
 	const onDropTask = ({project_id, task_id, status_id, prev_task_id}) => {
 		postTask({ project_id, task_id, status_id, prev_task_id}, (err,resp) => {

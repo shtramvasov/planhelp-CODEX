@@ -43,7 +43,6 @@ function TaskList(props) {
     const reviewer_id = searchParams.get("reviewer_id");
     const status_id = searchParams.get("status_id");
     const tag_id = searchParams.get("tag_id");
-    const sprint_id = searchParams.get("sprint_id"); 
     const date_start = searchParams.get("date_start"); 
     const date_end = searchParams.get("date_end"); 
     const search = searchParams.get("search"); 
@@ -145,7 +144,7 @@ function TaskList(props) {
     const fetchProjectTaskList = () => {
         getProjectTaskList({
             limit:limit?limit:"", offset:offset?offset:"",project_id,
-            status_id, executor_id, responsible_id, reviewer_id, tag_id, sprint_id,
+            status_id, executor_id, responsible_id, reviewer_id, tag_id,
             date_start, date_end, search, 
             sort : mode === "board" ? "orderby_time" : "task_id"
         },(err,resp) => {

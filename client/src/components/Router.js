@@ -26,11 +26,6 @@ import ProjectList from "./project/ProjectList";
 import TaskList from "./project/task/TaskList";
 import TaskDetail from "./project/task/TaskDetail";
 
-import SprintList from "./project/sprint/SprintList";
-import SprintCreate from "./project/sprint/SprintCreate";
-import SprintUpdate from "./project/sprint/SprintUpdate";
-import SprintTaskList from "./project/sprint/SprintTaskList";
-
 import Calendar from "./calendar/Calendar";
 
 import Story from "./project/story";
@@ -59,12 +54,6 @@ const router = createBrowserRouter([
     { path: "/project/:project_id", element: <TaskList /> },
     { path: "/project/:project_id/:mode", element: <TaskList /> },
     { path: "/project/:project_id/task/:task_id", element: <TaskDetail /> },
-
-    // Спринты
-    { path: "/project/:project_id/sprint/", element: <SprintList /> },
-    { path: "/project/:project_id/sprint/add", element: <SprintCreate /> }, 
-    { path: "/project/:project_id/sprint/:sprint_id/edit", element: <SprintUpdate /> },
-    { path: "/project/:project_id/sprint/:sprint_id/task", element: <SprintTaskList /> },
 
     { path: "/project/:project_id/story", element: <Story /> },
 

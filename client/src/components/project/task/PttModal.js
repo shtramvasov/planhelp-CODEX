@@ -1,20 +1,11 @@
 import React, { useState , useEffect} from 'react';
 import Button from 'react-bootstrap/Button';
-import Form from 'react-bootstrap/Form';
 import Modal from 'react-bootstrap/Modal';
-import ButtonGroup from 'react-bootstrap/ButtonGroup';
-import {Row, Col, Badge, Alert, Accordion} from 'react-bootstrap';
+import {Row, Col} from 'react-bootstrap';
 import moment from 'moment-timezone';
-import { getTask, postTask, postTaskCommonNote, postTaskTags, 
-            postProjectTaskTimelineStart, postProjectTaskTimelineEnd} from '../../../network/TaskNetwork';
-import { getSprintList } from '../../../network/SprintNetwork';
-import { addTask, addSprintList, addPtt } from '../../../reducers/Project';
-import { Link, useNavigate , useSearchParams} from "react-router-dom";
+import { addPtt } from '../../../reducers/Project';
 import { useSelector, useDispatch } from 'react-redux';
-import { useParams } from 'react-router-dom';
 import LinkInput from '../../helpers/LinkInput';
-import DragDropFile from "../../helpers/DragDropFile";
-import { addPositiveMessage, addNegativeMessage } from '../../../reducers/App';
 import DatePicker from "react-datepicker";
 
 import "react-datepicker/dist/react-datepicker.css";
