@@ -7,6 +7,8 @@ var RefUsers = require('../models/ref_users');
 var ProjectUser = require('../models/project_user');
 var ProjectStatus = require('../models/project_status');
 const ProjectTags = require('../models/project_tags');
+const ProjectSubject = require('../models/project_subject');
+const ProjectSubjectItem = require('../models/project_subject_item');
 
 // Список проектов или детали проекта
 router.get('/:project_id?', withTransaction(async (req, res, next) => {
@@ -71,6 +73,12 @@ router.get('/:project_id?', withTransaction(async (req, res, next) => {
         await ProjectTags.find(con, {
             where : { project_id },
             order : "tag"
+        });
+    // темы проекта
+    projectOne.project_subject_list = 
+        await ProjectSubject.find(con, {
+            where : { project_id , is_deleted : "N"},
+            order : "orderby_time"
         });
     res.send(projectOne);
 }));
@@ -377,6 +385,129 @@ router.delete('/:project_id/tag/:tag_id', withTransaction(async (req, res) => {
     // TODO удаление в связанных задачах?
 
     res.send({ok:true});
+}));
+
+// Добавление / Изменение тем
+router.post('/:project_id/subject/:subject_id?', withTransaction(async (req, res) => {
+    const con = res.locals.dbinstance;
+
+    const profile_user_id = req.userModel.user_id;
+    const { project_id, subject_id } = req.params;
+    const { subject_name, is_deleted } = req.body;
+    if (is_deleted) {
+        if (![Project.CONSTANTS.Y,Project.CONSTANTS.N].includes(is_deleted)) 
+            throw "Not valid is_deleted in body params, only Y or N";
+    }
+    const projectRole = (await ProjectUser.find(con,{where : {project_id, user_id : profile_user_id}}))[0];
+
+    if (projectRole.user_role !== ProjectUser.CONSTANTS.OWNER) throw 'Permission denied';
+
+    let projectSubject = subject_id;
+    if (!subject_id) {
+        projectSubject = await ProjectSubject.create(con,{values : { 
+            project_id, subject_name, is_deleted : "N",
+            orderby_time : { expression : "UNIX_TIMESTAMP(now())" },
+        }});
+    } else {
+        await ProjectSubject.update(con,{
+            values : { subject_name, is_deleted },
+            where : { project_id, subject_id }
+        });
+    }
+    res.send({subject_id : projectSubject});
+}));
+
+// Детали темы
+router.get('/:project_id/subject/:subject_id', checkAccessProjectRole, withTransaction(async (req, res) => {
+    const con = res.locals.dbinstance;
+
+    const profile_user_id = req.userModel.user_id;
+    const { project_id, subject_id } = req.params;
+    
+    const projectRole = (await ProjectUser.find(con,{where : {project_id, user_id : profile_user_id}}))[0];
+    if (!projectRole) throw 'Permission denied';
+
+    const projectSubject = await ProjectSubject.find(con, {
+        where : { project_id, subject_id, is_deleted : "N" }
+    });
+    if (projectSubject.length === 0) throw 'Permission denied';
+
+    res.send(projectSubject[0]);
+}));
+
+// Получение элементов по теме
+router.get('/:project_id/subject/:subject_id/item/:psi_id?', withTransaction(async (req, res, next) => {
+    const con = res.locals.dbinstance;
+    const { project_id, subject_id, psi_id } = req.params;
+    const profile_user_id = req.userModel.user_id;
+
+    const projectRole = (await ProjectUser.find(con,{where : {project_id, user_id : profile_user_id}}))[0];
+    if (!projectRole) throw 'Permission denied';
+
+    const projectSubject = await ProjectSubject.find(con, {
+        where : { project_id, subject_id, is_deleted : "N" }
+    });
+    if (projectSubject.length === 0) throw 'Permission denied';
+
+    const projectSubjectItemList = await ProjectSubjectItem.find(con, {
+        where : {
+            subject_id,
+            psi_id
+        },
+        order : "orderby_time desc"
+    });
+    if (psi_id) {
+        if (projectSubjectItemList.length === 0) throw 'Permission denied';
+        return res.send(projectSubjectItemList[0]);
+    }
+
+    res.send(projectSubjectItemList);
+}));
+
+// Добавление элемента в тему или его изменение
+router.post('/:project_id/subject/:subject_id/item/:psi_id?', withTransaction(async (req, res, next) => {
+    console.log("HERE?")
+    const con = res.locals.dbinstance;
+    const { project_id, subject_id, psi_id } = req.params;
+    const { psi_name, date_start, date_end, status } = req.body;
+
+    const profile_user_id = req.userModel.user_id;
+
+    const projectRole = (await ProjectUser.find(con,{where : {project_id, user_id : profile_user_id}}))[0];
+    if (![ProjectUser.CONSTANTS.WRITE,ProjectUser.CONSTANTS.OWNER].includes(projectRole.user_role)) throw 'Permission denied';
+
+    const projectSubject = await ProjectSubject.find(con, {
+        where : { project_id, subject_id, is_deleted : "N" }
+    });
+    if (projectSubject.length === 0) throw 'Permission denied';
+
+    let projectSubjectItem = psi_id;
+    if (psi_id) {
+        await ProjectSubjectItem.update(con, {
+            values : {
+                psi_name,
+                date_start : date_start ? date_start.split(".")[0] : undefined,
+                date_end : date_end ? date_end.split(".")[0] : undefined,
+                status : status
+            },
+            where : {
+                subject_id, psi_id
+            }
+        })
+    } else {
+        projectSubjectItem = await ProjectSubjectItem.create(con, {
+            values : {
+                subject_id,
+                psi_name,
+                date_start : date_start ? date_start.split(".")[0] : undefined,
+                date_end : date_end ? date_end.split(".")[0] : undefined,
+                status : ProjectSubjectItem.CONSTANTS.STATUS.OPEN,
+                orderby_time : { expression : "UNIX_TIMESTAMP(now())" }
+            }
+        });
+    }
+
+    res.send({psi_id : projectSubjectItem});
 }));
 
 module.exports = router;
