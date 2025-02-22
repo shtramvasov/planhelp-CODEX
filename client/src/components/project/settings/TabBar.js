@@ -28,6 +28,10 @@ function TabBar(props) {
                 <Nav.Link as={Link} to={`/project/${project_id}/settings/tags`} 
                     active={location.pathname == (`/project/${project_id}/settings/tags`)}>Тэги</Nav.Link>
             </Nav.Item>
+            <Nav.Item>
+                <Nav.Link as={Link} to={`/project/${project_id}/settings/subject`} 
+                    active={location.pathname == (`/project/${project_id}/settings/subject`)}>Сущности</Nav.Link>
+            </Nav.Item>
         </Nav>
     );
 }

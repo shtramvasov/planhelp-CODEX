@@ -1,32 +1,39 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
-import { useNavigate , useSearchParams} from "react-router-dom";
 import { useParams } from 'react-router-dom';
+import { Button, Col, Container, Form, Row, Table, Badge } from 'react-bootstrap';
+import { useDrag, useDrop } from 'react-dnd';
+
+import { getProject } from '../../../../network/TaskNetwork';
+import { postProjectSubject, postProjectSubjectOrderbyTime } from '../../../../network/ProjectSubject';
+import { addProject, addProjectSubject } from '../../../../reducers/Project';
+import TabBar from '../TabBar';
+import { Navbar } from '../../../navbar/Navbar';
+import Breadcrumb from "../../../helpers/Breadcrumb";
+import { addPositiveMessage, addNegativeMessage } from '../../../../reducers/App';
+import ProjectSubjectModalForm from "./ProjectSubjectModalForm";
+import { messages } from "../../../constants/Msg";
+
 import moment from 'moment-timezone';
 import 'moment/locale/ru';
-import { Badge, Button, Col, Container, Form, Row, Table } from 'react-bootstrap';
-import { addUserToProject, delUserToProject, getProject } from '../../../network/TaskNetwork';
-import { addProject } from '../../../reducers/Project';
-import { getUsers } from "../../../network/UserNetwork";
-import { addUserList } from "../../../reducers/User";
-import ModalAutoComplete from "../../helpers/ModalAutoComplete";
-import TabBar from './TabBar';
-import { Navbar } from '../../navbar/Navbar';
-import Breadcrumb from "../../helpers/Breadcrumb";
 moment.locale('ru');
 
-function ProjectAccess(props) {
+function ProjectSubjectList(props) {
 
+    const componentName = 'Сущности';
     const dispatch = useDispatch();
 
-    // const User = useSelector((state) => state.user);
+    const User = useSelector((state) => state.user);
     const Project = useSelector((state) => state.project.project);
+    const project_subject = useSelector((state) => state.project.project_subject);
+    console.log(project_subject);
     const { project_id } = useParams();
     
-    // Модалка для добавлвения пользователя в проект
-    const [showModalEntityUser, setShowModalEntityUser] = useState(false);
-    // Модалка для выбора роли для юзера при указании прав
-    const [showModalEntityUserRole, setShowModalEntityUserRole] = useState(false);
+    // Модалка для добавления/изменения тематики в проект
+    const [showModalProjectSubject, setShowModalProjectSubject] = useState(false);
+    
+    // const [editSubjectName, setEditSubjectName] = useState("");
+    // const [editSubjectId, setEditSubjectId] = useState(null);
 
     // Первичная загрузка данных
     useEffect(() => { fetchProject()},[]);
@@ -37,131 +44,166 @@ function ProjectAccess(props) {
             if (!err) {
                 dispatch(addProject(resp));
             } else {
-                alert("Ошибка: "+err);
+                dispatch(addNegativeMessage("Ошибка загрузки проекта"));
             }
         });
     };
 
-    /// Удалить доступ пользователю
-    const fetchRevokeUser = (user) => {
-        delUserToProject({ project_id: project_id, selectedUserId: user.user_id, user_role: user.user_role }, (err, resp) => {
+    const fetchDeleteProjectSubject = (subject_id) => {
+        postProjectSubject({project_id, subject_id, is_deleted : "Y"}, (err,resp) => {
             if (!err) {
-                fetchProject()
+                dispatch(addPositiveMessage(messages.SUCCESS));
+                fetchProject();
             } else {
-                alert("Ошибка: "+ err);
+                dispatch(addNegativeMessage(messages.SAVE_FAIL));
             }
-        })
-    };
+        });
+    }
 
-    // Получаем список юзеров для контекстного поиска при указании прав
-    const fetchUsers = (search, cb) => {
-        if (search) {
-            getUsers({search}, (err,resp) => {
-                resp.map((el) => {
-                    el.display_val = el.login;
-                    el.return_val = el.user_id;
-                })
-                dispatch(addUserList(resp));
-            })
-        } else {
-            dispatch(addUserList([]));
-        }
-    };
+    // после того как перетащили статус на место другого статуса
+    const onDragDrop = (dragStatus, dropStatus) => {
+        const ordered_project_subject_list = [];
+        ordered_project_subject_list.push(dragStatus);
+        ordered_project_subject_list.push(dropStatus);
 
-    // Получаем список ролей для контекстного поиска
-    const fetchUserRole = (search, cb) => {
-        if (!search) {
-            setUserRoleList(userRoleList);
-            return;
-        }
-        const filtered = userRoleList.filter(
-            el => el.display_val.toUpperCase().indexOf(search.toUpperCase()) >= 0 
-        );
-        setUserRoleList(filtered);
-    };
+        postProjectSubjectOrderbyTime({project_id : project_id, project_subject_list : ordered_project_subject_list},
+            (err) => {
+                if (!err) {
+                    dispatch(addPositiveMessage(messages.SUCCESS));
+                    fetchProject();
+                } else {
+                    dispatch(addNegativeMessage(messages.SAVE_FAIL));
+                }
+            }
+        )
+    }
 
-    // Вызов модалки для добавления пользователя
-    const actionCallModalAddUserProject = (e) => {
+    // Вызов модалки для добавления сущности
+    const actionCallModalCreateProjectSubject = (e) => {
         e.preventDefault();
-        dispatch(addUserList([]));
-        setShowModalEntityUser(true);
+        dispatch(addProjectSubject({}));
+        setShowModalProjectSubject(true);
     }
 
-    // Callback из модалки добавления пользователя
-    const actionCallBackModalAddUserProject = (user_id) => {
-        setShowModalEntityUser(false);
-        if (!user_id) return;
-        setSelectedUserId(user_id);
-        setShowModalEntityUserRole(true);
+    const actionCallModalUpdateProjectSubject = (e, el) => {
+        e.preventDefault();
+        dispatch(addProjectSubject(el));
+        setShowModalProjectSubject(true);
     }
 
-    // Callback из модалки добавления роли
-    const acctionCallBackModalAddRoleUser = (user_role) => {
-        setShowModalEntityUserRole(false);
-        if (!user_role) return;
-        if (!selectedUserId) return;
-
-        addUserToProject({ project_id, selectedUserId, user_role }, (err, resp) => {
+    const actionCallBackModalCreateProjectSubject = (isSave) => {
+        
+        // e.preventDefault();
+        setShowModalProjectSubject(false);
+        if (!isSave) { return; }
+        // dispatch(addPositiveMessage(subject_name));
+        // fetchTagCreate(newTag);
+        postProjectSubject({
+            project_id, 
+            subject_name : project_subject.subject_name, 
+            subject_type : project_subject.subject_type,
+            subject_id : project_subject.subject_id,
+            display_variant : project_subject.display_variant
+            }, (err,resp) => {
+            // setEditSubjectId(null);
             if (!err) {
-                fetchProject()
+                dispatch(addPositiveMessage(messages.SUCCESS));
+                fetchProject();
             } else {
-                alert("Ошибка: " + err);
+                dispatch(addNegativeMessage(messages.SAVE_FAIL));
             }
-        })
+        });
     }
 
-    const listUsers = Project.project_user_list.map((el) =>
-        <tr key = {el.user_id}>
-            <td>{el.login}</td>
+    function DragProjectSubjectCard(props) {
+        // props.projectSubject{
+        //     "subject_id": 13,
+        //     "project_id": 23,
+        //     "subject_name": "Сторис",
+        //     "is_deleted": "N",
+        //     "orderby_time": 1739376498
+        // }
+    
+        const el = props.projectSubject;
+        const ref = useRef(null);
+    
+        const [{ isDragging }, drag] = useDrag(() => ({
+              type: 'SUBJECTTR',
+            item: el,
+            collect: (monitor) => ({
+                isDragging: monitor.isDragging()
+            }),
+            end: (item, monitor) => {
+                
+                  const dropResult = monitor.getDropResult()
+                if (item && dropResult) {
+                    props.onDragDrop(item, dropResult);
+                }
+            },
+        }))
+    
+        const [{ canDrop, isOver }, drop] = useDrop(() => ({
+            accept: "SUBJECTTR",
+            drop: (item, monitor) => { 
+                return el;
+            },
+            hover: (item, monitor) => {
+                monitor.isOver({ shallow: true })
+            },
+            collect: (monitor) => ({
+                isOver: monitor.isOver(),
+                canDrop: monitor.canDrop(),
+                isOverCurrent: monitor.isOver({ shallow: false }),
+            }),
+        }));
+    
+        
+        drop(drag(ref));
+    
+        return (
+        <tr key = {el.subject_id} ref={ref} style={{cursor: "pointer"}}>
             <td>
-                <Badge bg="primary">{el.user_role}</Badge>
+                <div style={{display:"inline-block"}}>
+                <Button type="button" variant="outline-secondary" style={{ marginRight: '10px' }} onClick={ e => props.onEdit(e, el) }>
+                    <i className="bi bi-pencil-fill"></i> 
+                </Button>
+                </div>
+                <div style={{display:"inline-block"}}>
+                <Badge bg="primary"> 
+                    {el.subject_type === "LOV" ? "Список" : "Текст"}
+                </Badge>
+                </div>
+                &nbsp;
+                <div style={{display:"inline-block"}}>
+                    {el.subject_name}
+                </div>
             </td>
             <td>
-                { el.user_role !== 'OWNER' ?  
-                <Button type="button" variant="outline-danger" onClick={() => fetchRevokeUser(el)}>
-                    <i className="bi bi-trash3"></i>
-                </Button> : ""
-                }
+                {el.display_variant === 0? <Badge bg="danger">Видят все пользователи проекта</Badge>: <Badge bg="success">Видят только владельцы проекта</Badge>}
+            </td>
+            <td style={{ textAlign: 'right'}} >
+                <Button type="button" variant="outline-danger" onClick={ e => props.onDelete(el.subject_id) }> 
+                    <i className="bi bi-trash3"></i> 
+                </Button>
             </td>
         </tr>
-    )
-
-    const AccessTable = () => {
-        return (
-            <>
-            <Table striped bordered hover>
-                <thead>
-                    <tr>
-                        <th>Пользователь</th>
-                        <th>Роль</th>
-                        <th></th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {listUsers}
-                </tbody>
-            </Table>
-            </>
         )
-    };
+    }
 
+    const projectSubjectList = Project.project_subject_list.map((el) =>
+        <DragProjectSubjectCard 
+            key={el.subject_id} 
+            projectSubject={el} 
+            onEdit={actionCallModalUpdateProjectSubject} 
+            onDelete={fetchDeleteProjectSubject}
+            onDragDrop={onDragDrop}/>
+    );
+    
     return(
         <>
-            <ModalAutoComplete 
-                title={"Предоставить доступ пользователю"} 
-                placeholder="Начните вводить для поиска"
-                show={showModalEntityUser} 
-                callBack={actionCallBackModalAddUserProject} 
-                fetcher={fetchUsers}
-                data={User.userList}/>
-
-            <ModalAutoComplete 
-                title={"Укажите права пользователю"} 
-                placeholder="Начните вводить для поиска"
-                show={showModalEntityUserRole} 
-                callBack={acctionCallBackModalAddRoleUser} 
-                fetcher={fetchUserRole}
-                data={userRoleListOptions}/>
+            <ProjectSubjectModalForm 
+                show={showModalProjectSubject} 
+                callBack={actionCallBackModalCreateProjectSubject} />
             <Container fluid>
             <Row>
                 <Col>
@@ -175,7 +217,7 @@ function ProjectAccess(props) {
                         items={[
                             {url:`/`, name: "Мои проекты"}, 
                             {url:`/project/${project_id}/list`, name: Project.project_name},
-                            {url:``, name: 'Настройка проекта'}
+                            {url:``, name: componentName}
                         ]}
                     />
                 </Col>
@@ -189,16 +231,24 @@ function ProjectAccess(props) {
             <Row>
                 <Col>
                     <div style={{float:"left", paddingRight:"4px"}}>
-                        <h3> Настройки доступа </h3>
+                        <h3> {componentName} </h3>
                     </div>
                     <div>
                         <Form.Group className="mb-3">
-                            <Button type="button" variant="" onClick={ actionCallModalAddUserProject } >
-                                <i className="bi bi-person-add" />
+                            <Button type="button" variant="" onClick={ actionCallModalCreateProjectSubject } >
+                                <i className="bi bi-plus-circle" />
                             </Button>
                         </Form.Group>
                     </div>
-                    { AccessTable() }
+                </Col>
+            </Row>
+            <Row>
+                <Col>
+                    <Table hover>
+                    <tbody>
+                        {projectSubjectList}
+                    </tbody>
+                    </Table>
                 </Col>
             </Row>
             </Container>
@@ -206,4 +256,4 @@ function ProjectAccess(props) {
     )    
 }
 
-export default ProjectAccess;
+export default ProjectSubjectList;

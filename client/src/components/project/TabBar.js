@@ -37,6 +37,17 @@ function TabBar(props) {
         });
     };
 
+
+    // кастомные тематики конкретного проекта
+    const projectSubjectList = Project.project.project_subject_list
+        .filter( project_subject => project_subject.subject_type === "LOV")
+        .map((el) => 
+        <Nav.Item key={el.subject_id}>
+            <Nav.Link as={Link} to={`/project/${project_id}/subject/${el.subject_id}`}
+                    active={location.pathname.startsWith(`/project/${project_id}/subject/${el.subject_id}`)}>{el.subject_name}</Nav.Link>
+        </Nav.Item>
+    )
+
     return (
         <>
         <div>
@@ -47,7 +58,7 @@ function TabBar(props) {
         <div>
             <Nav variant='tabs' defaultActiveKey={ window.location.pathname }>
                 <Nav.Item>
-                    <Nav.Link as={Link} to={`/project/${project_id}/list${location.search}`}
+                    <Nav.Link as={Link} to={`/project/${project_id}/list`} //${location.search}
                         active={
                             location.pathname.startsWith(`/project/${project_id}/list`) || 
                             location.pathname == (`/project/${project_id}`)
@@ -56,14 +67,13 @@ function TabBar(props) {
                 </Nav.Item>
 
                 <Nav.Item>
-                    <Nav.Link as={Link} to={`/project/${project_id}/board${location.search}`}
-                        active={location.pathname.startsWith(`/project/${project_id}/board`)}>Канбан</Nav.Link>
+                    <Nav.Link as={Link} to={`/project/${project_id}/board`} //${location.search}
+                        active={
+                            location.pathname.startsWith(`/project/${project_id}/board`)
+                        }
+                    >Канбан</Nav.Link>
                 </Nav.Item>
-
-                {/* <Nav.Item>
-                    <Nav.Link as={Link} to={`/project/${project_id}/story`} 
-                        active={location.pathname.startsWith(`/project/${project_id}/story`)}>Сторисы</Nav.Link>
-                </Nav.Item> */}
+                {projectSubjectList}
             </Nav>
         </div>
         </>

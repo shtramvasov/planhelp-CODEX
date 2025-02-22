@@ -21,6 +21,7 @@ import ProjectUpdate from './project/settings/ProjectUpdate';
 import ProjectAccess from './project/settings/ProjectAccess';
 import ProjectStatus from './project/settings/ProjectStatus';
 import ProjectTags from './project/settings/ProjectTags';
+import ProjectSubjectList from './project/settings/ProjectSubject/ProjectSubjectList';
 import ProjectList from "./project/ProjectList";
 
 import TaskList from "./project/task/TaskList";
@@ -28,7 +29,7 @@ import TaskDetail from "./project/task/TaskDetail";
 
 import Calendar from "./calendar/Calendar";
 
-import Story from "./project/story";
+import SubjectItemList from "./project/subject/SubjectItemList";
 
 import Hr from "./hr/Hr";
 
@@ -49,13 +50,15 @@ const router = createBrowserRouter([
     { path: "/project/:project_id/settings/access", element: <ProjectAccess /> },
     { path: "/project/:project_id/settings/status", element: <ProjectStatus /> },
     { path: "/project/:project_id/settings/tags", element: <ProjectTags /> },
+    { path: "/project/:project_id/settings/subject", element: <ProjectSubjectList /> },
     
+    // Тематики
+    { path: "/project/:project_id/subject/:subject_id", element: <SubjectItemList /> },
+
     // Задачи
     { path: "/project/:project_id", element: <TaskList /> },
     { path: "/project/:project_id/:mode", element: <TaskList /> },
     { path: "/project/:project_id/task/:task_id", element: <TaskDetail /> },
-
-    { path: "/project/:project_id/story", element: <Story /> },
 
     { path: "/calendar", element: <Calendar /> },
 

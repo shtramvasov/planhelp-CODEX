@@ -197,7 +197,7 @@ function ProjectStatus(props) {
             </Row>
             <Row>
                 <Col>
-                    <Table>
+                    <Table hover>
                     <tbody>
                         {listStatus}
                     </tbody>

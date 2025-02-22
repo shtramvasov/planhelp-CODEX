@@ -35,7 +35,21 @@ export const projectSlice = createSlice({
                 // }
             ],
             project_tag_list : [
-
+                // {
+                //     "tag_id": 22,
+                //     "project_id": 23,
+                //     "tag": "xxxx"
+                // }
+            ],
+            project_subject_list : [
+                // {
+                //     "subject_id": 13,
+                //     "project_id": 23,
+                //     "subject_name": "Сторис",
+                //     "is_deleted": "N",
+                //     "orderby_time": 1739376498,
+                //     "subject_type" : ""
+                // }
             ]
         },
         task : {
@@ -71,6 +85,35 @@ export const projectSlice = createSlice({
             date_start : null,
             date_end : null,
             login : ""
+        },
+        project_subject : {
+            subject_id : null,
+            project_id : null,
+            subject_name : "",
+            is_deleted : "",
+            orderby_time : null,
+            display_variant : null
+        },
+        project_subject_item_list : [
+            // {
+            //     "psi_id": 2,
+            //     "subject_id": 24,
+            //     "psi_name": "psi_name #2",
+            //     "date_start": null,
+            //     "date_end": null,
+            //     "status": 1,
+            //     "orderby_time": 1739288192
+            // }
+        ],
+        project_subject_item : {
+            psi_id: null,
+            subject_id: null,
+            psi_name: "",
+            date_start: null,
+            date_end: null,
+            status: null,
+            orderby_time: null,
+            psi_note : ""
         }
     },
     reducers: {
@@ -120,6 +163,15 @@ export const projectSlice = createSlice({
         },
         addPtt : (state, action) => {
             state.ptt = (action.payload);
+        },
+        addProjectSubject : (state, action) => {
+            state.project_subject = (action.payload);
+        },
+        addProjectSubjectItemList : (state, action) => {
+            state.project_subject_item_list = (action.payload);
+        },
+        addProjectSubjectItem : (state, action) => {
+            state.project_subject_item = (action.payload);
         }
     }
 });
@@ -131,7 +183,10 @@ export const {
     dndTask,
     addTaskList,
     appendTaskList,
-    addPtt
+    addPtt,
+    addProjectSubject,
+    addProjectSubjectItemList,
+    addProjectSubjectItem
 } = projectSlice.actions;
 
 export default projectSlice.reducer;

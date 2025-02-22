@@ -9,6 +9,7 @@ var ProjectStatus = require('../models/project_status');
 const ProjectTags = require('../models/project_tags');
 const ProjectSubject = require('../models/project_subject');
 const ProjectSubjectItem = require('../models/project_subject_item');
+const {validateProjectOwner,validateProjectWrite,validateProjectRead,validateProjectSubject} = require('./helper/middleware/projectValidate');
 
 // Список проектов или детали проекта
 router.get('/:project_id?', withTransaction(async (req, res, next) => {
@@ -74,12 +75,23 @@ router.get('/:project_id?', withTransaction(async (req, res, next) => {
             where : { project_id },
             order : "tag"
         });
-    // темы проекта
-    projectOne.project_subject_list = 
+    // сущности проекта
+    const projectRole = (await ProjectUser.find(con,{where : {project_id, user_id}}))[0];
+
+    if (projectRole.user_role === ProjectUser.CONSTANTS.OWNER) {
+        projectOne.project_subject_list = 
         await ProjectSubject.find(con, {
             where : { project_id , is_deleted : "N"},
             order : "orderby_time"
         });
+    } else {
+        projectOne.project_subject_list = 
+        await ProjectSubject.find(con, {
+            where : { project_id , is_deleted : "N", display_variant : ProjectSubject.CONSTANTS.DISPLAY_VARIANT.TO_ALL},
+            order : "orderby_time"
+        });
+    }
+    
     res.send(projectOne);
 }));
 
@@ -345,16 +357,12 @@ router.post('/:project_id/users/revoke', async (req, res, next) => {
 });
 
 // Добавление / Изменение тэгов задач в проекте
-router.post('/:project_id/tag/:tag_id?', withTransaction(async (req, res) => {
+router.post('/:project_id/tag/:tag_id?', withTransaction(validateProjectOwner, async (req, res) => {
     const con = res.locals.dbinstance;
 
     const profile_user_id = req.userModel.user_id;
     const { project_id, tag_id } = req.params;
     const { tag } = req.body;
-        
-    const projectRole = (await ProjectUser.find(con,{where : {project_id, user_id : profile_user_id}}))[0];
-
-    if (projectRole.user_role !== ProjectUser.CONSTANTS.OWNER) throw 'Permission denied';
 
     if (!tag_id) {
         await ProjectTags.create(con,{values : { 
@@ -370,14 +378,11 @@ router.post('/:project_id/tag/:tag_id?', withTransaction(async (req, res) => {
     res.send({ok:true});
 }));
 
-router.delete('/:project_id/tag/:tag_id', withTransaction(async (req, res) => {
+router.delete('/:project_id/tag/:tag_id', withTransaction(validateProjectOwner, async (req, res) => {
     const con = res.locals.dbinstance;
 
     const profile_user_id = req.userModel.user_id;
     const { project_id, tag_id } = req.params;
-        
-    const projectRole = (await ProjectUser.find(con,{where : {project_id, user_id : profile_user_id}}))[0];
-    if (projectRole.user_role !== ProjectUser.CONSTANTS.OWNER) throw 'Permission denied';
 
     await ProjectTags.delete(con, { where : {
         project_id, tag_id
@@ -387,45 +392,90 @@ router.delete('/:project_id/tag/:tag_id', withTransaction(async (req, res) => {
     res.send({ok:true});
 }));
 
-// Добавление / Изменение тем
-router.post('/:project_id/subject/:subject_id?', withTransaction(async (req, res) => {
+// изменение порядка для сущностей
+// req.body массив [{что тащим}, {куда тащим}]
+router.post('/:project_id/subject/orderbytime', withTransaction(validateProjectOwner, async (req, res) => {
     const con = res.locals.dbinstance;
 
+    console.log("con",con);
+    const profile_user_id = req.userModel.user_id;
+    const { project_id } = req.params;
+
+    const projectSubjectList = await ProjectSubject.find(con, {
+        where : { project_id , is_deleted : "N"},
+        order : "orderby_time"
+    });
+    let indexFrom=0;
+    for(const projectSubject of projectSubjectList) {
+        if (projectSubject.subject_id === req.body[0].subject_id) {
+            break;
+        }
+        indexFrom++;
+    }
+    let indexTo=0;
+    for(const projectSubject of projectSubjectList) {
+        if (projectSubject.subject_id === req.body[1].subject_id) {
+            break;
+        }
+        indexTo++;
+    }
+    // создаем клон объекта таски
+    const projectSubject = JSON.parse(JSON.stringify(projectSubjectList[indexFrom]));
+    // удаляем элемент из массива
+    projectSubjectList.splice(indexFrom,1);
+    // // создаем клон объект
+    projectSubjectList.splice(indexTo,0,projectSubject);
+
+    let i=0;
+    for(const projectSubject of projectSubjectList) {
+        const orderby_time = i++;
+
+        await ProjectSubject.update(con,{
+            values : { orderby_time : orderby_time },
+            where : { subject_id : projectSubject.subject_id, project_id }
+        });
+    }
+    res.send({ok:true});
+}));
+
+// Добавление / Изменение сущности
+// Доступно только owner ам проекта
+router.post('/:project_id/subject/:subject_id?', withTransaction(validateProjectOwner, async (req, res) => {
+    const con = res.locals.dbinstance;
     const profile_user_id = req.userModel.user_id;
     const { project_id, subject_id } = req.params;
-    const { subject_name, is_deleted } = req.body;
+    const { subject_name, is_deleted, subject_type, display_variant } = req.body;
     if (is_deleted) {
         if (![Project.CONSTANTS.Y,Project.CONSTANTS.N].includes(is_deleted)) 
             throw "Not valid is_deleted in body params, only Y or N";
     }
-    const projectRole = (await ProjectUser.find(con,{where : {project_id, user_id : profile_user_id}}))[0];
-
-    if (projectRole.user_role !== ProjectUser.CONSTANTS.OWNER) throw 'Permission denied';
+    if (subject_type) {
+        if (![ProjectSubject.CONSTANTS.SUBJECT_TYPE.LOV,ProjectSubject.CONSTANTS.SUBJECT_TYPE.TEXT].includes(subject_type)) 
+            throw "Not valid subject_type in body params";
+    }
 
     let projectSubject = subject_id;
     if (!subject_id) {
         projectSubject = await ProjectSubject.create(con,{values : { 
-            project_id, subject_name, is_deleted : "N",
+            project_id, subject_name, is_deleted : "N", subject_type,
             orderby_time : { expression : "UNIX_TIMESTAMP(now())" },
         }});
     } else {
         await ProjectSubject.update(con,{
-            values : { subject_name, is_deleted },
+            values : { subject_name, is_deleted, subject_type, display_variant },
             where : { project_id, subject_id }
         });
     }
     res.send({subject_id : projectSubject});
 }));
 
-// Детали темы
-router.get('/:project_id/subject/:subject_id', checkAccessProjectRole, withTransaction(async (req, res) => {
+// Детали сущности
+// Доступно только owner ам проекта
+router.get('/:project_id/subject/:subject_id', withTransaction(validateProjectRead, async (req, res, next) => {
     const con = res.locals.dbinstance;
 
     const profile_user_id = req.userModel.user_id;
     const { project_id, subject_id } = req.params;
-    
-    const projectRole = (await ProjectUser.find(con,{where : {project_id, user_id : profile_user_id}}))[0];
-    if (!projectRole) throw 'Permission denied';
 
     const projectSubject = await ProjectSubject.find(con, {
         where : { project_id, subject_id, is_deleted : "N" }
@@ -435,25 +485,30 @@ router.get('/:project_id/subject/:subject_id', checkAccessProjectRole, withTrans
     res.send(projectSubject[0]);
 }));
 
-// Получение элементов по теме
-router.get('/:project_id/subject/:subject_id/item/:psi_id?', withTransaction(async (req, res, next) => {
+// Получение элементов по сущности
+// доступно всем у кого есть доступ к проекту
+router.get('/:project_id/subject/:subject_id/item/:psi_id?', withTransaction(validateProjectRead,validateProjectSubject,async (req, res, next) => {
     const con = res.locals.dbinstance;
     const { project_id, subject_id, psi_id } = req.params;
+    const { offset = 0, limit = 50, status, date_start, date_end } = req.query;
     const profile_user_id = req.userModel.user_id;
-
-    const projectRole = (await ProjectUser.find(con,{where : {project_id, user_id : profile_user_id}}))[0];
-    if (!projectRole) throw 'Permission denied';
-
-    const projectSubject = await ProjectSubject.find(con, {
-        where : { project_id, subject_id, is_deleted : "N" }
-    });
-    if (projectSubject.length === 0) throw 'Permission denied';
 
     const projectSubjectItemList = await ProjectSubjectItem.find(con, {
         where : {
             subject_id,
-            psi_id
+            psi_id,
+            _custom: [
+                {
+                    sql: `and status in (1,2)`,
+                    no_value: true
+                }
+            ],
+            status, // todo this 0 - deleted
+            date_start, // todo this
+            date_end // todo this
         },
+        limit: +limit,
+        offset: +offset,
         order : "orderby_time desc"
     });
     if (psi_id) {
@@ -464,31 +519,25 @@ router.get('/:project_id/subject/:subject_id/item/:psi_id?', withTransaction(asy
     res.send(projectSubjectItemList);
 }));
 
-// Добавление элемента в тему или его изменение
-router.post('/:project_id/subject/:subject_id/item/:psi_id?', withTransaction(async (req, res, next) => {
-    console.log("HERE?")
+// Добавление элемента в сущность или его изменение
+// доступно всем у кого WRITE / OWNER
+router.post('/:project_id/subject/:subject_id/item/:psi_id?', withTransaction(validateProjectWrite,validateProjectSubject, async (req, res, next) => {
+    
     const con = res.locals.dbinstance;
     const { project_id, subject_id, psi_id } = req.params;
-    const { psi_name, date_start, date_end, status } = req.body;
+    const { psi_name, date_start, date_end, status, psi_note } = req.body;
 
     const profile_user_id = req.userModel.user_id;
-
-    const projectRole = (await ProjectUser.find(con,{where : {project_id, user_id : profile_user_id}}))[0];
-    if (![ProjectUser.CONSTANTS.WRITE,ProjectUser.CONSTANTS.OWNER].includes(projectRole.user_role)) throw 'Permission denied';
-
-    const projectSubject = await ProjectSubject.find(con, {
-        where : { project_id, subject_id, is_deleted : "N" }
-    });
-    if (projectSubject.length === 0) throw 'Permission denied';
 
     let projectSubjectItem = psi_id;
     if (psi_id) {
         await ProjectSubjectItem.update(con, {
             values : {
                 psi_name,
-                date_start : date_start ? date_start.split(".")[0] : undefined,
-                date_end : date_end ? date_end.split(".")[0] : undefined,
-                status : status
+                date_start : date_start !== undefined ? date_start !== null ? date_start.split(".")[0] : null : undefined,
+                date_end : date_end !== undefined ? date_end !== null ? date_end.split(".")[0] : null : undefined,
+                status : status,
+                psi_note : psi_note
             },
             where : {
                 subject_id, psi_id
@@ -502,6 +551,7 @@ router.post('/:project_id/subject/:subject_id/item/:psi_id?', withTransaction(as
                 date_start : date_start ? date_start.split(".")[0] : undefined,
                 date_end : date_end ? date_end.split(".")[0] : undefined,
                 status : ProjectSubjectItem.CONSTANTS.STATUS.OPEN,
+                psi_note : psi_note,
                 orderby_time : { expression : "UNIX_TIMESTAMP(now())" }
             }
         });
@@ -509,5 +559,7 @@ router.post('/:project_id/subject/:subject_id/item/:psi_id?', withTransaction(as
 
     res.send({psi_id : projectSubjectItem});
 }));
+
+// TODO route ы для массового изменения orderby
 
 module.exports = router;

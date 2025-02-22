@@ -17,7 +17,8 @@ class ProjectSubjectItem extends Model {
         "date_start",
         "date_end",
         "orderby_time",
-        "status"
+        "status",
+        "psi_note"
     ]
 
     static table = "project_subject_item";
