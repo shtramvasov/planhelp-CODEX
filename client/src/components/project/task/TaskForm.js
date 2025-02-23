@@ -60,6 +60,7 @@ function TaskForm(props) {
 
     // Список psi
     const fetchProjectSubjectItems = ({project_id, subject_id}) => {
+        dispatch(addProjectSubjectItemList([]));
         getProjectSubjectItemList({project_id, subject_id, limit : 1000, offset : 0, status : 1}, (err,resp) => {
             if (!err) {
                 dispatch(addProjectSubjectItemList(resp));
