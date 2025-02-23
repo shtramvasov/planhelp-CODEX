@@ -15,7 +15,10 @@ import PttModal from "./PttModal";
 import ModalInputFile from "../../helpers/ModalInputFile";
 import DragDropFile from "../../helpers/DragDropFile";
 import { addPositiveMessage, addNegativeMessage } from '../../../reducers/App';
+import { addProjectSubjectItemList } from '../../../reducers/Project';
 import { messages } from "../../constants/Msg";
+import { getProjectSubjectItemList } from '../../../network/ProjectSubject';
+
 
 import 'moment/locale/ru';
 moment.locale('ru');
@@ -39,7 +42,7 @@ function TaskForm(props) {
 
     const User = useSelector((state) => state.user);
     const Project = useSelector((state) => state.project);
-    
+
     // Первичная загрузка данных
     useEffect(() => {
         fetchTask();
@@ -55,9 +58,20 @@ function TaskForm(props) {
         });
     };
 
-    const saveTask = ({task_title, task_note, status_id, executor_id, responsible_id, reviewer_id}) => {
+    // Список psi
+    const fetchProjectSubjectItems = ({project_id, subject_id}) => {
+        getProjectSubjectItemList({project_id, subject_id, limit : 1000, offset : 0, status : 1}, (err,resp) => {
+            if (!err) {
+                dispatch(addProjectSubjectItemList(resp));
+            } else {
+                dispatch(addNegativeMessage(messages.FETCH_FAIL));
+            }
+        });
+    };
+
+    const saveTask = ({task_title, task_note, status_id, executor_id, responsible_id, reviewer_id, psi_list}) => {
         postTask({ project_id, task_id, 
-            task_title, task_note, status_id, executor_id, responsible_id, reviewer_id
+            task_title, task_note, status_id, executor_id, responsible_id, reviewer_id, psi_list
         }, (err,resp) => {
             if (!err) {
                 fetchTask();
@@ -204,11 +218,21 @@ function TaskForm(props) {
     const userSelectOptions = Project.project.project_user_list.map(user => {
         return {value : user.user_id, label : user.login}
     });
+
+    // мапированный массив кликнутого subject
+    const psiSelectOptions = Project.project_subject_item_list.map(psi => {
+        return {value : psi.psi_id, label : psi.psi_name}
+    });
+
     // дефолтное значение статуса
     const statusSelectOptionsDefault = statusSelectOptions.filter(status => status.value == Project.task.status_id)[0];
     const executorSelectOptionsDefault = userSelectOptions.filter(user => user.value == Project.task.executor_id)[0];
     const responsibleSelectOptionsDefault = userSelectOptions.filter(user => user.value == Project.task.responsible_id)[0];
     const reviewerSelectOptionsDefault = userSelectOptions.filter(user => user.value == Project.task.reviewer_id)[0];
+    // const psiSelectOptionsDefault = psiSelectOptions.filter(psi => {
+    //     return Project.task.psi_list.filter((task_psi) => task_psi.psi_id == psi.value)
+    //     // psi.value == Project.task.psi_list.find
+    // })
 
     // список комментов
     const commentItems = Project.task?.comments.map((comment, index) => {
@@ -288,6 +312,96 @@ function TaskForm(props) {
             </Badge>
         </div>
     );
+
+    const projectSubjectItems = Project.project.project_subject_list.map((subject) => {
+
+        const getPsiDisplayValue = (subject_id) => {
+            const task_psi = Project.task?.psi_list.find((psi) => psi.subject_id === subject_id);
+            if (task_psi) {
+                if (task_psi.psi_id) {
+                    return task_psi.psi_name;
+                } else {
+                    return task_psi.subject_text;
+                }
+            } else {
+                if (subject.subject_type === "LOV") {
+                    return "Не указано";
+                }
+            }
+                
+        }
+
+        const getPsiValue = (subject_id) => {
+            const task_psi_ = Project.task.psi_list.filter(task_psi => task_psi.subject_id == subject_id);
+            if (task_psi_.length > 0) {
+                // найдено како то значение в таске
+                // надо сравнить со списком option
+                const option = psiSelectOptions.filter(psi => task_psi_[0].psi_id == psi.value);
+                return option;
+            }
+        }
+
+        return <Row style={{marginTop: "6px"}} key={subject.subject_id}>
+            <Col>
+                <div>
+                    <small>{subject.subject_name}</small>
+                </div>
+                <div>
+                    {
+                    subject.subject_type === "TEXT" ? 
+                        // <Form.Group className="mb-3" controlId="modalText">
+                        <LinkInput
+                            type="textField"
+                            placeholder={`Укажите ${subject.subject_name}`}
+                            defaultValue={getPsiDisplayValue(subject.subject_id)}
+                            callBack={(value) => {
+                                const psi_list = [];
+                                const psi = {};
+                                psi.subject_text = value;
+                                psi.subject_id = subject.subject_id;
+                                psi_list.push(psi);
+                                saveTask({psi_list : psi_list})
+                                // saveTask({task_title : value})}
+                            }}
+                        />
+                        // </Form.Group>
+                        // <Form.Control
+                        //     type="text"
+                        //     placeholder={`Укажите ${subject.subject_name}`}
+                        //     defaultValue={getPsiDisplayValue(subject.subject_id)}
+                        //     // autoFocus
+                        //     // onChange={onChange}
+                            
+                        //     onChange={
+                        //         (e) => {console.log("onSubmit")}
+                        //     }
+                        // />
+                    :
+                        <LinkInput 
+                            type="selectList"
+                            // placeholder="Исполнитель"
+                            onHandleEdit={() => {
+                                // fetch psi by subject.subject_id
+                                fetchProjectSubjectItems({project_id : project_id, subject_id : subject.subject_id});
+                            }}
+                            defaultDisplay={getPsiDisplayValue(subject.subject_id)}
+                            value={getPsiValue(subject.subject_id)}
+                            options={psiSelectOptions}
+                            callBack={value => {
+                                const psi_list = [];
+                                const psi = {};
+                                psi.psi_id = value;
+                                psi.subject_id = subject.subject_id;
+                                psi_list.push(psi);
+                                saveTask({psi_list : psi_list})
+                            }}
+                        />
+                    }
+                </div>
+            </Col>
+        </Row>
+    })
+
     const FilesContainer = () => {
         return(
             <>
@@ -333,7 +447,7 @@ function TaskForm(props) {
                 show={showModalUploadFile} 
                 callBack= {actionUploadFileCallBack}  
             />
-            <Col sm={12} lg={10}>
+            <Col sm={12} lg={9}>
                 <Row>
                     <Col>
                         <Form.Group className="mb-3" controlId="modalText">
@@ -373,6 +487,17 @@ function TaskForm(props) {
                                 <Button style={{padding: "0px"}} type="button" variant="" onClick={(e) => actionCallPtt(e)} >
                                     <i className="bi bi-plus-circle"></i>
                                 </Button>
+                                {Project.task?.timetable.some((timeline) => 
+                                    timeline.user_id == User.profile.user_id 
+                                        && !timeline.date_end) ?
+                                        <Button variant="" onClick={stopPtt}>
+                                            <i className="bi bi-stop-circle"></i>
+                                        </Button>
+                                        :
+                                        <Button variant="" onClick={startPtt}>
+                                            <i className="bi bi-play-circle"></i>
+                                        </Button>
+                                }
                             </Form.Group>
                             {timetableItems}
                         </Accordion.Body>
@@ -423,22 +548,12 @@ function TaskForm(props) {
                 <DragDropFile files = { <FilesContainer /> } callBack= {actionUploadFileCallBack}  />
             </Col>
             <Col>
-                <Row style={{marginTop: "8px"}}>
+                {/* <Row style={{marginTop: "8px"}}>
                     <Col>
-                        {Project.task?.timetable.some((timeline) => 
-                            timeline.user_id == User.profile.user_id 
-                                && !timeline.date_end) ?
-                                <Button variant="secondary" onClick={stopPtt}>
-                                    <i className="bi bi-stop-fill"></i>
-                                </Button>
-                                :
-                                <Button variant="success" onClick={startPtt}>
-                                    <i className="bi bi-play-fill"></i>
-                                </Button>
-                        }
+                        
                     </Col>
-                </Row>
-                <Row style={{marginTop: "8px"}}>
+                </Row> */}
+                <Row>
                     <Col>
                         <div>
                             <small>Исполнитель</small>
@@ -455,7 +570,7 @@ function TaskForm(props) {
                         </div>
                     </Col>
                 </Row>
-                <Row style={{marginTop: "8px"}}>
+                <Row style={{marginTop: "6px"}}>
                     <Col>
                         <div>
                             <small>Ответственный</small>
@@ -472,7 +587,7 @@ function TaskForm(props) {
                         </div>
                     </Col>
                 </Row>
-                <Row style={{marginTop: "8px"}}>
+                <Row style={{marginTop: "6px"}}>
                     <Col>
                         <div>
                             <small>Ревьювер</small>
@@ -489,7 +604,7 @@ function TaskForm(props) {
                         </div>
                     </Col>
                 </Row>
-                <Row style={{marginTop: "32px"}}>
+                <Row style={{marginTop: "24px"}}>
                     <Col>
                         <div>
                             <small>Статус</small>
@@ -506,7 +621,7 @@ function TaskForm(props) {
                         </div>
                     </Col>
                 </Row>
-                <Row style={{marginTop: "32px"}}>
+                <Row style={{marginTop: "24px", marginBottom : "22px"}}>
                     <Col>
                         <div>
                             <small>Тэги</small>
@@ -534,6 +649,7 @@ function TaskForm(props) {
                         </div>
                     </Col>
                 </Row>
+                {projectSubjectItems}
             </Col>
         </Row>
     )

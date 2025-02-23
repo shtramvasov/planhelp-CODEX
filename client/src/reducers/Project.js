@@ -75,7 +75,8 @@ export const projectSlice = createSlice({
             comments : [],
             files : [],
             tags : [],
-            timetable : []
+            timetable : [],
+            psi_list : []
         },
         taskList : [],
         ptt : {

@@ -1,5 +1,5 @@
 import Form from 'react-bootstrap/Form';
-import React, { useState , useEffect} from 'react';
+import React, { useState , useEffect, useRef } from 'react';
 import {Row,Col,Badge} from 'react-bootstrap';
 import Button from 'react-bootstrap/Button';
 import Select from 'react-select';
@@ -43,6 +43,8 @@ function LinkInput(props) {
 
     const [isMouseSelecting, setMouseSelecting] = useState(false);
     
+    const ref = useRef();
+
     const isCancel = props.isCancel !== undefined ? props.isCancel : true;
     const isSubmit = props.isSubmit !== undefined ? props.isSubmit : true;
     const submitLabel = props.submitLabel ? props.submitLabel : <i className="bi bi-check-lg"></i>;
@@ -58,10 +60,16 @@ function LinkInput(props) {
         // } else {
         //     setIsEdit(false);
         // }
-    },[]);
+        if (isEdit) {
+            ref.current?.focus()
+        }
+    },[isEdit]);
 
     const handleEdit = (e) => {
         e.preventDefault();
+        if (props.onHandleEdit) {
+            props.onHandleEdit();
+        }
         setIsEdit(true);
         setValue(props.defaultValue);
     }
@@ -77,9 +85,13 @@ function LinkInput(props) {
         setValue(e.target.value);
     }
 
-    const onChangeSelect = ({value, label}) => {
+    const onChangeSelect = (option) => {
         setIsEdit(false);
-        props.callBack(value, label);
+        if (option) {
+            props.callBack(option.value, option.label);
+        } else {
+            props.callBack(null, null);
+        }
     }
 
     const onChangeTags = (options) => {
@@ -180,12 +192,19 @@ function LinkInput(props) {
             }
         </div>
 
-    const selectList = isEdit && isEditable?
+    const selectList = 
+        isEdit && isEditable?
         <Select 
+            ref={ref} tabIndex={-1} onBlur={() => {setIsEdit(false);}}
+                // onMenuClose={()=> {
+                //     setIsEdit(false);
+                // }}
                 closeMenuOnSelect={false} 
+                // noOptionsMessage={() => null}
                 placeholder={props.placeholder}
                 options={props.options}
                 value={props.value}
+                isClearable
                 onChange={onChangeSelect}
             />
         :

@@ -11,6 +11,7 @@ const ProjectTags = require('../models/project_tags');
 const ProjectTaskTags = require('../models/project_task_tags');
 const ProjectStatus = require('../models/project_status');
 const ProjectTaskTimetable = require('../models/project_task_timetable');
+const ProjectTaskPsi = require('../models/project_task_psi');
 
 // Список тасков или детали таски
 router.get('/:project_id/:task_id?', withTransaction(async (req, res, next) => {
@@ -75,6 +76,19 @@ router.get('/:project_id/:task_id?', withTransaction(async (req, res, next) => {
     });
     task.timetable = timetable;
 
+    // достаем все связанные psi
+    task.psi_list = await ProjectTaskPsi.find(con, {
+        select : "project_subject_item.psi_name, project_task_psi.*",
+        joins : [ 
+            { 
+                table : "project_subject_item", 
+                   on : "project_task_psi.psi_id = project_subject_item.psi_id",
+                 type : "left join"
+            }
+        ],
+        where : { task_id }
+    });
+
     res.send(task);
 }));
 
@@ -86,7 +100,7 @@ router.post('/:project_id/:task_id?', withTransaction(async (req, res, next) => 
     let { task_id } = req.params;
     const { task_title,task_note,is_deleted,status_id,
         executor_id,responsible_id,reviewer_id,
-        prev_task_id } = req.body;
+        prev_task_id, psi_list } = req.body;
        
     const projectUser = (await ProjectUser.find(con,{where : {project_id, user_id : profile_user_id}}))[0];
     if (![ProjectUser.CONSTANTS.WRITE,ProjectUser.CONSTANTS.OWNER]
@@ -172,6 +186,31 @@ router.post('/:project_id/:task_id?', withTransaction(async (req, res, next) => 
             where : { project_id, task_id }
         },
         profile_user_id);
+
+        if (psi_list) {
+            for (const task_psi of psi_list) {
+
+                console.log(task_psi);
+
+                await ProjectTaskPsi.delete(con, {
+                    where : {
+                        task_id : task_id,
+                        // psi_id : task_psi.psi_id,
+                        subject_id : task_psi.subject_id
+                    }
+                });
+                if (task_psi.psi_id || task_psi.subject_text) {
+                    await ProjectTaskPsi.create(con, {
+                        values : {
+                            task_id : task_id,
+                            psi_id : task_psi.psi_id,
+                            subject_id : task_psi.subject_id,
+                            subject_text : task_psi.subject_text
+                        }
+                    });
+                }
+            }
+        }
     }
 
     res.send({task_id});

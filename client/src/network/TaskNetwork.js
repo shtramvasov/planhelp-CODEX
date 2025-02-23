@@ -128,7 +128,7 @@ export async function getTask({project_id, task_id}, cb = () => {}) {
 }
 
 export async function postTask({project_id, task_id, 
-        task_title, task_note, status_id, executor_id, responsible_id, reviewer_id, prev_task_id
+        task_title, task_note, status_id, executor_id, responsible_id, reviewer_id, prev_task_id, psi_list
     }, cb = () => {}) {
     const response = await fetch(`/api/secure/project/task/${project_id}/${task_id?task_id:""}`, {
         method: 'post',
@@ -139,7 +139,8 @@ export async function postTask({project_id, task_id,
             executor_id : executor_id,
             responsible_id : responsible_id,
             reviewer_id : reviewer_id,
-            prev_task_id : prev_task_id
+            prev_task_id : prev_task_id,
+            psi_list : psi_list
         }),
         headers: {
             'Content-Type': 'application/json',
