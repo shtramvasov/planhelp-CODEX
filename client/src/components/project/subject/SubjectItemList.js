@@ -15,6 +15,9 @@ import moment from 'moment-timezone';
 import 'moment/locale/ru';
 import queryString from "query-string";
 import Chip from '@mui/material/Chip';
+import CircularProgress from '@mui/material/CircularProgress';
+import Typography from '@mui/material/Typography';
+import Box from '@mui/material/Box';
 
 function SubjectItemList(props) {
 
@@ -178,18 +181,45 @@ function SubjectItemList(props) {
                 <div style={{marginTop: "6px"}}>
                     <small>{el.psi_note}</small>
                 </div>
+                <div style={{ fontSize: "0.8em", marginTop: "6px"}}>
+                    {el.date_start ? ` с ${moment(el.date_start,'YYYY-MM-DDTHH:mm:ss.SSSZ').format('DD.MM.YYYY')}` : ""}
+                    {el.date_end ? ` до ${moment(el.date_end,'YYYY-MM-DDTHH:mm:ss.SSSZ').format('DD.MM.YYYY')}` : ""}
+                </div>
                 <div style={{marginTop: "6px"}}>
                     <Badge bg={el.status == "1" ? "success" : "secondary"}> 
                         {el.status == "1" ? "" : "В архиве"}
                     </Badge>
                 </div>
             </Col>
-            <Col>
-                <div className="float-end" style={{display:"inline-block", fontSize: "0.9em"}}>
-                    {el.date_start ? ` с ${moment(el.date_start,'YYYY-MM-DDTHH:mm:ss.SSSZ').format('DD.MM.YYYY')}` : ""}
-                    {el.date_end ? ` до ${moment(el.date_end,'YYYY-MM-DDTHH:mm:ss.SSSZ').format('DD.MM.YYYY')}` : ""}
-                </div>
+            <Col sm="2" style={{textAlign: "center", margin: "auto"}}>
+                <Box sx={{ position: 'relative', display: 'inline-flex' }}>
+                    <CircularProgress variant="determinate" value={el.open_close_count ? 
+                            Math.round(parseInt(100*(el.open_close_count.split(';')[0]) / parseInt(el.open_close_count.split(';')[1])))
+                            : 0} />
+                    <Box
+                        sx={{
+                        top: 0,
+                        left: 0,
+                        bottom: 0,
+                        right: 0,
+                        position: 'absolute',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        }}
+                    >
+                        <Typography
+                        variant="caption"
+                        component="div"
+                        sx={{ color: 'text.secondary' }}
+                        >{el.open_close_count ? el.open_close_count.replace(';','/'): ""}</Typography>
+                    </Box>
+                </Box>
             </Col>
+            <Col>
+                
+            </Col>
+            
             <Col xs="auto">
                 <Button type="button"  className="float-end"
                     variant="outline-danger" 
