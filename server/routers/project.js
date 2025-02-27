@@ -492,8 +492,23 @@ router.get('/:project_id/subject/:subject_id/item/:psi_id?', withTransaction(val
     const { project_id, subject_id, psi_id } = req.params;
     const { offset = 0, limit = 50, status, date_start, date_end } = req.query;
     const profile_user_id = req.userModel.user_id;
+    // ищем закрывающий статус проекта
+    const projectClosedStatus = (await ProjectStatus.find(con,{where : {
+        project_id : project_id,
+        is_closed : ProjectStatus.CONSTANTS.Y
+    }}))[0];
+
+    let select = "*";
+    
+    if (projectClosedStatus) {
+        select = select + ',' +
+        `(select concat(CAST(sum(case when project_task.status_id = 15 then 1 else 0 end) as char(10))
+            ,';'
+            ,cast(count(*) as char(10))) as "open_close_count"`
+    }
 
     const projectSubjectItemList = await ProjectSubjectItem.find(con, {
+        select,
         where : {
             subject_id,
             psi_id,
