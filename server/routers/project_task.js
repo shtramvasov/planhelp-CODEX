@@ -33,7 +33,7 @@ router.get('/:project_id/:task_id?', withTransaction(async (req, res, next) => {
     );
 
     if (!task_id) {
-        res.send(taskList);
+        res.send(taskList.map(task => { return {...task, task_note : ""} }));
         return;
     }
     const task = taskList[0];
