@@ -498,15 +498,15 @@ router.get('/:project_id/subject/:subject_id/item/:psi_id?', withTransaction(val
         is_closed : ProjectStatus.CONSTANTS.Y
     }}))[0];
 
-    let select = "*";
+    let select = "project_subject_item.*";
     
     if (projectClosedStatus) {
         select = select + ',' +
-        `(select concat(CAST(sum(case when project_task.status_id = 15 then 1 else 0 end) as char(10))
-            ,';'
-            ,cast(count(*) as char(10))) as "open_close_count"`
+        `(select concat(CAST(sum(case when project_task.status_id = ${projectClosedStatus.status_id} then 1 else 0 end) as char(10)),';',cast(count(*) as char(10)))
+           from project_task_psi inner join project_task on project_task_psi.task_id = project_task.task_id
+          where project_task_psi.psi_id = project_subject_item.psi_id) as open_close_count`
     }
-
+    
     const projectSubjectItemList = await ProjectSubjectItem.find(con, {
         select,
         where : {
