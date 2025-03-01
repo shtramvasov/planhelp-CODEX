@@ -87,7 +87,7 @@ export async function delUserToProject({ project_id, selectedUserId, user_role }
 }
 
 export async function getProjectTaskList(
-    {limit, offset, executor_id, responsible_id, reviewer_id, tag_id, status_id, status_ids, project_id, date_start, date_end, sort, search }
+    {limit, offset, executor_id, responsible_id, reviewer_id, tag_id, status_id, status_ids, project_id, date_start, date_end, sort, search, filter_psi_ids }
     , cb = () => {}) {
     let url = `/api/secure/project/task/${project_id}/?`;
     limit !== undefined && (url += `limit=${limit}&`)
@@ -97,6 +97,7 @@ export async function getProjectTaskList(
     reviewer_id && (url += `reviewer_id=${reviewer_id}&`)
     status_id && (url += `status_id=${status_id}&`)
     status_ids && (url += `status_ids=${status_ids}&`)
+    filter_psi_ids && (url += `filter_psi_ids=${filter_psi_ids}&`)
     tag_id && (url += `tag_id=${tag_id}&`)
     date_start && (url += `date_start=${date_start}&`)
     date_end && (url += `date_end=${date_end}&`)

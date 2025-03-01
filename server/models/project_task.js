@@ -48,17 +48,28 @@ class ProjectTask extends Model {
             date_start,
             date_end,
             sort,
-            search
+            search,
+            filter_psi_ids
         } ) {
-            console.log("limit, offset",limit, offset);
+
         limit = (limit === undefined || limit === null || limit === "") ? undefined : +limit;
         offset = (offset === undefined || offset === null || offset === "") ? undefined : +offset;
         
         const _custom = []
         if (status_ids) {
-            status_ids = status_ids.replace(/:/g,",");
+            // status_ids = status_ids.replace(/:/g,",");
+            status_ids = status_ids.replace(/[^0-9,]/g,'')
             _custom.push( { 
                 sql : ` and (project_task.status_id in (${status_ids}) )`, 
+                no_value : true 
+            } );
+        }
+        if (filter_psi_ids) {
+            // psi_ids = psi_ids.replace(/:/g,",");
+            filter_psi_ids = filter_psi_ids.replace(/[^0-9,]/g,'')
+            _custom.push( { 
+                sql : ` and project_task.task_id in 
+                            (select psi.task_id from project_task_psi psi where psi.psi_id in (${filter_psi_ids}))`, 
                 no_value : true 
             } );
         }

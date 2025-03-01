@@ -10,6 +10,7 @@ import { getProjectSubjectItemList,getProjectSubject, getProjectSubjectItem, pos
 import { useSelector, useDispatch } from 'react-redux';
 import TabBar from "../TabBar";
 import SubjectItemModalForm from './SubjectItemModalForm';
+import SubjectTaskModalList from "./SubjectTaskModalList";
 import { messages } from "../../constants/Msg";
 import moment from 'moment-timezone';
 import 'moment/locale/ru';
@@ -28,6 +29,7 @@ function SubjectItemList(props) {
     const Project = useSelector((state) => state.project);
     const project_subject_item = useSelector((state) => state.project.project_subject_item);
     const psi_id = searchParams.get("psi_id");
+    const filter_psi_ids = searchParams.get("filter_psi_ids");
     const action = searchParams.get("action");
     const limit = searchParams.get("limit") || 50;
     const offset = searchParams.get("offset")?searchParams.get("offset"):0;
@@ -35,6 +37,7 @@ function SubjectItemList(props) {
 
     // Модалка для добавления/изменения тематики в проект
     const [showModalSubjectItemModalForm, setShowModalSubjectItemModalForm] = useState(false);
+    const [showSubjectTaskModalList, setShowSubjectTaskModalList] = useState(false);
 
     // Первичная загрузка данных
     useEffect(() => { 
@@ -51,13 +54,17 @@ function SubjectItemList(props) {
             fetchProjectSubjectItem();
             setShowModalSubjectItemModalForm(true);
         } else
+        if (filter_psi_ids) {
+            setShowSubjectTaskModalList(true);
+        } else 
         if (action) {
             dispatch(addProjectSubjectItem({status : 1}));
             setShowModalSubjectItemModalForm(true);
         } else {
             setShowModalSubjectItemModalForm(false);
+            setShowSubjectTaskModalList(false);
         }
-    },[psi_id,action])
+    },[psi_id,action, filter_psi_ids])
 
     // Список psi
     const fetchProjectSubjectItems = () => {
@@ -141,7 +148,7 @@ function SubjectItemList(props) {
         });
     }
 
-    const onChangeUrl = ({status, offset, limit, psi_id, action}) => {
+    const onChangeUrl = ({status, offset, limit, psi_id, action, filter_psi_ids}) => {
         
         const currentUrlObj = queryString.parse(document.location.search.slice(1));
         
@@ -150,8 +157,20 @@ function SubjectItemList(props) {
         if (status !== undefined) currentUrlObj.status = status;
         if (psi_id !== undefined) currentUrlObj.psi_id = psi_id;
         if (action !== undefined) currentUrlObj.action = action;
+        if (filter_psi_ids !== undefined) currentUrlObj.filter_psi_ids = filter_psi_ids;
+        
         
         navigate(`/project/${project_id}/subject/${subject_id}?${queryString.stringify(currentUrlObj)}`);
+    }
+
+    const actionCallModalTaskList = (psi_id) => {
+        onChangeUrl({filter_psi_ids : psi_id});
+        // fetchTaskList
+
+    }
+
+    const actionCallBackModalTaskList = () => {
+        onChangeUrl({filter_psi_ids : ""});
     }
 
     const paginateForward = () => {
@@ -191,7 +210,7 @@ function SubjectItemList(props) {
                     </Badge>
                 </div>
             </Col>
-            <Col sm="2" style={{textAlign: "center", margin: "auto"}}>
+            <Col onClick={(e) => {e.preventDefault(); actionCallModalTaskList(el.psi_id);}} sm="2" style={{textAlign: "center", margin: "auto"}}>
                 <Box sx={{ position: 'relative', display: 'inline-flex' }}>
                     <CircularProgress variant="determinate" value={el.open_close_count ? 
                             Math.round(parseInt(100*(el.open_close_count.split(';')[0]) / parseInt(el.open_close_count.split(';')[1])))
@@ -237,6 +256,10 @@ function SubjectItemList(props) {
         <SubjectItemModalForm 
             show={showModalSubjectItemModalForm} 
             callBack={actionCallBackSubjectItemModalForm} />
+        <SubjectTaskModalList 
+            show={showSubjectTaskModalList} 
+            callBack={actionCallBackModalTaskList}
+        />
         <Container fluid>
         <Row>
             <Col>

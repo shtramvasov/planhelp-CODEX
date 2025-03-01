@@ -20,7 +20,7 @@ router.get('/:project_id/:task_id?', withTransaction(async (req, res, next) => {
     const { project_id, task_id } = req.params;
     const { limit, offset, executor_id, responsible_id, 
             reviewer_id, status_id, tag_id, date_start, date_end, sort,
-            search} = req.query;
+            search, filter_psi_ids} = req.query;
     let { status_ids } = req.query;
         
     const projectRole = (await ProjectUser.find(con,{where : {project_id, user_id : profile_user_id}}))[0];
@@ -29,7 +29,7 @@ router.get('/:project_id/:task_id?', withTransaction(async (req, res, next) => {
     const taskList = await ProjectTask.getList(con, 
         { project_id, task_id, limit, offset, executor_id, responsible_id, 
             reviewer_id, status_id, status_ids, tag_id, date_start, date_end, sort,
-            search }
+            search, filter_psi_ids }
     );
 
     if (!task_id) {
