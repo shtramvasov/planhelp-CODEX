@@ -126,18 +126,20 @@ function TaskListMode(props) {
                 </ListGroup>
             </Col>
         </Row>
-        <Row style={{marginBottom: "32px"}}>
+        <Row style={{marginBottom: "16px",marginTop: "16px"}}>
             <Col>
-            <br/><br/>
+            
                 {offset!=0?
                 <a href="#" onClick={paginateBackward} style={{fontSize:"1.6em"}}>
                     <i className="bi bi-arrow-left-circle"></i>
                 </a>:""
                 }
                 &nbsp;
+                {Project.taskList.length == limit ?
                 <a href="#" onClick={paginateForward} style={{fontSize:"1.6em"}}>
                     <i className="bi bi-arrow-right-circle"></i>
-                </a>
+                </a> : <span style={{fontSize:"1.6em", color : "silver"}}><i className="bi bi-arrow-right-circle"></i></span>
+                }
             </Col>
         </Row>
     </>
