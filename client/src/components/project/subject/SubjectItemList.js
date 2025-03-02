@@ -235,18 +235,18 @@ function SubjectItemList(props) {
                     </Box>
                 </Box>
             </Col>
-            <Col>
+            {/* <Col>
                 
-            </Col>
+            </Col> */}
             
-            <Col xs="auto">
+            {/* <Col xs="auto">
                 <Button type="button"  className="float-end"
                     variant="outline-danger" 
                     onClick={ e => {e.preventDefault(); actionDeleteSubjectItem({psi_id : el.psi_id})} }
                     > 
                     <i className="bi bi-trash3"></i> 
                 </Button>
-            </Col>
+            </Col> */}
         </Row>
         </ListGroup.Item>
     )
