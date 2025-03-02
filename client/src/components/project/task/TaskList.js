@@ -46,6 +46,7 @@ function TaskList(props) {
     const date_start = searchParams.get("date_start"); 
     const date_end = searchParams.get("date_end"); 
     const search = searchParams.get("search"); 
+    const open_modal_task_id = searchParams.get("open_modal_task_id"); 
 
     // Первичная загрузка данных
     useEffect(() => {
@@ -54,10 +55,19 @@ function TaskList(props) {
             Object.values(
                 // queryString.parse(document.location.search.slice(1))
                 // для подсчета кол-ва фильтров исключаем limit / offset 
-                {...queryString.parse(document.location.search.slice(1)), limit:'', offset:''}
+                {...queryString.parse(document.location.search.slice(1)), limit:'', offset:'', open_modal_task_id:''}
             ).filter((el) => !!el).length
         );
     },[document.location.search]);
+
+    useEffect(() => {
+        if (open_modal_task_id) {
+            setModalProjectTaskData({project_id:project_id, task_id:open_modal_task_id});
+            setShowModalTaskEdit(true);
+        } else {
+            setShowModalTaskEdit(false);
+        }
+    },[open_modal_task_id])
 
     const Project = useSelector((state) => state.project);
 
@@ -69,7 +79,7 @@ function TaskList(props) {
         return result;
     }
 
-    const onChangeUrl = ({status_id, executor_id, responsible_id, reviewer_id, tag_id, offset, limit, date_start, date_end, search}) => {
+    const onChangeUrl = ({status_id, executor_id, responsible_id, reviewer_id, tag_id, offset, limit, date_start, date_end, search, open_modal_task_id}) => {
         const currentUrlObj = queryString.parse(document.location.search.slice(1));
         
         if (status_id !== undefined) currentUrlObj.status_id = status_id;
@@ -82,6 +92,7 @@ function TaskList(props) {
         if (date_start !== undefined) currentUrlObj.date_start = date_start;
         if (date_end !== undefined) currentUrlObj.date_end = date_end;
         if (search !== undefined) currentUrlObj.search = search;
+        if (open_modal_task_id !== undefined) currentUrlObj.open_modal_task_id = open_modal_task_id;
 
         navigate(`/project/${project_id}/${mode}?${queryString.stringify(currentUrlObj)}`);
         
@@ -90,9 +101,9 @@ function TaskList(props) {
     // вызов модалки редактирования задачи
     const actionCallModaTaskEdit = (e, {project_id, task_id}) => {
         e.preventDefault();
-        setModalProjectTaskData({project_id:project_id, task_id:task_id});
+        onChangeUrl({open_modal_task_id : task_id});
         // dispatch(addEntityNote({}));
-        setShowModalTaskEdit(true);
+        // setShowModalTaskEdit(true);
     }
 
     // вызов модалки создания новой задачи
@@ -111,7 +122,8 @@ function TaskList(props) {
     // колбэк после редактирования задачи
     const actionCallModaTaskEditCallback = (commonNote) => {
         //moment(commonNote.remind_on,'YYYY-MM-DD HH:mm:ss').tz('UTC').format('YYYY-MM-DD HH:mm:ss')
-        setShowModalTaskEdit(false);
+        // setShowModalTaskEdit(false);
+        onChangeUrl({open_modal_task_id : ""});
     }
 
     // submit find search text

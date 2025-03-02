@@ -57,9 +57,9 @@ function DragTaskCard(props) {
 	const commentsCount = props.comments_files_count.split(":")[0];
 
 	return (
-		<a href={`/project/${props.project_id}/task/${props.task_id}/`} style={{textDecoration: "none", color: "inherit"}}>
+		<a ref={ref} href={`/project/${props.project_id}/task/${props.task_id}/`} style={{textDecoration: "none", color: "inherit"}}>
 			<Card onClick={props.onClick}
-				ref={ref}
+				// ref={ref} перенес отсюда выше в <a> и так заработало в firefox
 				key={props.task_id}
 				style={{whiteSpace: "normal", textWrap: "balance", wordBreak: "break-word", margin: "4px", cursor: "pointer", overflow: "hidden"}}>
 				<Card.Body>
