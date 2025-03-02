@@ -271,6 +271,7 @@ function Calendar(props) {
                                     minHeight:"150px",
                                     height: "150px",
                                     overflow: "auto",
+                                    scrollbarWidth: "thin",
                                     backgroundColor : `${
                                             (new Date()).toDateString() === day.toDateString() ? "#e6f7ed" :
                                             [5,6].includes(day.getUTCDay()) ? "#eeeeff" : ""

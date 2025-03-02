@@ -61,7 +61,7 @@ function DragTaskCard(props) {
 			<Card onClick={props.onClick}
 				// ref={ref} перенес отсюда выше в <a> и так заработало в firefox
 				key={props.task_id}
-				style={{whiteSpace: "normal", textWrap: "balance", wordBreak: "break-word", margin: "4px", cursor: "pointer", overflow: "hidden"}}>
+				style={{whiteSpace: "normal", textWrap: "balance", wordBreak: "break-word", margin: "4px", cursor: "pointer", overflow: "auto", scrollbarWidth: "thin"}}>
 				<Card.Body>
 					<div style={{fontSize: "0.9em", fontWeight: "500"}}>
 						{props.task_title}

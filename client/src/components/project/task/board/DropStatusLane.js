@@ -25,13 +25,15 @@ function DropStatusLane(props) {
 				verticalAlign: "top",
                 // minHeight : "400px",
                 // height :"100vh",
-                overflow: "scroll"
+                overflow: "auto",
+                scrollbarWidth: "thin"
             }}
 			ref={drop} >
 			<Card.Header><Badge style={{fontWeight:"400"}} bg={props.variant}>{props.status_name}</Badge></Card.Header>
 			<div style={{
                 height :"93vh",
-                overflow: "scroll"
+                overflow: "auto",
+                scrollbarWidth: "thin"
             }}>
 				{props.taskList}
                 {props.loadMoreComponent ? <props.loadMoreComponent/> : ""}
@@ -59,7 +61,8 @@ function DropStatusLane(props) {
             </Card.Header>
 			<div style={{
                 height :"93vh",
-                overflow: "scroll"
+                overflow: "auto",
+                scrollbarWidth: "thin"
             }}>
 				{props.taskList}
                 {props.loadMoreComponent ? <props.loadMoreComponent/> : ""}
