@@ -84,7 +84,7 @@ function TaskListMode(props) {
             variant={el.is_closed === "Y"? "secondary":""}>
                 <Row>
                     <Col md={6}>
-                        <span style={{color: "gray",fontSize : "0.7em"}}>#{el.task_id}</span>
+                        <span style={{color: "gray",fontSize : "0.7em"}}>#{el.task_id}</span>&nbsp;
                         <span style={{color: "gray",fontSize : "0.7em"}}>{moment(el.created_on,'YYYY-MM-DDTHH:mm:ss.SSSZ').format('LLL')}</span>
                         <div style={{marginTop: "6px"}}>
                             <h6 className="mb-1">{el.task_title}</h6>
