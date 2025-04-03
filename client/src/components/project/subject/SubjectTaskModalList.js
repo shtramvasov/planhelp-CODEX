@@ -13,6 +13,7 @@ moment.locale('ru');
 function SubjectTaskModalList(props) {
     
     const dispatch = useDispatch();
+    const project_subject_item = useSelector((state) => state.project.project_subject_item);
     // const project = useSelector((state) => state.project);
     // const project_subject = useSelector((state) => state.project.project_subject);
     // const project_subject_item = useSelector((state) => state.project.project_subject_item);
@@ -44,7 +45,7 @@ function SubjectTaskModalList(props) {
         <Modal show={props.show} onHide={closeMe} dialogClassName="modal-90w">
             <Modal.Header closeButton={true}>
                 <Modal.Title>
-                    Список задач
+                    {project_subject_item.psi_name}
                 </Modal.Title>
             </Modal.Header>
             <Modal.Body>

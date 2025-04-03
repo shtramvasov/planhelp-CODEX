@@ -56,6 +56,8 @@ function SubjectItemList(props) {
         } else
         if (filter_psi_ids) {
             setShowSubjectTaskModalList(true);
+            // запросим детали кликнутой сущности
+            fetchProjectSubjectItem({filter_psi_ids});
         } else 
         if (action) {
             dispatch(addProjectSubjectItem({status : 1}));
@@ -87,8 +89,10 @@ function SubjectItemList(props) {
         });
     }
 
-    const fetchProjectSubjectItem = () => {
-        getProjectSubjectItem({project_id, subject_id, psi_id}, (err, resp) => {
+    const fetchProjectSubjectItem = ({filter_psi_ids}) => {
+        // filter_psi_ids сильно на костыль похоже
+        // может в будущем сделать как то иначе ??
+        getProjectSubjectItem({project_id, subject_id, psi_id : filter_psi_ids ? filter_psi_ids : psi_id}, (err, resp) => {
             if (!err) {
                 dispatch(addProjectSubjectItem(resp));
             } else {
