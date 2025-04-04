@@ -89,7 +89,11 @@ function SubjectItemList(props) {
         });
     }
 
-    const fetchProjectSubjectItem = ({filter_psi_ids}) => {
+    const fetchProjectSubjectItem = (params) => {
+        let filter_psi_ids = null;
+        if (params) {
+            filter_psi_ids = params.filter_psi_ids;
+        }
         // filter_psi_ids сильно на костыль похоже
         // может в будущем сделать как то иначе ??
         getProjectSubjectItem({project_id, subject_id, psi_id : filter_psi_ids ? filter_psi_ids : psi_id}, (err, resp) => {
