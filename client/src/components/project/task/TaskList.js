@@ -93,7 +93,7 @@ function TaskList(props) {
         if (date_end !== undefined) currentUrlObj.date_end = date_end;
         if (search !== undefined) currentUrlObj.search = search;
         if (open_modal_task_id !== undefined) currentUrlObj.open_modal_task_id = open_modal_task_id;
-
+        currentUrlObj.note_id = undefined;
         navigate(`/project/${project_id}/${mode}?${queryString.stringify(currentUrlObj)}`);
         
     }

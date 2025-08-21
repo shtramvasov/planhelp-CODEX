@@ -36,6 +36,10 @@ function TaskForm(props) {
     const [showModalPttEdit, setShowModalPttEdit] = useState(false);
     const [showModalUploadFile, setShowModalUploadFile] = useState(false);
 
+    const [ searchParams ] = useSearchParams();
+    const note_id = searchParams.get("note_id"); 
+
+    
     const dispatch = useDispatch();
     const navigate = useNavigate();
     const { project_id, task_id } = props;
@@ -44,11 +48,28 @@ function TaskForm(props) {
     const Project = useSelector((state) => state.project);
 
     const scrollContainerRef = useRef(null);
+    const itemRefs = useRef({});
+
+
+    const scrollToItem = (id) => {
+        if (itemRefs.current[id]) {
+          itemRefs.current[id].scrollIntoView({
+            behavior: 'smooth',
+            block: 'start',
+          });
+        }
+      };
 
     // Первичная загрузка данных
     useEffect(() => {
         fetchTask();
     },[]);
+
+    useEffect(() => {
+        if (note_id) {
+            setTimeout(() => {scrollToItem(note_id)}, 2000);
+        }
+    },[note_id,Object.keys(itemRefs.current).length,Project.task?.comments]);
 
     const fetchTask = () => {
         getTask({project_id, task_id},(err,resp) => {
@@ -259,12 +280,20 @@ function TaskForm(props) {
 
     // список комментов
     const commentItems = Project.task?.comments.map((comment, index) => {
-        return <div key={index}>
+        return <div key={index} ref={(el) => itemRefs.current[comment?.note_id] = el} >
             <div>
                 <div style={{marginBottom: "8px"}}>
-                    <small style={{ fontSize:"0.8em"}}>
-                        <b>{comment.login}</b> {moment(comment.created_on,'YYYY-MM-DDTHH:mm:ss.SSSZ').fromNow()}
-                    </small>
+                    <a onClick={(e) => {
+                            e.preventDefault(); 
+                            // navigate(`/project/${project_id}/board?open_modal_task_id=${task_id}&note_id=${comment.note_id}`);
+                            scrollToItem(comment.note_id)
+                        }}
+                        href={`/project/${project_id}/board?open_modal_task_id=${task_id}&note_id=${comment.note_id}`} 
+                        style={{textDecoration : "none", color: "#555"}}>
+                        <small style={{ fontSize:"0.8em"}}>
+                            #{comment.note_id} <b>{comment.login}</b> {moment(comment.created_on,'YYYY-MM-DDTHH:mm:ss.SSSZ').fromNow()}
+                        </small>
+                    </a>
                 </div>
                 <div>
                     <small>
