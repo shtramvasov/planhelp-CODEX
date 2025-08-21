@@ -27,7 +27,7 @@ function TaskEditModal(props) {
 
     return (
         <div className="modal-90w">
-        <Modal show={props.show} onHide={closeMe} dialogClassName="modal-90w">
+        <Modal show={props.show} onHide={closeMe} fullscreen={true}>
             {/* <form onSubmit={() => {alert("submit")}}> */}
                 <Modal.Header closeButton={true}>
                     <Modal.Title>

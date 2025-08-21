@@ -1,4 +1,4 @@
-import React, { useState , useEffect} from 'react';
+import React, { useState , useEffect, useRef} from 'react';
 import Button from 'react-bootstrap/Button';
 import Form from 'react-bootstrap/Form';
 import {Row, Col, Badge, Alert, Accordion} from 'react-bootstrap';
@@ -42,6 +42,8 @@ function TaskForm(props) {
 
     const User = useSelector((state) => state.user);
     const Project = useSelector((state) => state.project);
+
+    const scrollContainerRef = useRef(null);
 
     // Первичная загрузка данных
     useEffect(() => {
@@ -193,6 +195,26 @@ function TaskForm(props) {
         }
         setShowModalPttEdit(false);
     }
+
+    // Функция для прокрутки вверх
+    const scrollToTop = () => {
+        if (scrollContainerRef.current) {
+            scrollContainerRef.current.scrollTo({
+                top: 0,
+                behavior: 'smooth'
+            });
+        }
+    };
+
+    // Функция для прокрутки вниз
+    const scrollToBottom = () => {
+        if (scrollContainerRef.current) {
+            scrollContainerRef.current.scrollTo({
+                top: scrollContainerRef.current.scrollHeight,
+                behavior: 'smooth'
+            });
+        }
+    };
 
     const actionCallModaPttDeleteCallback = (ptt) => {
         deleteProjectTaskTimeline({project_id : project_id, task_id : task_id, ptt_id : ptt.ptt_id}, (err,resp) => {
@@ -435,6 +457,33 @@ function TaskForm(props) {
     }
 
     return (
+        <div 
+            ref={scrollContainerRef}
+            style={{
+                height: '100vh',
+                overflowY: 'auto',
+                padding: '10px'
+            }}
+        >
+            {/* Кнопки прокрутки */}
+            <div style={{ position: 'fixed', right: '40px', bottom: '20px', zIndex: 1000 }}>
+                <Button 
+                    variant="outline-secondary" 
+                    onClick={scrollToTop}
+                    style={{ marginBottom: '10px', display: 'block' }}
+                    title="Прокрутить вверх"
+                >
+                    <i className="bi bi-arrow-up"></i>
+                </Button>
+                <Button 
+                    variant="outline-secondary" 
+                    onClick={scrollToBottom}
+                    title="Прокрутить вниз"
+                >
+                    <i className="bi bi-arrow-down"></i>
+                </Button>
+            </div>
+
         <Row>
             {/* Модалка создания */}
             <PttModal 
@@ -653,6 +702,7 @@ function TaskForm(props) {
                 {projectSubjectItems}
             </Col>
         </Row>
+        </div>
     )
 }
 
