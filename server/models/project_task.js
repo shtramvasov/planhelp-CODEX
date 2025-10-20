@@ -97,7 +97,8 @@ class ProjectTask extends Model {
             // "aa  IOS    BUG" => "+aa +IOS +BUG"
             _custom.push( { 
                 sql : ` and MATCH(task_title) AGAINST(?  IN BOOLEAN MODE)`, 
-                value : "+"+search.split(' ').filter((word) => !!word).join(" +") 
+                value : search.split(" ").filter(word => !!word).map(word =>"+"+word+"*").join(" ")
+		//value : "+"+search.split(' ').filter((word) => !!word).join(" +") 
             } );
         }
         const taskList = await ProjectTask.find(con, {
