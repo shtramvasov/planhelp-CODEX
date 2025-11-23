@@ -283,7 +283,7 @@ function TaskForm(props) {
     // список комментов
     const commentItems = Project.task?.comments.map((comment, index) => {
         return <div key={index} ref={(el) => itemRefs.current[comment?.note_id] = el} >
-            <div style={{padding: "6px"}} className={`border rounded border-2 border-${comment.variant}`}>
+            <div style={{padding: "6px"}} className={comment.variant?`border rounded border-2 border-${comment.variant}`:""}>
                 <div style={{marginBottom: "8px"}}>
                     <a onClick={(e) => {
                             e.preventDefault(); 
