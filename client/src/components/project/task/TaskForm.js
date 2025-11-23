@@ -18,7 +18,7 @@ import { addPositiveMessage, addNegativeMessage } from '../../../reducers/App';
 import { addProjectSubjectItemList } from '../../../reducers/Project';
 import { messages } from "../../constants/Msg";
 import { getProjectSubjectItemList } from '../../../network/ProjectSubject';
-
+import Dropdown from 'react-bootstrap/Dropdown';
 
 import 'moment/locale/ru';
 moment.locale('ru');
@@ -137,18 +137,20 @@ function TaskForm(props) {
         });
     }
 
-    const submitComment = ({value, note_id}) => {
+    const submitComment = ({variant, value, note_id}) => {
+        // alert(variant);
         // e.preventDefault();
-        if (!value.trim()) {
-            return;
-        }
+        // if (!value?.trim() || !variant) {
+        //     return;
+        // }
         postTaskCommonNote(
             {
                 project_id, 
                 task_id, 
                 note : value,
                 note_id : note_id,
-                note_type : "COMMENT"
+                note_type : "COMMENT",
+                variant
             }
             ,(err,resp) => {
                 if (!err) {
@@ -281,7 +283,7 @@ function TaskForm(props) {
     // список комментов
     const commentItems = Project.task?.comments.map((comment, index) => {
         return <div key={index} ref={(el) => itemRefs.current[comment?.note_id] = el} >
-            <div>
+            <div style={{padding: "6px"}} className={comment.variant?`border rounded border-2 border-${comment.variant}`:""}>
                 <div style={{marginBottom: "8px"}}>
                     <a onClick={(e) => {
                             e.preventDefault(); 
@@ -294,6 +296,23 @@ function TaskForm(props) {
                             #{comment.note_id} <b>{comment.login}</b> {moment(comment.created_on,'YYYY-MM-DDTHH:mm:ss.SSSZ').fromNow()}
                         </small>
                     </a>
+                    <div style={{float: "right"}}>
+                        <Dropdown>
+                            <Dropdown.Toggle variant="" className="replace_arrow">
+                                <small><i class="bi bi-three-dots-vertical"></i></small>
+                            </Dropdown.Toggle>
+                            <Dropdown.Menu>
+                            <Dropdown.Item href="#" onClick={() => submitComment({variant : "", note_id: comment.note_id})}>Обычный</Dropdown.Item>
+                                <Dropdown.Item href="#" onClick={() => submitComment({variant : "success", note_id: comment.note_id})}>Зеленый</Dropdown.Item>
+                                <Dropdown.Item href="#" onClick={() => submitComment({variant : "warning", note_id: comment.note_id})}>Оранжевый</Dropdown.Item>
+                                <Dropdown.Item href="#" onClick={() => submitComment({variant : "danger", note_id: comment.note_id})}>Красный</Dropdown.Item>
+                                {/* <Dropdown.Item href="#" onClick={() => submitComment({variant : "", note_id: comment.note_id})}>Скрытый</Dropdown.Item> */}
+                            </Dropdown.Menu>
+                        </Dropdown>
+                    </div>
+                </div>
+                <div>
+                    
                 </div>
                 <div>
                     <small>
