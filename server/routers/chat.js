@@ -3,6 +3,7 @@ var router = express.Router();
 const withTransaction = require('./helper/withTransaction');
 const { validateChatOwner } = require('./helper/middleware/chatValidate');
 const Chat = require('../models/chat');
+const { TYPE_GROUP, TYPE_PERSONAL } = require('../models/chat').CONSTANTS;
 const ChatUser = require('../models/chat_user');
 const ChatMessage = require('../models/chat_message');
 const { READ, WRITE, OWNER } = require('../models/chat_user').CONSTANTS;
@@ -14,15 +15,34 @@ router.get('/', withTransaction(async (req, res, next) => {
 
     const chat_list = await Chat.find(con, {
         joins : [ 
-            { table : "chat_user", on : "chat.chat_id = chat_user.chat_id" }
+            { table : "chat_user", on : "chat.chat_id = chat_user.chat_id" },
+            // { type : "left join", table : "chat_user personal_chat_user", on : "chat.chat_id = personal_chat_user.chat_id and chat.chat_type = 1" },
+            // { type : "left join", table : "ref_users", on : "personal_chat_user.user_id = ref_users.user_id" }
         ],
         where : {
-            user_id
+            "chat_user.user_id" : user_id
         },
         // сортируем по последним событиям
         order : "chat_user.last_message_at desc"
     });
     
+    for (const chat of chat_list) {
+        if (chat.chat_type == TYPE_PERSONAL) {
+            const chat_user_list = await ChatUser.find(con, {
+                joins : [
+                    { table : "ref_users", on : "chat_user.user_id = ref_users.user_id" }
+                ],
+                where : {
+                    chat_id : chat.chat_id
+                }
+            });
+            const chat_user = chat_user_list.find((chat_user) => chat_user.user_id != req.userModel.user_id);
+            if (chat_user) {
+                chat.chat_name = await chat_user.login;
+            }
+        }
+    }
+
     res.send(chat_list);
 }));
 
@@ -41,6 +61,10 @@ router.get('/:chat_id', withTransaction(async (req, res, next) => {
     if (!chat) throw 'Permission denied';
 
     const chat_user_list = await ChatUser.find(con, {
+        select : "chat_user.*, ref_users.login",
+        joins : [ 
+            { table : "ref_users", on : "chat_user.user_id = ref_users.user_id" }
+        ],
         where : {
             chat_id
         }
@@ -54,19 +78,35 @@ router.get('/:chat_id', withTransaction(async (req, res, next) => {
 // Создать чат
 router.post('/', withTransaction(async (req, res, next) => {
     const con = res.locals.dbinstance;
-    const { user_id } = req.userModel;
-    const { chat_name } = req.body;
+    const { chat_name, chat_type, user_id } = req.body;
+
+    if (![TYPE_GROUP, TYPE_PERSONAL].includes(chat_type)) {
+        throw Error("Invalid chat_type")
+    }
 
     const chat_id = await Chat.create(con, {
         values : {
-            chat_name
+            chat_name,
+            chat_type
         }
     });
+
+    if (user_id) {
+        await ChatUser.create(con, {
+            values : {
+                chat_id,
+                user_id,
+                user_role : OWNER,
+                // сразу делаем now(), чтобы чат оказался наверху списка
+                last_message_at : { expression : "now()" }
+            }
+        });
+    }
 
     await ChatUser.create(con, {
         values : {
             chat_id,
-            user_id,
+            user_id : req.userModel.user_id,
             user_role : OWNER,
             // сразу делаем now(), чтобы чат оказался наверху списка
             last_message_at : { expression : "now()" }

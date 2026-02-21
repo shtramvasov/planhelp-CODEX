@@ -33,6 +33,8 @@ import SubjectItemList from "./project/subject/SubjectItemList";
 
 import Hr from "./hr/Hr";
 
+import Chat from "./chat/Chat";
+
 const router = createBrowserRouter([
     { path: "/", element: <Disk /> },
     { path: "/disk", element: <Disk /> },
@@ -67,7 +69,11 @@ const router = createBrowserRouter([
     { path: "/profile", element: <Profile /> },
     
     { path: "/login", element: <Login /> },
-    { path: "/logout", element: <Logout /> }
+    { path: "/logout", element: <Logout /> },
+
+    // Чаты
+    { path: "/chat", element: <Chat /> },
+    { path: "/chat/:chat_id", element: <Chat /> },
 ]);
 
 function Router() {
