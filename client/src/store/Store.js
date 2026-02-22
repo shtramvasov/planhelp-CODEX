@@ -5,6 +5,7 @@ import notifyReducer from '../reducers/Notify';
 import ProjectReducer from '../reducers/Project';
 import AppReducer from '../reducers/App';
 import NoteReducer from '../reducers/Note';
+import Chat from '../reducers/Chat';
 
 export default configureStore({
   reducer: {
@@ -13,6 +14,7 @@ export default configureStore({
       notify : notifyReducer,
       project : ProjectReducer,
       app : AppReducer,
-      note : NoteReducer
+      note : NoteReducer,
+      chat : Chat
   },
 });

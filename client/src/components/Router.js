@@ -1,4 +1,5 @@
 import { createBrowserRouter, RouterProvider, useNavigate, useLocation} from "react-router-dom";
+import { wsSocket } from '../network/WebSocket';
 import Cookies from 'js-cookie';
 import Snackbar from '@mui/material/Snackbar';
 import Alert from '@mui/material/Alert';
@@ -6,6 +7,9 @@ import { clearSnackBar } from '../reducers/App';
 import { useSelector, useDispatch } from 'react-redux';
 import { Login}  from "./login/Login";
 import { Logout}  from "./login/Logout";
+import { useEffect, useState } from "react";
+
+import {online, offline} from '../reducers/User';
 
 import Profile from "./profile/Profile";
 import Disk from "./disk/Disk";
@@ -32,6 +36,8 @@ import Calendar from "./calendar/Calendar";
 import SubjectItemList from "./project/subject/SubjectItemList";
 
 import Hr from "./hr/Hr";
+
+import Chat from "./chat/Chat";
 
 const router = createBrowserRouter([
     { path: "/", element: <Disk /> },
@@ -67,18 +73,33 @@ const router = createBrowserRouter([
     { path: "/profile", element: <Profile /> },
     
     { path: "/login", element: <Login /> },
-    { path: "/logout", element: <Logout /> }
+    { path: "/logout", element: <Logout /> },
+
+    // Чаты
+    { path: "/chat", element: <Chat /> },
+    { path: "/chat/:chat_id", element: <Chat /> },
 ]);
 
 function Router() {
-    // const User = useSelector((state) => state.user);
-    
+    const User = useSelector((state) => state.user);
+    const [readyState, setReadyState] = useState(wsSocket.socket?.readyState);
+    wsSocket.onSetReadyState = setReadyState;
+
     if (!Cookies.get("secret") && window.location.pathname != "/login") {
         window.location.href = "/login";
     }
     const App = useSelector((state) => state.app);
     
-    const dispatch = useDispatch()
+    const dispatch = useDispatch();
+
+    useEffect(() => {
+        if (readyState == 1) {
+            dispatch(online());
+        } else {    
+            dispatch(offline());
+        }
+    },[readyState]);
+
     return (<>
         <RouterProvider router={router} />
         {/* Снек бар либо о позитивных сообщениях либо о негативных 
