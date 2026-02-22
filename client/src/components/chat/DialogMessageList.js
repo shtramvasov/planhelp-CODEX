@@ -5,108 +5,103 @@ import Col from 'react-bootstrap/Col';
 import ListGroup from 'react-bootstrap/ListGroup';
 import Badge from 'react-bootstrap/Badge';
 import {Form, Card} from 'react-bootstrap';
+import { wsSocket } from '../../network/WebSocket';
+import React, { useState, useEffect, useRef } from 'react';
+import { useNavigate , useSearchParams, useParams} from "react-router-dom";
+import { useSelector, useDispatch } from 'react-redux'
+import moment from 'moment-timezone';
+import 'moment/locale/ru';
+moment.locale('ru');
 
 function ChatDialog(props) {
 
-    // const onChatDialogClick = (chat_id) => {
-    //     // ...
-    // }
+    const { chat_id } = useParams();
 
-    const items = <>
+    const dispatch = useDispatch()
+    const Chat = useSelector((state) => state.chat);
+    const User = useSelector((state) => state.user);
+    const navigate = useNavigate();
     
-        <div class="d-flex justify-content-start mb-4">
-            <div class="p-3 bg-light rounded-3 shadow-sm" style="max-width: 75%;">
-                <p class="small mb-0">Hello! How are you today? I'm using Bootstrap to style this chat interface.</p>
-                <p class="small text-muted mb-0 text-end mt-1">00:06 AM</p>
-            </div>
-        </div>
+    const chatDialog = Chat.chatDialogList.find((chatDialog) => chatDialog.chat_id == chat_id);
+    const messagesEndRef = useRef(null);
 
-    
-        <div class="d-flex justify-content-end mb-4">
-            <div class="p-3 bg-primary text-white rounded-3 shadow-sm" style="max-width: 75%;">
-                <p class="small mb-0">I'm great, thanks for asking! Bootstrap makes this pretty simple with flexbox utilities.</p>
-                <p class="small text-white-50 mb-0 text-end mt-1">00:07 AM</p>
+    const [showModalChatDialogEdit, setShowModalChatDialogEdit] = useState(false);
+    const [chatDialogMessage,setChatDialogMessage] = useState("");
+    // кликнули на диалог чата
+    useEffect(() => {
+        if (User.isOnline) {
+            actionGetChatDialogMessageList();
+        }
+    },[chat_id, User.isOnline]);
+
+    // 2. Function to scroll to the ref's location
+    const scrollToBottom = () => {
+        messagesEndRef.current?.scrollIntoView({  block: 'end' });
+    };
+
+    // 3. Call the scroll function whenever messages update
+    useEffect(() => {
+        scrollToBottom();
+    }, [Chat.messageList]); // Add messages as a dependency
+
+    const actionGetChatDialogMessageList = () => {
+        
+        wsSocket.socket.send(JSON.stringify({
+            action : "msg_list",
+            payload : {
+                chat_id
+            }
+        }));
+    }
+
+    const items = Chat.messageList.map((message) => 
+        <>
+        {message.login == User.profile.login ? 
+            <>
+            <div style={{paddingRight: "10px"}} className="d-flex justify-content-end mb-2">
+            <div style={{maxWidth: "75%"}}>
+                <div style={{paddingLeft: "0px"}} >
+                    <p className="small mb-0 mt-1"><b>{message.login}:</b></p>
+                </div>
+                <div className="p-3 bg-primary text-white rounded-3 shadow-sm">
+                    <p className="small mb-0">{message.message_text}</p>
+                    <small><p className="small text-white-50 mb-0 text-end mt-1">{moment(message.created_at,'YYYY-MM-DDTHH:mm:ss.SSSZ').format('LLL')}</p></small>
+                </div>
+                
             </div>
-        </div>
+            </div>
+            </>
+        : 
+            <>
+            <div style={{paddingLeft: "8px"}} >
+                <p className="small mb-0 mt-1"><b>{message.login}:</b></p>
+            </div>
+            <div style={{paddingLeft: "10px"}} className="d-flex justify-content-start mb-2">
+                <div className="p-3 bg-light rounded-3 shadow-sm" style={{maxWidth: "75%"}}>
+                    <p className="small mb-0">{message.message_text}</p>
+                    <small><p className="small text-muted mb-0 text-end mt-1">{moment(message.created_at,'YYYY-MM-DDTHH:mm:ss.SSSZ').format('LLL')}</p></small>
+                </div>
+            </div>
+            </>
+        }
         </>
-
+    )
     return (
         <Card>
-                            {/* <Card.Header>Чатик с кем то <i class="bi bi-info-circle"></i> </Card.Header> */}
+                            {/* <Card.Header>Чатик с кем то <i className="bi bi-info-circle"></i> </Card.Header> */}
                             <Card.Body style={{padding: "0px"}}>
                             <div style={{overflow: "auto"}}>
                                 <div style={{
                                     verticalAlign: "top",
                                     // minHeight : "400px",
-                                    height :"66vh",
+                                    height :"69vh",
                                     overflow: "auto",
-                                    scrollbarWidth: "thin"
+                                    scrollbarWidth: "thin",
+                                    // flexDirection: "column-reverse",
+                                    // display: "flex"
                                 }}>
-        <div style={{paddingLeft: "8px"}} >
-            <p class="small mb-0 mt-1"><b>Предеин Анатолий @predeinay:</b></p>
-        </div>
-        <div style={{paddingLeft: "10px"}} class="d-flex justify-content-start mb-2">
-            <div class="p-3 bg-light rounded-3 shadow-sm" style={{maxWidth: "75%"}}>
-                <p class="small mb-0">Hello! How are you today? I'm using Bootstrap to style this chat interface.</p>
-                <p class="small text-muted mb-0 text-end mt-1">00:06 AM</p>
-            </div>
-        </div>
-
-        <div style={{paddingRight: "10px"}} class="d-flex justify-content-end mb-2">
-            <div style={{maxWidth: "75%"}}>
-                <div style={{paddingLeft: "0px"}} >
-                    <p class="small mb-0 mt-1"><b>Предеин Анатолий @predeinay:</b></p>
-                </div>
-                <div class="p-3 bg-primary text-white rounded-3 shadow-sm">
-                    <p class="small mb-0">I'm great, thanks for asking! Bootstrap makes this pretty simple with flexbox utilities.</p>
-                    <p class="small text-white-50 mb-0 text-end mt-1">00:07 AM</p>
-                </div>
-                
-            </div>
-        </div>
-        <div style={{paddingRight: "10px"}} class="d-flex justify-content-end mb-2">
-            <div style={{maxWidth: "75%"}}>
-                <div style={{paddingLeft: "0px"}} >
-                    <p class="small mb-0 mt-1"><b>Предеин Анатолий @predeinay:</b></p>
-                </div>
-                <div class="p-3 bg-primary text-white rounded-3 shadow-sm">
-                    <p class="small mb-0">Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum.
-                    </p>
-                    <p class="small text-white-50 mb-0 text-end mt-1">00:07 AM</p>
-                </div>
-                
-            </div>
-        </div>
-        <div style={{paddingRight: "10px"}} class="d-flex justify-content-end mb-2">
-            <div style={{maxWidth: "75%"}}>
-                <div style={{paddingLeft: "0px"}} >
-                    <p class="small mb-0 mt-1"><b>Василий @vasya:</b></p>
-                </div>
-                <div class="p-3 bg-primary text-white rounded-3 shadow-sm">
-                    <p class="small mb-0">I'm great, thanks for asking! Bootstrap makes this pretty simple with flexbox utilities.</p>
-                    <p class="small text-white-50 mb-0 text-end mt-1">00:07 AM</p>
-                </div>
-                
-            </div>
-        </div>
-        <div style={{paddingLeft: "10px"}} class="d-flex justify-content-start mb-2">
-            <div class="p-3 bg-light rounded-3 shadow-sm" style={{maxWidth: "75%"}}>
-                <p class="small mb-0">Hello! How are you today? I'm using Bootstrap to style this chat interface.</p>
-                <p class="small text-muted mb-0 text-end mt-1">00:06 AM</p>
-            </div>
-        </div>
-        <div style={{paddingRight: "10px"}} class="d-flex justify-content-end mb-2">
-            <div class="p-3 bg-primary text-white rounded-3 shadow-sm" style={{maxWidth: "75%"}}>
-                <p class="small mb-0">I'm great, thanks for asking! Bootstrap makes this pretty simple with flexbox utilities.</p>
-                <p class="small text-white-50 mb-0 text-end mt-1">00:07 AM</p>
-            </div>
-        </div>
-        <div style={{paddingRight: "10px"}} class="d-flex justify-content-end mb-2">
-            <div class="p-3 bg-primary text-white rounded-3 shadow-sm" style={{maxWidth: "75%"}}>
-                <p class="small mb-0">I'm great, thanks for asking! Bootstrap makes this pretty simple with flexbox utilities.</p>
-                <p class="small text-white-50 mb-0 text-end mt-1">00:07 AM</p>
-            </div>
-        </div>
+                                {items}
+                                <div ref={messagesEndRef} />
                                 </div>
                             </div>
                             

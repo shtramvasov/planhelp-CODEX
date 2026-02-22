@@ -1,4 +1,6 @@
 const express = require("express");
+const { WebSocketServer } = require('ws');
+const { createServer } = require('http');
 const path = require("path");
 const fileUpload = require('express-fileupload');
 const bodyParser = require('body-parser');
@@ -10,6 +12,7 @@ const {appState, collectStats} = require('./appState');
 const config = require('./config');
 // var accessLogStream = fs.createWriteStream(__dirname + '/logs/access.log', {flags: 'a'});
 
+const { onMessage } = require('./routers/websocket');
 const diskRouter = require('./routers/disk');
 const userRouter = require('./routers/user');
 const loginRouter = require('./routers/login');
@@ -27,6 +30,7 @@ const projectTaskTimetableRouter = require('./routers/project_task_timetable');
 const auth = require('./auth');
 
 const app = express();
+const server = createServer(app);
 
 app.set('trust proxy', 'loopback') 
 //app.use(bodyParser.json());
@@ -95,6 +99,56 @@ app.use( (err, req, res, next) => {
     }
 });
 
-app.listen(config.http_port, () => {
+server.listen(config.http_port, () => {
     console.log(`Server start at ${config.http_port} port`);
+});
+
+const wss = new WebSocketServer({ server });
+
+// Add an 'isAlive' property to each new WebSocket connection
+wss.on('connection', (ws) => {
+    console.log("New socket connection")
+    ws.isAlive = true;
+
+    // Listen for 'pong' events from the client.
+    // When a pong is received, mark the connection as alive.
+    ws.on('pong', () => {
+        ws.isAlive = true;
+    });
+
+    // Handle incoming application-specific messages
+    ws.on('message', (message) => {
+        try {
+            onMessage(wss, ws, JSON.parse(message));
+            // Example: respond with PONG to a custom PING message if not using protocol pings
+            if (message.toString() === 'PING') {
+                ws.send('PONG');
+            }
+        } catch(err) {
+            console.log(err);
+        }
+    });
+
+    ws.on('close', () => {
+        console.log('Client disconnected');
+    });
+
+    ws.on('error', console.error);
+});
+
+// Set up an interval to periodically check connection liveness
+const interval = setInterval(() => {
+    wss.clients.forEach((ws) => {
+        // If a connection hasn't responded to the last ping, terminate it
+        if (!ws.isAlive) return ws.terminate();
+
+        // Mark the connection as potentially dead and send a ping
+        ws.isAlive = false;
+        ws.ping();
+    });
+}, 10000); // Check every 10 seconds
+
+// Stop the interval when the WebSocket server closes
+wss.on('close', () => {
+    clearInterval(interval);
 });

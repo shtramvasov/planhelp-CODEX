@@ -12,7 +12,7 @@ export const chatSlice = createSlice({
             chat_type : null,
             chat_user_list : []
         },
-        // messageList : [],
+        messageList : [],
         // message : {
         //     ""
         // }
@@ -21,9 +21,19 @@ export const chatSlice = createSlice({
         addChatDialog: (state, action) => {
             state.chatDialog = (action.payload);
         },
+        appendChatDialog : (state, action) => {
+
+        },
         addChatDialogList: (state, action) => {
             state.chatDialogList = (action.payload);
         },
+        addChatChatDialogMesageList : (state, action) => {
+            state.messageList = action.payload.reverse();
+        },
+        appendChatDialogMessage : (state, action) => {
+            state.messageList.push(action.payload);
+            // state.messageList = action.payload;
+        }
         // addTask: (state, action) => {
         //     state.task = (action.payload);
         //     // найдем таску в стейте и обновим ее новыми данными
@@ -79,7 +89,10 @@ export const chatSlice = createSlice({
 
 export const { 
     addChatDialog,
-    addChatDialogList
+    appendChatDialog,
+    addChatDialogList,
+    addChatChatDialogMesageList,
+    appendChatDialogMessage
 } = chatSlice.actions;
 
 export default chatSlice.reducer;

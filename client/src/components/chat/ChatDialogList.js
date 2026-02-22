@@ -87,8 +87,8 @@ function ChatDialogList(props) {
 
     const items = Chat.chatDialogList.map((chatDialog) => {
         // active={chat_id == chatDialog.chat_id}
-        return <ListGroup.Item  action onClick={(e) => onChatDialogClick(e, chatDialog.chat_id)} variant="light" current>
-            {chatDialog.chat_type == 1 ? "" : <i class="bi bi-people-fill"></i>}&nbsp;
+        return <ListGroup.Item key={chatDialog.chat_id} action onClick={(e) => onChatDialogClick(e, chatDialog.chat_id)} variant="light" >
+            {chatDialog.chat_type == 1 ? "" : <i className="bi bi-people-fill"></i>}&nbsp;
             <span style={{color: chat_id == chatDialog.chat_id ? "black":""}}>{chatDialog.chat_name}</span> {chatDialog.last_message_count ? <Badge bg="primary" pill>{chatDialog.last_message_count}</Badge> :""}
             <br/>
             <small>{chatDialog.last_message ? chatDialog.last_message : <br/>}</small>
@@ -97,7 +97,7 @@ function ChatDialogList(props) {
 
 
     return (<>
-        <div class="p-3 bg-light rounded-3 border">
+        <div className="p-3 bg-light rounded-3 border">
             <Dropdown>
                 <Dropdown.Toggle className="border-0" style={{padding: "0px"}} variant="">Новый чат <i className="bi bi-plus-circle"></i></Dropdown.Toggle>
                 <Dropdown.Menu>

@@ -5,6 +5,7 @@ export const userSlice = createSlice({
     name: 'User',
     initialState: {
         isLogin : false,
+        isOnline : false,
         profile : {
             login : "",
             secret : "",
@@ -29,10 +30,17 @@ export const userSlice = createSlice({
         },
         addUserList: (state, action) => {
             state.userList = action.payload;
+        },
+        online: (state) => {
+            state.isOnline = true;  
+        },
+        offline: (state) => {
+            state.isOnline = false;
         }
+
     },
 });
 
-export const { login, logout, addProfile, addUserList } = userSlice.actions;
+export const { login, logout, addProfile, addUserList, online, offline } = userSlice.actions;
 
 export default userSlice.reducer;

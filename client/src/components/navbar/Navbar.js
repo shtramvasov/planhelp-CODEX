@@ -7,7 +7,7 @@ import Nav from 'react-bootstrap/Nav';
 import { getUserProfile, postUserProfile } from '../../network/UserNetwork';
 import { addProfile } from '../../reducers/User';
 
-import { Button, Container, Dropdown, DropdownButton } from 'react-bootstrap';
+import { Button, Container, Dropdown, DropdownButton, Spinner } from 'react-bootstrap';
 import { Navbar as NavBar } from 'react-bootstrap';
 import ProfileIcon from '../../resources/img/profile.svg'
 
@@ -71,11 +71,11 @@ export function Navbar(props) {
                 <Nav.Link as={Link} to="/calendar" active={location.pathname.includes("/calendar")}>Календарь</Nav.Link>
                 </Nav.Item>
             </Nav>
-            <Nav className='justify-content-left'>
+            {/* <Nav className='justify-content-left'>
                 <Nav.Item>
                 <Nav.Link as={Link} to="/chat" active={location.pathname.includes("/chat")}>Чат</Nav.Link>
                 </Nav.Item>
-            </Nav>
+            </Nav> */}
             {/* <Nav className='justify-content-left'>
                 <Nav.Item>
                 <Nav.Link as={Link} to="/hr" active={location.pathname.includes("/hr")}>Люди</Nav.Link>
@@ -85,6 +85,11 @@ export function Navbar(props) {
             <NavBar.Collapse className="justify-content-end">
                 <Nav.Item>
                 <Dropdown>
+                    {User.isOnline ? 
+                        <small className='text-success'>онлайн</small> :
+                        <><small className='text-danger'>оффлайн </small><Spinner animation="grow" variant="warning" size="sm" /></>
+                    }
+                    
                     <Dropdown.Toggle variant="link" bsPrefix="p-0">
                         <img className='rounded-circle' src={ProfileIcon} width="40" height="40"/>
                         { BadgeCountNotification() }
