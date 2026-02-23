@@ -11,7 +11,10 @@ const wsSocket = {
 const connectWebSocket = () => {
 
     const wsUrl = window.location.protocol === 'https:' ? 'wss://' : 'ws://';
+    // prod
     wsSocket.socket = new WebSocket(wsUrl + 'planhelp.ru');
+    // dev
+    // wsSocket.socket = new WebSocket(wsUrl + 'localhost:3001');
     
     wsSocket.socket.onopen = () => {
         wsSocket.socket.send(JSON.stringify({

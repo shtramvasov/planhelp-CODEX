@@ -30,36 +30,77 @@ function Chat(props) {
     wsSocket.onmessage = (event) => {
         const wsMessage = JSON.parse(event.data);
         console.log(wsMessage);
+        console.log(User.profile.login);
+        // список сообщений в чате при клике на чат
         if (wsMessage.chat_message_list) {
             dispatch(addChatChatDialogMesageList(wsMessage.chat_message_list));
         }
+        // новое сообщение в чат
         if (wsMessage.chat_message) {
+
             if (chat_id == wsMessage.chat_message.chat_id) {
                 dispatch(appendChatDialogMessage(wsMessage.chat_message));
             }
+            actionGetChatDialogList();
+            
+        }
+        // список чатов
+        if (wsMessage.chat_list) {
+            dispatch(addChatDialogList(wsMessage.chat_list));
         }
     }
+
+    // запрос в сокет списка чатов
+    useEffect(() => {
+        if (User.isOnline) {
+            actionGetChatDialogList();
+        }
+    },[User.isOnline]);
+
     // кликнули на диалог чата
     useEffect(() => {
-        // alert(chat_id);
-        // подменить заголовок в диалоге надо
-    },[chat_id]);
+        if (User.isOnline && chat_id) {
+            actionGetChatDialogMessageList();
+        }
+        document.title = "(1) Чат | planhelp";
+    },[chat_id, User.isOnline]);
 
     const actionOnChatDialogCallback = () => {
         setShowModalChatDialogEdit(false);
-        fetchChatDialogList();
+        // fetchChatDialogList();
+        actionGetChatDialogList();
     }
 
-    const fetchChatDialogList = () => {
-        getChatDialogList({chat_id},(err,resp) => {
-            if (!err) {
-                dispatch(addChatDialogList(resp));
-            } else {
-                dispatch(addNegativeMessage(err));
-            }
-        });
-    };
+    // const fetchChatDialogList = () => {
+    //     getChatDialogList({chat_id},(err,resp) => {
+    //         if (!err) {
+    //             dispatch(addChatDialogList(resp));
+    //         } else {
+    //             dispatch(addNegativeMessage(err));
+    //         }
+    //     });
+    // };
 
+    // запрос в сокет списка сообщений по текущему чату
+    const actionGetChatDialogMessageList = () => {
+        
+        wsSocket.socket.send(JSON.stringify({
+            action : "msg_list",
+            payload : {
+                chat_id
+            }
+        }));
+        actionGetChatDialogList();
+    }
+
+    // запрос в сокет списка моих чатов
+    const actionGetChatDialogList = () => {
+        wsSocket.socket.send(JSON.stringify({
+            action : "chat_list"
+        }));
+    }
+
+    // запрос в сокет отправка сообщения в чат
     const actionSendMessage = (e) => {
         e.preventDefault();
         if (User.isOnline) {
@@ -71,6 +112,7 @@ function Chat(props) {
                 }
             }));
             setChatDialogMessage("");
+            actionGetChatDialogList();
         } else {
             dispatch(addNegativeMessage("Вы офлайн, отправка сообщений невозможна"));
         }
