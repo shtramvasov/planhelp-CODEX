@@ -144,10 +144,10 @@ const msg = async (webSocketServer, ws, {chat_id, text}) => {
             },
             where : {
                 chat_id,
-                _custom : [{
-                    sql : ` and chat_user.user_id != ${ws.userModel.user_id} `, 
-                    no_value : true 
-                }]
+                // _custom : [{
+                //     sql : ` and chat_user.user_id != ${ws.userModel.user_id} `, 
+                //     no_value : true 
+                // }]
             }
         });
 
