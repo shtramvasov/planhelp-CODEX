@@ -27,9 +27,9 @@ function ChatDialogList(props) {
     const [newChatType, setNewChatType] = useState(1);
 
     // Первичная загрузка данных,
-    useEffect(() => {
-        fetchChatDialogList();
-    },[]);
+    // useEffect(() => {
+    //     fetchChatDialogList();
+    // },[]);
 
     const onChatDialogClick = (e, chat_id) => {
         e.preventDefault();

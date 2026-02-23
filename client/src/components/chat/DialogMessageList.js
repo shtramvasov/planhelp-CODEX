@@ -27,12 +27,13 @@ function ChatDialog(props) {
 
     const [showModalChatDialogEdit, setShowModalChatDialogEdit] = useState(false);
     const [chatDialogMessage,setChatDialogMessage] = useState("");
-    // кликнули на диалог чата
-    useEffect(() => {
-        if (User.isOnline) {
-            actionGetChatDialogMessageList();
-        }
-    },[chat_id, User.isOnline]);
+
+    // // кликнули на диалог чата
+    // useEffect(() => {
+    //     if (User.isOnline) {
+    //         actionGetChatDialogMessageList();
+    //     }
+    // },[chat_id, User.isOnline]);
 
     // 2. Function to scroll to the ref's location
     const scrollToBottom = () => {
@@ -44,15 +45,15 @@ function ChatDialog(props) {
         scrollToBottom();
     }, [Chat.messageList]); // Add messages as a dependency
 
-    const actionGetChatDialogMessageList = () => {
+    // const actionGetChatDialogMessageList = () => {
         
-        wsSocket.socket.send(JSON.stringify({
-            action : "msg_list",
-            payload : {
-                chat_id
-            }
-        }));
-    }
+    //     wsSocket.socket.send(JSON.stringify({
+    //         action : "msg_list",
+    //         payload : {
+    //             chat_id
+    //         }
+    //     }));
+    // }
 
     const items = Chat.messageList.map((message) => 
         <>

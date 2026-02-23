@@ -5,6 +5,7 @@ const ChatUser = require('../models/chat_user');
 const Chat = require('../models/chat');
 
 const onMessage = async (webSocketServer, ws, message) => {
+    console.log("ws action:", message.action);
     switch (message.action) {
         case "auth":
             await auth(ws, message.token);
@@ -15,9 +16,55 @@ const onMessage = async (webSocketServer, ws, message) => {
         case "msg_list":
             await msg_list(webSocketServer, ws, message.payload);
             break;
+        case "chat_list":
+            await chat_list(webSocketServer, ws, {});
+            break;
         default:
           
       }
+}
+
+const chat_list = async (webSocketServer, ws, {}) => {
+    let con;
+    try {
+        con = await mysql.getConnection();
+
+        const chat_list = await Chat.find(con, {
+            joins : [ 
+                { table : "chat_user", on : "chat.chat_id = chat_user.chat_id" },
+                // { type : "left join", table : "chat_user personal_chat_user", on : "chat.chat_id = personal_chat_user.chat_id and chat.chat_type = 1" },
+                // { type : "left join", table : "ref_users", on : "personal_chat_user.user_id = ref_users.user_id" }
+            ],
+            where : {
+                "chat_user.user_id" : ws.userModel.user_id
+            },
+            // сортируем по последним событиям
+            order : "chat_user.last_message_at desc"
+        });
+        
+        for (const chat of chat_list) {
+            if (chat.chat_type == Chat.CONSTANTS.TYPE_PERSONAL) {
+                const chat_user_list = await ChatUser.find(con, {
+                    joins : [
+                        { table : "ref_users", on : "chat_user.user_id = ref_users.user_id" }
+                    ],
+                    where : {
+                        chat_id : chat.chat_id
+                    }
+                });
+                const chat_user = chat_user_list.find((chat_user) => chat_user.user_id != ws.userModel.user_id);
+                if (chat_user) {
+                    chat.chat_name = await chat_user.login;
+                }
+            }
+        }
+        ws.send(JSON.stringify({chat_list : chat_list}));
+
+    } catch(error) {
+        console.log(error);
+    } finally {
+        con && await mysql.releaseConnection(con);
+    }
 }
 
 const msg_list = async (webSocketServer, ws, {chat_id, offset_msg_id}) => {
@@ -45,6 +92,17 @@ const msg_list = async (webSocketServer, ws, {chat_id, offset_msg_id}) => {
             limit : 100,
             order : "message_id desc"
         });
+
+        // втупую апдейтим непрочитанные сообщения??
+        await ChatUser.update(con, {
+            values: {
+                last_message_count : 0
+            },
+            where : {
+                chat_id,
+                user_id : ws.userModel.user_id
+            }
+        })
         ws.send(JSON.stringify({chat_message_list : chat_message_list}));
 
     } catch(error) {
@@ -124,7 +182,7 @@ const msg = async (webSocketServer, ws, {chat_id, text}) => {
                 
             });
         }
-
+        //await chat_list(webSocketServer, ws, {});
     } catch(error) {
         console.log(error);
     } finally {
