@@ -71,11 +71,11 @@ export function Navbar(props) {
                 <Nav.Link as={Link} to="/calendar" active={location.pathname.includes("/calendar")}>Календарь</Nav.Link>
                 </Nav.Item>
             </Nav>
-            <Nav className='justify-content-left'>
+            {/* <Nav className='justify-content-left'>
                 <Nav.Item>
                 <Nav.Link as={Link} to="/chat" active={location.pathname.includes("/chat")}>Чат</Nav.Link>
                 </Nav.Item>
-            </Nav>
+            </Nav> */}
             {/* <Nav className='justify-content-left'>
                 <Nav.Item>
                 <Nav.Link as={Link} to="/hr" active={location.pathname.includes("/hr")}>Люди</Nav.Link>
