@@ -137,6 +137,7 @@ const msg = async (webSocketServer, ws, {chat_id, text}) => {
             }
         });
 
+        // другим юзерам
         await ChatUser.update(con, {
             values : {
                 last_message_count : {expression : " last_message_count +1 "},
@@ -144,13 +145,25 @@ const msg = async (webSocketServer, ws, {chat_id, text}) => {
             },
             where : {
                 chat_id,
-                // _custom : [{
-                //     sql : ` and chat_user.user_id != ${ws.userModel.user_id} `, 
-                //     no_value : true 
-                // }]
+                _custom : [{
+                    sql : ` and chat_user.user_id != ${ws.userModel.user_id} `, 
+                    no_value : true 
+                }]
             }
         });
 
+        // себе
+        await ChatUser.update(con, {
+            values : {
+                last_message_count : 0,
+                last_message_at : {expression : "now()"},
+            },
+            where : {
+                chat_id,
+                user_id : ws.userModel.user_id
+            }
+        });
+        
         await Chat.update(con, {
             values : {
                 last_message : text
