@@ -160,6 +160,11 @@ function Chat(props) {
                                     onChange={(e) =>{setChatDialogMessage(e.target.value)}}
                                     rows={1}
                                     placeholder={"Напишите ваше сообщение..."}
+                                    onKeyDown={(e) => {
+                                        if (e.key === "Enter" && !e.ctrlKey &&!e.metaKey) {
+                                            actionSendMessage(e);
+                                        }
+                                    }}
                                     />     
                                 <Button type="submit">Отправить</Button>
                             </div>
