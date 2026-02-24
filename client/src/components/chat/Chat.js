@@ -12,8 +12,6 @@ import DialogMessageList from "./DialogMessageList";
 import ChatDialog from './ChatDialog';
 
 function Chat(props) {
-    
-    document.title = "Чат | planhelp";
 
     const { chat_id } = useParams();
 
@@ -49,6 +47,19 @@ function Chat(props) {
             dispatch(addChatDialogList(wsMessage.chat_list));
         }
     }
+    // запрос в сокет списка чатов
+    useEffect(() => {
+        let countUnreadMessages = 0;
+        for (const chatDialog of Chat.chatDialogList) {
+            countUnreadMessages += chatDialog.last_message_count;
+        }
+        if (countUnreadMessages) {
+            document.title = `(${countUnreadMessages}) Чат | planhelp`;
+        } else {
+            document.title = `Чат | planhelp`;
+        }
+        
+    },[Chat.chatDialogList]);
 
     // запрос в сокет списка чатов
     useEffect(() => {
@@ -62,7 +73,6 @@ function Chat(props) {
         if (User.isOnline && chat_id) {
             actionGetChatDialogMessageList();
         }
-        document.title = "(1) Чат | planhelp";
     },[chat_id, User.isOnline]);
 
     const actionOnChatDialogCallback = () => {
