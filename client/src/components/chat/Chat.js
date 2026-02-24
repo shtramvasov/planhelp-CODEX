@@ -135,13 +135,13 @@ function Chat(props) {
                 <Navbar />
                 <br/>
                 <Row>
-                    <Col xs={3}>
-                        <div style={{overflow: "auto", whiteSpace: "nowrap"}}>
+                    <Col sm={3}>
+                        <div className={chat_id? "d-none d-sm-block" : ""} style={{overflow: "auto", whiteSpace: "nowrap"}}>
                         <div
                             style={{
                                 verticalAlign: "top",
                                 // minHeight : "400px",
-                                height :"85vh",
+                                // height :"85vh",
                                 overflow: "auto",
                                 scrollbarWidth: "thin"
                             }}>
@@ -150,7 +150,7 @@ function Chat(props) {
                         </div>
                     </Col>
                     {chat_id ? 
-                        <Col xs={9}>
+                        <Col sm={9}>
                             <div className="p-3 bg-light rounded-3 border" >
                                 <a href="#" onClick={(e) => { e.preventDefault(); navigate(`/chat/`); }}><i className="bi bi-arrow-left"></i></a>
                                 &nbsp;&nbsp;<span style={{fontWeight: "500"}}>{chatDialog?.chat_name}</span>
