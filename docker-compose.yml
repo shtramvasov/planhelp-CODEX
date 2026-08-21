@@ -1,0 +1,27 @@
+version: "3"
+services:
+  app:
+    build:
+      context: .
+      dockerfile: ./Dockerfile
+    command: tail -f /dev/null
+    #command: /srv/app/server/node_modules/nodemon/bin/nodemon.js /srv/app/server/app.js
+    container_name: planhelp_app
+    ports:
+      - "3001:3001"
+    volumes:
+      - .:/srv/app
+  db:
+    container_name: planhelp_db
+    image: mysql:5.7
+    environment:
+      - MYSQL_DATABASE=planhelp_db
+      - MYSQL_USER=planhelp_user
+      - MYSQL_PASSWORD=planhelp_password
+      - MYSQL_ROOT_PASSWORD=root_password
+    ports:
+      - '3306:3306'
+    expose:
+      - '3306'
+    volumes:
+      - ./db:/var/lib/mysql:delegated

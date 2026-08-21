@@ -1,0 +1,626 @@
+var express = require('express');
+var router = express.Router();
+var mysql = require('../mysqlhelper');
+var entityModel = require('../models/disk_entity');
+const { READ, WRITE, OWNER, FILE, PATH, ROOT, GRID } = require('../models/disk_entity').CONSTANTS;
+var commonNote = require('../models/common_note');
+
+// Возвращает указанный эелемент и его потомков
+// Если параметр не задан, возвращает что лежит в ROOT
+router.get('/:entity_id?', async (req, res, next) => {
+    const { entity_id } = req.params;
+    const { user_id } = req.userModel;
+    const search = req.query.search?.replace(" ","%");
+    let con;
+    try {
+        con = await mysql.getConnection();
+
+        // получаем сам entity по ID
+        // валидируем доступ если entity не найден - значит нет доступа
+        const entity = await entityModel.getEntity({entity_id,user_id},con);
+        if (!entity) throw 'Permission denied';
+        if (!search) {
+            // достаем breadcrumb для указанного entity
+            entity.breadcrumb = await entityModel.getEntityBreadcrumb(
+                {user_id, entity_tree: entity.entity_tree},con
+            );
+            entity.levelEntityList = await entityModel.getEntityChild(
+                {entity_id : entity.parent_entity_id, user_id : req.userModel.user_id},con
+            );
+        }
+        if (search) {
+            // контекстный поиск, не валидируем entity, потому что не надо
+            entity.childEntityList = await entityModel.getEntitySearch({
+                entity_tree : entity.entity_tree, 
+                search,
+                user_id 
+            },con);
+        }
+        if (!search 
+            && (entity.entity_type === PATH || entity.entity_type === ROOT)) {
+            // Если текущий entity = Папка или ROOT элемент
+            // достаем потомков
+            entity.childEntityList = await entityModel.getEntityChild(
+                {entity_id, user_id : req.userModel.user_id},con
+            );
+            // также достаем для timeline данные всех документов ниже по всему дереву
+            // только для типа entity = PATH
+            entity.remindNoteList = await commonNote.getRemindNoteList(
+                {user_id, entity_tree: entity.entity_tree}, con
+            );
+        }
+
+        res.send(entity);
+    } catch(error) {
+        next(error);
+    } finally {
+        con && await mysql.releaseConnection(con);
+    }
+});
+
+// Возвращает по указанному эелементу его историю изменений
+router.get('/:entity_id/activity', async (req, res, next) => {
+    const { entity_id } = req.params;
+    const { user_id } = req.userModel;
+    let con;
+    try {
+        // Проверки
+        if (!entity_id) throw "Missing entity_id in url params";
+
+        con = await mysql.getConnection();
+
+        // получаем сам entity по ID
+        // валидируем доступ если entity не найден - значит нет доступа
+        const entity = await entityModel.getEntity({entity_id,user_id},con);
+        if (!entity) throw 'Permission denied';
+        if (entity.user_role === READ) throw 'Permission denied, read only role';
+
+        const entityActivity = await entityModel.getEntityActivity({entity_id,user_id}, con);
+        
+        res.send(entityActivity);
+    } catch(error) {
+        next(error);
+    } finally {
+        con && await mysql.releaseConnection(con);
+    }
+});
+
+// Возвращает по указанному эелементу его пред версию
+router.get('/:entity_id/activity/:activity_id', async (req, res, next) => {
+    const { entity_id, activity_id } = req.params;
+    const { user_id } = req.userModel;
+    let con;
+    try {
+        // Проверки
+        if (!entity_id ) throw "Missing entity_id in url params";
+        if (!activity_id ) throw "Missing activity_id in url params";
+
+        con = await mysql.getConnection();
+
+        // получаем сам entity по ID
+        // валидируем доступ если entity не найден - значит нет доступа
+        const entity = await entityModel.getEntity({entity_id,user_id},con);
+        if (!entity) throw 'Permission denied';
+
+        entityActivityOld = await entityModel.getEntityOldVersion({entity_id, activity_id, user_id}, con);
+        res.send(entityActivityOld);
+    } catch(error) {
+        next(error);
+    } finally {
+        con && await mysql.releaseConnection(con);
+    }
+});
+
+// Сохраняет новую папку или новый файл
+router.post('/', async (req, res, next) => {
+    const { user_id } = req.userModel;
+    const { entity_name, entity_type, entity_note, parent_entity_id } = req.body;
+    let parentEntity;
+    let con;
+    try {
+        // Проверки
+        if (!entity_name) throw "Missing entity_name in body params";
+        if (!entity_type) throw "Missing entity_type in body params";
+        if (![PATH,FILE,GRID].includes(entity_type)) throw "Not valid entity_type in body params, only PATH or FILE or TABLE";
+
+        con = await mysql.getConnection();
+        await mysql.begin(con);
+
+        if (parent_entity_id) {
+            // если создают не в ROOT а в какую то папку
+            // блокируем entity for update
+            parentEntity = await entityModel.getEntity({entity_id : parent_entity_id,user_id}, con, true);
+            if (!parentEntity) throw 'Permission denied';
+            if (parentEntity.user_role === READ) throw 'Permission denied, read only role';
+        }
+
+        const entity_id = await entityModel.createEntity(
+            {entity_name, entity_type, entity_note, parent_entity_id, user_id},
+            parentEntity,
+            con
+        );        
+
+        res.send({entity_id : entity_id});
+    } catch(err) {
+        con && await mysql.rollback(con);
+        next(err);
+    } finally {
+        con && await mysql.commit(con) && await mysql.releaseConnection(con);
+    }
+});
+
+// Изменяет папку или файл
+router.post('/:entity_id', async (req, res, next) => {
+    const { entity_id } = req.params;
+    const { user_id } = req.userModel;
+    const { entity_name, entity_note } = req.body;
+    let con;
+    try {
+        // Проверки
+        if (!entity_id) throw "Missing entity_id in url params";
+
+        con = await mysql.getConnection();
+        await mysql.begin(con);
+
+        // получаем сам entity по ID
+        // валидируем доступ если entity не найден - значит нет доступа
+        // и вешаем for update см парам true
+        const entity = await entityModel.getEntity({entity_id,user_id},con, true);
+        if (!entity) throw 'Permission denied';
+        if (entity.user_role === READ) throw 'Permission denied, read only role';
+
+        await entityModel.updateEntity(
+            {entity_id, entity_name, entity_note, user_id, entity_type : entity.entity_type},entity,con);
+        res.send({entity_id : entity_id});
+    } catch(err) {
+        con && await mysql.rollback(con);
+        next(err);
+    } finally {
+        con && await mysql.commit(con) && await mysql.releaseConnection(con);
+    }
+});
+
+// Возвращает список прав для entity
+router.get('/:entity_id/users', async (req,res,next) => {
+    const { entity_id } = req.params;
+    const { user_id } = req.userModel;
+    let con;
+    try {
+        if (!entity_id) throw "Missing entity_id in url params";
+        
+        con = await mysql.getConnection();
+
+        // получаем сам entity по ID
+        // валидируем доступ если entity не найден - значит нет доступа
+        const entity = await entityModel.getEntity({entity_id,user_id},con);
+        if (!entity) throw 'Permission denied';
+        if (entity.user_role === READ) throw 'Permission denied, read only role';
+
+        const entityUsers = await entityModel.getEntityUsers(
+            {entity_id,parent_entity_id : entity.parent_entity_id, user_id, entity_tree : entity.entity_tree},
+            con
+        );
+
+        res.send(entityUsers);
+    } catch(error) {
+        next(error);
+    } finally {
+        con && await mysql.releaseConnection(con);
+    }
+});
+
+// Добавляет права на entity
+router.post('/:entity_id/users', async (req, res, next) => {
+    const { entity_id } = req.params;
+    const profile_user_id = req.userModel.user_id;
+    const { user_id, user_role } = req.body;
+    let con;
+    try {
+        // Проверки
+        if (!entity_id) throw "Missing entity_id in url params";
+        if (!user_id) throw "Missing user_id in body params";
+        if (!user_role) throw "Missing user_role in body params";
+        if (![READ,WRITE,OWNER].includes(user_role)) throw "Not valid user_role in body params, only WRITE or OWNER";
+
+        con = await mysql.getConnection();
+        await mysql.begin(con);
+
+        // получаем сам entity по ID
+        // валидируем доступ если entity не найден - значит нет доступа
+        // и вешаем for update см парам true
+        const entity = await entityModel.getEntity({entity_id,user_id : profile_user_id},con, true);
+        if (!entity) throw 'Permission denied';
+
+        // только OWNERам можно раздавать права
+        if (entity.user_role !== OWNER) throw 'Permission denied, you are not OWNER of this entity';
+
+        await entityModel.createEntityUser({
+                head_entity_id : entity_id, entity_tree : entity.entity_tree, user_id, user_role
+            }, con
+        );
+
+        res.send({entity_id : entity_id});
+    } catch(err) {
+        con && await mysql.rollback(con);
+        next(err);
+    } finally {
+        con && await mysql.commit(con) && await mysql.releaseConnection(con);
+    }
+});
+
+// Отбирает права на entity
+router.post('/:entity_id/users/revoke', async (req, res, next) => {
+    const { entity_id } = req.params;
+    const profile_user_id = req.userModel.user_id;
+    const { user_id } = req.body;
+    let con;
+    try {
+        // Проверки
+        if (!entity_id) throw "Missing entity_id in url params";
+        if (!user_id) throw "Missing user_id in body params";
+
+        con = await mysql.getConnection();
+        await mysql.begin(con);
+
+        // получаем сам entity по ID
+        // валидируем доступ если entity не найден - значит нет доступа
+        // и вешаем for update см парам true
+        const entity = await entityModel.getEntity({entity_id,user_id : profile_user_id},con, true);
+        if (!entity) throw 'Permission denied';
+
+        // только OWNERам можно раздавать права
+        if (entity.user_role !== OWNER) throw 'Permission denied, you are not OWNER of this entity';
+
+        // проверим можно ли менять права на тек уровне вложенности
+        const entityUsers = await entityModel.getEntityUsers(
+            {entity_id,parent_entity_id : entity.parent_entity_id, user_id},
+            con
+        );
+        for (const eUser of entityUsers) {
+            if (eUser.user_id == user_id && !eUser.is_editable) {
+                throw 'Permission denied, role not editable';
+            } else
+            if (eUser.user_id == user_id && eUser.user_role == OWNER) {
+                // Если пытаются забрать права у OWNER
+                // // сам у себя забрать нельзя
+                // if (entity.login === eUser.login)
+                //     throw 'Permission denied, you cant revoke for you self user';
+                // это может сделать только другой OWNER
+                if (!entity.user_role === OWNER)
+                    throw 'Permission denied, owner role not editable';
+            }
+        }
+
+        await entityModel.revokeEntityUser({entity_tree : entity.entity_tree, user_id}, con);
+
+        res.send({entity_id : entity_id});
+    } catch(err) {
+        con && await mysql.rollback(con);
+        next(err);
+    } finally {
+        con && await mysql.commit(con) && await mysql.releaseConnection(con);
+    }
+});
+
+// массовые действия
+// удаление группы документов
+router.post('/delete/all', async (req, res, next) => {
+    const { user_id } = req.userModel;
+    const selectedEntityList = req.body;
+    let con; 
+    try {
+        if (!Array.isArray(selectedEntityList)) throw 'Missing body array';
+
+        con = await mysql.getConnection();
+        await mysql.begin(con);
+
+        // перебираем все ID из body
+        for (const entity_id of selectedEntityList) {
+            const entity = await entityModel.getEntity({entity_id,user_id},con, true);
+            if (!entity) throw 'Permission denied';
+
+            if (entity.user_role === READ) throw 'Permission denied, read only role';
+
+            await entityModel.deleteEntity(
+                {entity_id,user_id, entity_name : entity.entity_name, entity_type : entity.entity_type},con);
+        }
+        res.send({ok : true});
+    } catch(err) {
+        con && await mysql.rollback(con);
+        next(err);
+    } finally {
+        con && await mysql.commit(con) && await mysql.releaseConnection(con);
+    }
+});
+
+// массовые действия
+// Перенос / копирование документов
+// req.body - { to_entity_id : 123, selectedEntityIdList : [1,2,3,4,5]}
+//   to_entity_id - в какой entity переносим
+//   selectedEntityIdList - массив примитивов какие элементы хотим перенести
+router.post('/move/all', async (req, res, next) => {
+    const entity_id = req.body.to_entity_id;
+    const { user_id } = req.userModel;
+    const selectedEntityList = req.body.selectedEntityIdList;
+    let con;
+    try {
+
+        // Проверки
+        if (!Array.isArray(selectedEntityList)) throw 'Missing body array';
+        con = await mysql.getConnection();
+        await mysql.begin(con);
+
+        // получаем сам entity по ID в который будем все сохранять
+        // валидируем доступ если entity не найден - значит нет доступа
+        // и вешаем for update см парам true
+        const targetEntity = await entityModel.getEntity({entity_id,user_id},con, true);
+        if (!targetEntity) throw 'Permission denied';
+        if (targetEntity.entity_type === ROOT) throw 'Permission denied, you cant move to ROOT path';
+        if (targetEntity.user_role === READ) throw 'Permission denied, read only role';
+        const targetEntityUsers = await entityModel.getEntityUsers({entity_id : targetEntity.entity_id}, con);
+        
+        // перебираем все ID из body
+        for (const selectedEntityId of selectedEntityList) {
+            // проверяем доступы каждого переданного документа
+            // вешаем блоки на каждую запись
+            const selectedEntity = await entityModel.getEntity({entity_id : selectedEntityId,user_id},con, true);
+            if (!selectedEntity) throw 'Permission denied';
+            if (selectedEntity.user_role === READ) throw 'Permission denied, read only role';
+
+            // Необходимо убедиться, что права target пути не ущемляет права тех
+            // кто имеет доступ к selected пути
+            // targetEntityUsers - список прав в target пути
+            // selectedEntityUsers - список прав в selected пути
+            const selectedEntityUsers = await entityModel.getEntityUsers({entity_id : selectedEntityId},con);
+            const isAllowAction = selectedEntityUsers.every((selectedUser) => {
+                return targetEntityUsers.some((targetUser) => {
+                    return targetUser.login === selectedUser.login 
+                            && targetUser.user_role === selectedUser.user_role
+                })
+            });
+            // только для роли WRITE
+            // потому что WRITE не имеет право менять / добавлять права
+            if (selectedEntity.user_role === WRITE) {
+                if (!isAllowAction) throw 'Permission denied, user roles revoke exception';
+            }
+
+            // отбираем все права вниз по дереву
+            await entityModel.revokeEntityUser({entity_tree : selectedEntity.entity_tree},con);
+            for (const targetEntityUser of targetEntityUsers) {
+                // создаем права для каждого, кто находится на верхнем уровне
+                await entityModel.createEntityUser({
+                    entity_tree : selectedEntity.entity_tree, 
+                    user_id : targetEntityUser.user_id, 
+                    user_role : targetEntityUser.user_role
+                    },con
+                );
+            }
+            //
+            // игнорируем если просят создать петлю
+            // когда переносят себя в себя по уровню дерева ниже
+            if (targetEntity.entity_tree.startsWith(selectedEntity.entity_tree)) {
+                console.log("Ignore self parent tree");
+                // в ошибку не падаем
+                continue;
+            }
+            // достаем всех потомков по дереву для каждого переданного ID
+            // + вешам блокировку для защиты от тех кто в этот момент вдруг решит что то поменять
+            const entityAllChilds = await entityModel.getEntityList(
+                {entity_tree : selectedEntity.entity_tree},con, true
+            );
+            
+            // обработка выбранного элемента 
+            // формируем новое дерево родителем которого будет являться targetEntity
+            selectedEntity.old_entity_tree = selectedEntity.entity_tree;
+            selectedEntity.entity_tree = targetEntity.entity_tree + selectedEntityId + "/";
+
+            selectedEntity.parent_entity_id = targetEntity.entity_id;
+            await entityModel.updateEntity(
+                {
+                    entity_tree : selectedEntity.entity_tree, 
+                    parent_entity_id : targetEntity.entity_id,
+                    entity_id : selectedEntityId
+                }, 
+                selectedEntity,
+                con
+            );
+
+            for (const childEntity of entityAllChilds) {
+                if (childEntity.entity_id == selectedEntity.entity_id) {
+                    continue;
+                }
+                // искать именно с начала строки и отрезать именно с начала строки
+                let newEntityTree = "";
+                if (childEntity.entity_tree.startsWith(selectedEntity.old_entity_tree)) {
+                    newEntityTree = childEntity.entity_tree.slice(selectedEntity.old_entity_tree.length);
+                    newEntityTree = "" + selectedEntity.entity_tree + newEntityTree;
+                }
+                // врядли такое произойдет, но проверить для целостности данных все же стоит
+                if (!newEntityTree) throw "failed generate new entity_tree";
+                
+                await entityModel.updateEntity(
+                    {
+                        entity_tree : newEntityTree, 
+                        entity_id : childEntity.entity_id
+                    }, 
+                    childEntity,
+                    con
+                );
+            }
+        }
+        res.send({ok : true});
+    } catch(err) {
+        con && await mysql.rollback(con);
+        next(err);
+    } finally {
+        con && await mysql.commit(con) && await mysql.releaseConnection(con);
+    }
+});
+
+// Возврашает список комментариев к entity
+router.get('/:entity_id/note/:note_id?', async (req,res,next) => {
+    const { entity_id, note_id } = req.params;
+    const { limit, offset } = req.query;
+    const { user_id } = req.userModel;
+    let con;
+    try {
+        if (!entity_id) throw "Missing entity_id in url params";
+        
+        con = await mysql.getConnection();
+
+        // получаем сам entity по ID
+        // валидируем доступ если entity не найден - значит нет доступа
+        const entity = await entityModel.getEntity({entity_id,user_id},con);
+        if (!entity) throw 'Permission denied';
+        
+        if (note_id) {
+            const note = await commonNote.getNote({
+                user_id, entity_id,note_id }, con);
+            if (!note) {
+                throw "Note not found";
+            }
+            res.send(note);
+        } else {
+            const noteList = await commonNote.getNoteList({
+                user_id, entity_id, limit : limit?limit:50, offset : offset?offset:0}, con);
+            res.send(noteList);
+        }
+    } catch(error) {
+        next(error);
+    } finally {
+        con && await mysql.releaseConnection(con);
+    }
+});
+
+// Создать комментарий
+router.post('/:entity_id/note', async (req, res, next) => {
+    const { user_id } = req.userModel;
+    const { entity_id } = req.params;
+    const { remind_on, note, variant, note_type, note_2, is_remind } = req.body;
+    // note_type - тип ноты, FILE / COMMENT
+    // note_2 - url на файл
+    let con;
+    try {
+        // проверки
+        if (![commonNote.CONSTANTS.TYPE_COMMENT,commonNote.CONSTANTS.TYPE_FILE]
+                .includes(note_type)) {
+            throw "Not valid note_type in body params, only COMMENT or FILE";
+        }
+        if (!note) { throw "Missing note in body params"; }
+        if (note_type === commonNote.CONSTANTS.TYPE_FILE && !note_2 ) { 
+            throw "Missing note_2 in body params for FILE note_type"; 
+        }
+
+        con = await mysql.getConnection();
+        await mysql.begin(con);
+        
+        // получаем сам entity по ID
+        // валидируем доступ если entity не найден - значит нет доступа
+        // и вешаем for update см парам true
+        const entity = await entityModel.getEntity({entity_id,user_id},con, true);
+        if (!entity) throw 'Permission denied';
+        if (entity.user_role === READ) throw 'Permission denied, read only role';
+        
+        await commonNote.create(con, {values: {
+            user_id,
+            remind_on,
+            is_remind,
+            note,
+            variant,
+            note_type,
+            note_2,
+            entity_id,
+            created_on : {expression : "now()"}
+        }});
+
+        // await commonNote.createNote({
+        //     is_remind,
+        //     user_id,
+        //     entity_id,
+        //     remind_on,
+        //     note,
+        //     variant,
+        //     note_type,
+        //     note_2}, 
+        // con);
+
+        res.send({ok:true});
+    } catch(error) {
+        con && await mysql.rollback(con);
+        next(error);
+    } finally {
+        con && await mysql.commit(con) && await mysql.releaseConnection(con);
+    }
+});
+
+// Изменить комментарий
+router.post('/:entity_id/note/:note_id', async (req, res, next) => {
+    const { user_id } = req.userModel;
+    const { entity_id, note_id } = req.params;
+    const { remind_on, note, variant, is_deleted, note_type, note_2, is_remind } = req.body;
+    // note_type - тип ноты, FILE / COMMENT
+    // note_2 - url на файл
+    let con;
+    try {
+        // проверки
+        if (![commonNote.CONSTANTS.TYPE_COMMENT,commonNote.CONSTANTS.TYPE_FILE]
+                .includes(note_type)) {
+            throw "Not valid note_type in body params, only COMMENT or FILE";
+        }
+        if (!note) { throw "Missing note in body params"; }
+        if (note_type === commonNote.CONSTANTS.TYPE_FILE && !note_2 ) { 
+            throw "Missing note_2 in body params for FILE note_type"; 
+        }
+        con = await mysql.getConnection();
+        await mysql.begin(con);
+        
+        // получаем сам entity по ID
+        // валидируем доступ если entity не найден - значит нет доступа
+        // и вешаем for update см парам true
+        const entity = await entityModel.getEntity({entity_id,user_id},con, true);
+        if (!entity) throw 'Permission denied';
+        if (entity.user_role === READ) throw 'Permission denied, read only role';
+
+        const common_note = await commonNote.getNote({note_id}, con);
+        if (entity.user_role === OWNER || common_note.user_id === user_id) {
+
+        } else {
+            // изменять могут либо свои комменты либо если OWNER
+            throw 'Permission denied';
+        }
+        await commonNote.update(con, {
+            values: {
+                remind_on,
+                is_remind,
+                note,
+                variant,
+                note_2,
+                is_deleted,
+                updated_on : { expression : "now()" },
+                updated_by : user_id
+            },
+            where : { note_id, entity_id }
+        });
+
+        // await commonNote.updateNote({
+        //     user_id,
+        //     note_id, 
+        //     remind_on,
+        //     is_remind,
+        //     note,
+        //     variant,
+        //     is_deleted,
+        //     note_type,
+        //     note_2}, 
+        // con);
+
+        res.send({ok:true});
+    } catch(error) {
+        con && await mysql.rollback(con);
+        next(error);
+    } finally {
+        con && await mysql.commit(con) && await mysql.releaseConnection(con);
+    }
+});
+
+module.exports = router;
